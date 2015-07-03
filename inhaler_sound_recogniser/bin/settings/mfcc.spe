@@ -1,0 +1,23 @@
+Frame: 320
+Shift: 80
+Windowing: 1
+Emphasize: 1
+Pwr spec: 1
+Channels: 26
+Bands: 1
+Low cut: -1
+High cut: -1
+Mel: 1
+Log amp: 1
+DCT: 13
+C0: 1
+Lifter: 1
+Mean rem: 0
+DC-Filter: 0
+Delta (+-): 3
+DelDel (+-): 2
+Del only: 0
+In wave: wav
+Out spec: mfc
+
+// mfcc with delta & delta delta

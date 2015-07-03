@@ -1,0 +1,40 @@
+//////////////////////////
+// Shared Settings 
+//////////////////////////
+// Code
+Code.FileName="c:/train/model/code.sb"
+// Vocabulary
+Vocabulary.VocabularyFileName="c:/train/cough.voc"
+Vocabulary.StateFileName="c:/train/model/state.sb"
+Vocabulary.MixtureFileName="c:/train/model/mix.sb"
+// Bigram
+Bigram.FileName="c:/train/cough.bgm"
+Bigram.FixedPenalty=120.0
+Bigram.CrossUnitPenalty=0.0
+// Logging
+Log.LogLevel=LOG_INFO
+
+//////////////////////////
+// Decoding Settings 
+//////////////////////////
+Decoding.BufferSize=10
+Decoding.ElementSize=50000
+Decoding.PruningThreshold=500.0
+Decoding.SamplingRate=16000
+Decoding.NumThreads=4
+// Viterbi
+Viterbi.SkipState=0
+// Confidence Scoring
+Score.AcceptanceThreshold=0.0
+Score.UseGeometricConfidenceScore=true
+Transcription.LabelFormat=Audacity
+
+//////////////////////////
+// Training Settings 
+//////////////////////////
+// Training settings are specified via -t/--training argument
+
+//////////////////////////
+// Spectral Analysis Settings 
+//////////////////////////
+SpeechAnalysis.NumThreads=8

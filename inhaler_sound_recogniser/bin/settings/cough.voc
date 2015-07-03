@@ -1,0 +1,14 @@
+Cough_Male_E_1
+Cough_Male_E_3
+Cough_Female_E_1
+Cough_Female_E_3
+ClearT
+Filler
+Silence
+Noise
+MicBlow
+
+I-: ClearT Filler Silence Noise MicBlow 
+Cough-: Cough_Male_E_1 Cough_Male_E_3 Cough_Female_E_1 Cough_Female_E_3 
+
+MinDur-: 80 180 95 200 -1 -1 -1 -1 -1 

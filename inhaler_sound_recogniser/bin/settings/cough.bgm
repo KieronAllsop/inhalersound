@@ -1,0 +1,12 @@
+Cough_Male_E_1		Cough_Male_E_1 Cough_Female_E_1 Cough_Male_E_3 Cough_Female_E_3 ClearT Filler Silence Noise MicBlow
+Cough_Male_E_3		Cough_Male_E_1 Cough_Female_E_1 Cough_Male_E_3 Cough_Female_E_3 ClearT Filler Silence Noise MicBlow
+Cough_Female_E_1	Cough_Male_E_1 Cough_Female_E_1 Cough_Male_E_3 Cough_Female_E_3 ClearT Filler Silence Noise MicBlow
+Cough_Female_E_3	Cough_Male_E_1 Cough_Female_E_1 Cough_Male_E_3 Cough_Female_E_3 ClearT Filler Silence Noise MicBlow
+ClearT				Cough_Male_E_1 Cough_Female_E_1 Cough_Male_E_3 Cough_Female_E_3 ClearT Filler Silence Noise MicBlow
+Filler				Cough_Male_E_1 Cough_Female_E_1 Cough_Male_E_3 Cough_Female_E_3 ClearT Filler Silence Noise MicBlow
+Silence				Cough_Male_E_1 Cough_Female_E_1 Cough_Male_E_3 Cough_Female_E_3 ClearT Filler Silence Noise MicBlow
+Noise				Cough_Male_E_1 Cough_Female_E_1 Cough_Male_E_3 Cough_Female_E_3 ClearT Filler Silence Noise MicBlow
+MicBlow				Cough_Male_E_1 Cough_Female_E_1 Cough_Male_E_3 Cough_Female_E_3 ClearT Filler Silence Noise MicBlow
+
+B-: Cough_Male_E_1 Cough_Female_E_1 Cough_Male_E_3 Cough_Female_E_3 ClearT Filler Silence Noise MicBlow
+E-: Cough_Male_E_1 Cough_Female_E_1 Cough_Male_E_3 Cough_Female_E_3 ClearT Filler Silence Noise MicBlow

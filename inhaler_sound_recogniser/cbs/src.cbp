@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="./src/sconscript" />
+		<Option makefile="sconstruct" />
+		<Option makefile_is_custom="1" />
+		<Option execution_dir="../../DevelopedSystem" />
+		<MakeCommands>
+			<Build command="scons --standard-output --scripts=$SCRIPTS --$VARIANT --toolchains=$TOOLCHAINS $TEST" />
+			<CompileFile command="" />
+			<Clean command="scons --standard-output --scripts=$SCRIPTS --$VARIANT --toolchains=$TOOLCHAINS $TEST -c" />
+			<DistClean command="" />
+			<AskRebuildNeeded command="" />
+			<SilentBuild command="" />
+		</MakeCommands>
+		<Build>
+			<Target title="gcc49-dbg">
+				<Option working_dir="../../DevelopedSystem/.build/src/gcc49/dbg/final" />
+				<Option object_output="../../DevelopedSystem/.build/src/gcc49/dbg/working" />
+				<Option type="1" />
+				<Compiler>
+				</Compiler>
+				<Environment>
+					<Variable name="SCRIPTS" value="./src/sconscript" />
+					<Variable name="TOOLCHAINS" value="gcc49" />
+					<Variable name="VARIANT" value="dbg" />					<Variable name="TEST" value="" />
+				</Environment>
+				<MakeCommands>
+					<Build command="" />
+					<CompileFile command="" />
+					<Clean command="" />
+					<DistClean command="" />
+					<AskRebuildNeeded command="" />
+					<SilentBuild command="" />
+				</MakeCommands>
+			</Target>
+			<Target title="gcc49-dbg--test">
+				<Option working_dir="../../DevelopedSystem/.build/src/gcc49/dbg/final" />
+				<Option object_output="../../DevelopedSystem/.build/src/gcc49/dbg/working" />
+				<Option type="1" />
+				<Compiler>
+				</Compiler>
+				<Environment>
+					<Variable name="SCRIPTS" value="./src/sconscript" />
+					<Variable name="TOOLCHAINS" value="gcc49" />
+					<Variable name="VARIANT" value="dbg" />					<Variable name="TEST" value="--test" />
+				</Environment>
+				<MakeCommands>
+					<Build command="" />
+					<CompileFile command="" />
+					<Clean command="" />
+					<DistClean command="" />
+					<AskRebuildNeeded command="" />
+					<SilentBuild command="" />
+				</MakeCommands>
+			</Target>
+			<Target title="gcc49-rel">
+				<Option working_dir="../../DevelopedSystem/.build/src/gcc49/dbg/final" />
+				<Option object_output="../../DevelopedSystem/.build/src/gcc49/dbg/working" />
+				<Option type="1" />
+				<Compiler>
+				</Compiler>
+				<Environment>
+					<Variable name="SCRIPTS" value="./src/sconscript" />
+					<Variable name="TOOLCHAINS" value="gcc49" />
+					<Variable name="VARIANT" value="rel" />					<Variable name="TEST" value="" />
+				</Environment>
+				<MakeCommands>
+					<Build command="" />
+					<CompileFile command="" />
+					<Clean command="" />
+					<DistClean command="" />
+					<AskRebuildNeeded command="" />
+					<SilentBuild command="" />
+				</MakeCommands>
+			</Target>
+			<Target title="gcc49-rel--test">
+				<Option working_dir="../../DevelopedSystem/.build/src/gcc49/dbg/final" />
+				<Option object_output="../../DevelopedSystem/.build/src/gcc49/dbg/working" />
+				<Option type="1" />
+				<Compiler>
+				</Compiler>
+				<Environment>
+					<Variable name="SCRIPTS" value="./src/sconscript" />
+					<Variable name="TOOLCHAINS" value="gcc49" />
+					<Variable name="VARIANT" value="rel" />					<Variable name="TEST" value="--test" />
+				</Environment>
+				<MakeCommands>
+					<Build command="" />
+					<CompileFile command="" />
+					<Clean command="" />
+					<DistClean command="" />
+					<AskRebuildNeeded command="" />
+					<SilentBuild command="" />
+				</MakeCommands>
+			</Target>
+			<Target title="gcc51-dbg">
+				<Option working_dir="../../DevelopedSystem/.build/src/gcc49/dbg/final" />
+				<Option object_output="../../DevelopedSystem/.build/src/gcc49/dbg/working" />
+				<Option type="1" />
+				<Compiler>
+				</Compiler>
+				<Environment>
+					<Variable name="SCRIPTS" value="./src/sconscript" />
+					<Variable name="TOOLCHAINS" value="gcc51" />
+					<Variable name="VARIANT" value="dbg" />					<Variable name="TEST" value="" />
+				</Environment>
+				<MakeCommands>
+					<Build command="" />
+					<CompileFile command="" />
+					<Clean command="" />
+					<DistClean command="" />
+					<AskRebuildNeeded command="" />
+					<SilentBuild command="" />
+				</MakeCommands>
+			</Target>
+			<Target title="gcc51-dbg--test">
+				<Option working_dir="../../DevelopedSystem/.build/src/gcc49/dbg/final" />
+				<Option object_output="../../DevelopedSystem/.build/src/gcc49/dbg/working" />
+				<Option type="1" />
+				<Compiler>
+				</Compiler>
+				<Environment>
+					<Variable name="SCRIPTS" value="./src/sconscript" />
+					<Variable name="TOOLCHAINS" value="gcc51" />
+					<Variable name="VARIANT" value="dbg" />					<Variable name="TEST" value="--test" />
+				</Environment>
+				<MakeCommands>
+					<Build command="" />
+					<CompileFile command="" />
+					<Clean command="" />
+					<DistClean command="" />
+					<AskRebuildNeeded command="" />
+					<SilentBuild command="" />
+				</MakeCommands>
+			</Target>
+			<Target title="gcc51-rel">
+				<Option working_dir="../../DevelopedSystem/.build/src/gcc49/dbg/final" />
+				<Option object_output="../../DevelopedSystem/.build/src/gcc49/dbg/working" />
+				<Option type="1" />
+				<Compiler>
+				</Compiler>
+				<Environment>
+					<Variable name="SCRIPTS" value="./src/sconscript" />
+					<Variable name="TOOLCHAINS" value="gcc51" />
+					<Variable name="VARIANT" value="rel" />					<Variable name="TEST" value="" />
+				</Environment>
+				<MakeCommands>
+					<Build command="" />
+					<CompileFile command="" />
+					<Clean command="" />
+					<DistClean command="" />
+					<AskRebuildNeeded command="" />
+					<SilentBuild command="" />
+				</MakeCommands>
+			</Target>
+			<Target title="gcc51-rel--test">
+				<Option working_dir="../../DevelopedSystem/.build/src/gcc49/dbg/final" />
+				<Option object_output="../../DevelopedSystem/.build/src/gcc49/dbg/working" />
+				<Option type="1" />
+				<Compiler>
+				</Compiler>
+				<Environment>
+					<Variable name="SCRIPTS" value="./src/sconscript" />
+					<Variable name="TOOLCHAINS" value="gcc51" />
+					<Variable name="VARIANT" value="rel" />					<Variable name="TEST" value="--test" />
+				</Environment>
+				<MakeCommands>
+					<Build command="" />
+					<CompileFile command="" />
+					<Clean command="" />
+					<DistClean command="" />
+					<AskRebuildNeeded command="" />
+					<SilentBuild command="" />
+				</MakeCommands>
+			</Target>
+		</Build>
+		<Unit filename="../sconstruct" />
+		<Unit filename="../src/Bigram.cpp" />
+		<Unit filename="../src/Bigram.h" />
+		<Unit filename="../src/BufferedASignal.cpp" />
+		<Unit filename="../src/BufferedASignal.h" />
+		<Unit filename="../src/Code.cpp" />
+		<Unit filename="../src/Code.h" />
+		<Unit filename="../src/Estimate.cpp" />
+		<Unit filename="../src/Estimate.h" />
+		<Unit filename="../src/FeatureVectorConsumer.h" />
+		<Unit filename="../src/FeatureVectorLoader.h" />
+		<Unit filename="../src/GMM.h" />
+		<Unit filename="../src/Global.h" />
+		<Unit filename="../src/HTKData.cpp" />
+		<Unit filename="../src/HTKData.h" />
+		<Unit filename="../src/Helper.cpp" />
+		<Unit filename="../src/Helper.h" />
+		<Unit filename="../src/Logger.h" />
+		<Unit filename="../src/Model.cpp" />
+		<Unit filename="../src/Model.h" />
+		<Unit filename="../src/RunMode.h" />
+		<Unit filename="../src/SIG.h" />
+		<Unit filename="../src/Score.cpp" />
+		<Unit filename="../src/Score.h" />
+		<Unit filename="../src/ScoreMode.cpp" />
+		<Unit filename="../src/ScoreMode.h" />
+		<Unit filename="../src/Semaphore.h" />
+		<Unit filename="../src/SpecAnalysis.cpp" />
+		<Unit filename="../src/SpecAnalysis.h" />
+		<Unit filename="../src/SpecAnalysisMode.cpp" />
+		<Unit filename="../src/SpecAnalysisMode.h" />
+		<Unit filename="../src/Spectra.cpp" />
+		<Unit filename="../src/Spectra.h" />
+		<Unit filename="../src/TestMode.cpp" />
+		<Unit filename="../src/TestMode.h" />
+		<Unit filename="../src/ThreadedDecoder.cpp" />
+		<Unit filename="../src/ThreadedDecoder.h" />
+		<Unit filename="../src/TrainMode.cpp" />
+		<Unit filename="../src/TrainMode.h" />
+		<Unit filename="../src/Transcribe.cpp" />
+		<Unit filename="../src/Transcribe.h" />
+		<Unit filename="../src/ViterbiDecoder.cpp" />
+		<Unit filename="../src/ViterbiDecoder.h" />
+		<Unit filename="../src/Vocabulary.cpp" />
+		<Unit filename="../src/Vocabulary.h" />
+		<Unit filename="../src/WAVData.cpp" />
+		<Unit filename="../src/WAVData.h" />
+		<Unit filename="../src/main.cpp" />
+		<Unit filename="../src/sconscript" />
+	</Project>
+</CodeBlocks_project_file>

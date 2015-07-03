@@ -1,0 +1,25 @@
+Continuous: 1
+Vec Size: -1
+Frm Period: 80
+States: -1
+State Struct: 1
+Mixtures: -1
+Mix Struct: 1
+Tie State: 0
+Skip State: 0
+Mdl Iter: 20 15 0
+Tr Streams: 1
+Te Streams: 1
+Min Var: 0.0001
+Mul Penalty: 1
+Add Penalty: 0
+N-best: 1 1
+Dur Win: 0
+L Model: 
+Data Ext: mfc
+Label Ext: mlf
+Output Dir: c:/train
+Model Dir: model
+Master Label: c:/train/train.trn.mlf
+Double Mixtures: 1
+Max Audio Dur: 1750

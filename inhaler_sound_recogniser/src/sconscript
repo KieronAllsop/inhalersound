@@ -1,0 +1,57 @@
+Import('env')
+
+Product = "recogniser"
+Major   = "1"
+Minor   = "0"
+
+Version = "{product_name} {major_ver}.{minor_ver}".format(
+        product_name = Product,
+        major_ver = Major,
+        minor_ver = Minor
+)
+
+sources = [
+    'main.cpp',
+    'Bigram.cpp',
+    'BufferedASignal.cpp',
+    'Code.cpp',
+    'Estimate.cpp',
+    'Helper.cpp',
+    'HTKData.cpp',
+    'Model.cpp',
+    'Score.cpp',
+    'ScoreMode.cpp',
+    'SpecAnalysis.cpp',
+    'SpecAnalysisMode.cpp',
+    'Spectra.cpp',
+    'TestMode.cpp',
+    'ThreadedDecoder.cpp',
+    'TrainMode.cpp',
+    'Transcribe.cpp',
+    'ViterbiDecoder.cpp',
+    'Vocabulary.cpp',
+    'WAVData.cpp'
+]
+
+objects = env.Compile( sources )
+
+version_file = env.CreateVersion(
+        'version.cpp',
+        objects,
+        [ 'recogniser' ],
+        Version,
+        env['base_path']
+)
+
+env.AppendUnique( STATICLIBS =
+        env.BoostStaticLibs( [
+            'atomic',
+            'chrono',
+            'date_time',
+            'filesystem',
+            'system',
+            'thread'
+        ] )
+)
+
+env.Build( 'recogniser', [ objects, version_file ] )
