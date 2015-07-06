@@ -1,0 +1,21 @@
+Import('env')
+
+env.EnableQt5Modules( [
+        'QtCore',
+        'QtWidgets',
+        'QtGui',
+] )
+
+sources = [
+    env.Glob( 'application/*.cpp' ),
+    env.Glob( 'qt_windows/*.cpp' ),
+]
+
+uifiles = [
+    env.Glob( 'qt_windows/*.ui' ),
+]
+
+env.Uic5( uifiles )
+
+env.Build( 'inhaler_sound', sources )
+
