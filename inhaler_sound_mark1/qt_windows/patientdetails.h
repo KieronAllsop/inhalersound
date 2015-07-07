@@ -1,10 +1,24 @@
+// G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G
 #ifndef PATIENTDETAILS_H
 #define PATIENTDETAILS_H
+// G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G
 
+// I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
+// Standard Library Includes
+// none
+
+// Qt Includes
 #include <QDialog>
 
-namespace Ui {
-class PatientDetails;
+// Custom Includes
+#include "data_model/schema.hpp"
+
+// I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
+
+
+namespace Ui
+{
+    class PatientDetails;
 }
 
 class PatientDetails : public QDialog
@@ -12,11 +26,18 @@ class PatientDetails : public QDialog
     Q_OBJECT
 
 public:
-    explicit PatientDetails(QWidget *parent = 0);
-    ~PatientDetails();
+
+    using shared_schema_t = std::shared_ptr<data_model::schema>;
+
+    explicit PatientDetails ( const shared_schema_t& schema,
+                              QWidget* parent = 0);
+
+             ~PatientDetails();
 
 private:
-    Ui::PatientDetails *ui;
+    Ui::PatientDetails* ui_;
+    shared_schema_t schema_;
 };
 
+// G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G
 #endif // PATIENTDETAILS_H

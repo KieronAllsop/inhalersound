@@ -12,10 +12,11 @@
 
 // Custom Includes
 #include "data_model/schema.hpp"
-#include "patientdetails.h"
+#include "qt_windows/patientdetails.h"
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
- 
+
+
 // This is only needed because we are using a "ui" file to load information
 // about the MainWindow when we call setupUi( this ) in the constructor. This
 // is a forward declaration for a class that will be generated from processing
@@ -25,7 +26,6 @@ namespace Ui
     class MainWindow;
 }    
     
-
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -33,12 +33,11 @@ class MainWindow : public QMainWindow
 public:
     
     using shared_schema_t = std::shared_ptr<data_model::schema>;
+       
+    explicit MainWindow ( const shared_schema_t& schema,
+                          QWidget* parent = 0 );
     
-    
-    explicit        MainWindow      ( const shared_schema_t& schema,
-                                      QWidget* parent = 0 );
-    
-                    ~MainWindow     ();
+             ~MainWindow();
     
 private slots:
     void on_pushButton_clicked();

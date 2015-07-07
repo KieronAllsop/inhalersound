@@ -93,24 +93,12 @@ public:
         const quince::query<userlogin> Query = Userlogins_.where(Userlogins_->username==InputUsername);
         const auto User = Query.begin();
 
-        bool isValidated = false;
         if( User != Query.end() )
         {
-            const auto& Password = User->password;
-            if (Password==InputPassword)
-            {
-                isValidated = true;
-            }
-            else
-            {
-                isValidated = false;
-            }
+            if (InputPassword==User->password)
+            return true;
         }
-      //  if (Query.empty())
-      //  {
-      //      isValidated = false;
-      //  }
-        return isValidated;
+        return false;
     }
 
     void clear_all_tables()

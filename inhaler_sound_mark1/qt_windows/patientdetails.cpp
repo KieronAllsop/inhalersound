@@ -1,14 +1,28 @@
-#include "patientdetails.h"
-#include "qt_windows/ui_patientdetails.h"
+// I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
+// Qt Includes
+// None
 
-PatientDetails::PatientDetails(QWidget *parent) :
+// Header Include
+#include "qt_windows/patientdetails.h"
+
+// Qt UI Generated Include
+#include "qt_windows/ui_patientdetails.h"
+// I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
+
+
+PatientDetails::
+PatientDetails
+(   const shared_schema_t& schema,
+    QWidget* parent) :
     QDialog(parent),
-    ui(new Ui::PatientDetails)
+    ui_(new Ui::PatientDetails),
+    schema_( schema )
 {
-    ui->setupUi(this);
+    ui_->setupUi(this);
 }
 
-PatientDetails::~PatientDetails()
+PatientDetails::
+~PatientDetails()
 {
-    delete ui;
+    delete ui_;
 }
