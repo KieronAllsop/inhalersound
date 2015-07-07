@@ -87,13 +87,16 @@ public:
         }
     }
 
-    bool valid_login(QString username, QString password)
+    bool valid_login(std::string input_username, std::string input_password)
     {
-        extern quince::table<userlogin> userlogins;
-        //const quince::query<userlogin> valid_login = userlogins.select
+        const quince::query<userlogin> valid_login = Userlogins_.where(Userlogins_->username==input_username);
+        //if (valid_login)
+        //{
+        //    const quince::query<userlogin> valid_login = Userlogins_.where(Userlogins_->username==input_username);
+        //}
         return true;
     }
-    
+
     void clear_all_tables()
     {
         Users_.remove();

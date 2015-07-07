@@ -34,11 +34,15 @@ MainWindow::
 
 void MainWindow::on_pushButton_clicked()
 {
-    QString username, password;
-    username=ui_->lineEdit_username->text();
-    password=ui_->lineEdit_password->text();
+    QString usernameQtS, passwordQtS;
+    usernameQtS=ui_->lineEdit_username->text();
+    passwordQtS=ui_->lineEdit_password->text();
 
-    if(schema_->valid_login(username, password))
+    std::string usernameStd, passwordStd;
+    usernameStd = usernameQtS.toStdString();
+    passwordStd = usernameQtS.toStdString();
+
+    if(schema_->valid_login(usernameStd, passwordStd))
     {
 
     }
