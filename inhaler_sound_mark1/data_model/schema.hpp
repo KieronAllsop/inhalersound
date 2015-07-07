@@ -87,14 +87,30 @@ public:
         }
     }
 
-    bool valid_login(std::string input_username, std::string input_password)
+    // validate user based on input data
+    bool validate_user(std::string InputUsername, std::string InputPassword)
     {
-        const quince::query<userlogin> valid_login = Userlogins_.where(Userlogins_->username==input_username);
-        //if (valid_login)
-        //{
-        //    const quince::query<userlogin> valid_login = Userlogins_.where(Userlogins_->username==input_username);
-        //}
-        return true;
+        const quince::query<userlogin> Query = Userlogins_.where(Userlogins_->username==InputUsername);
+        const auto User = Query.begin();
+
+        bool isValidated = false;
+        if( User != Query.end() )
+        {
+            const auto& Password = User->password;
+            if (Password==InputPassword)
+            {
+                isValidated = true;
+            }
+            else
+            {
+                isValidated = false;
+            }
+        }
+      //  if (Query.empty())
+      //  {
+      //      isValidated = false;
+      //  }
+        return isValidated;
     }
 
     void clear_all_tables()

@@ -34,17 +34,23 @@ MainWindow::
 
 void MainWindow::on_pushButton_clicked()
 {
-    QString usernameQtS, passwordQtS;
-    usernameQtS=ui_->lineEdit_username->text();
-    passwordQtS=ui_->lineEdit_password->text();
+    QString username, password;
+    username=ui_->lineEdit_username->text();
+    password=ui_->lineEdit_password->text();
 
-    std::string usernameStd, passwordStd;
-    usernameStd = usernameQtS.toStdString();
-    passwordStd = usernameQtS.toStdString();
+    auto valid_user = schema_->validate_user( username.toStdString(), password.toStdString() );
 
-    if(schema_->valid_login(usernameStd, passwordStd))
+    if( valid_user )
     {
-
+         ui_->label->setText("success");
+         this->hide();
+         PatientDetails patientDetails;
+         patientDetails.setModal(true);
+         patientDetails.exec();
+    }
+    else
+    {
+         ui_->label->setText("try again");
     }
 
 }

@@ -12,7 +12,8 @@ sources = [
 ]
 
 uifiles = [
-    env.Glob( 'qt_windows/*.ui' ),
+        'qt_windows/mainwindow.ui',
+        'qt_windows/patientdetails.ui',
 ]
 
 env.Uic5( uifiles )

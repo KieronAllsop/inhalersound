@@ -13,10 +13,13 @@ TEMPLATE = app
 
 
 SOURCES += application/main.cpp \
-           qt_windows/mainwindow.cpp
+           qt_windows/mainwindow.cpp \
+           qt_windows/patientdetails.cpp
 
 
 HEADERS += qt_windows/mainwindow.h \
-           data_model/schema.hpp
+           data_model/schema.hpp \
+           qt_windows/patientdetails.h
 
-FORMS   += qt_windows/mainwindow.ui
+FORMS   += qt_windows/mainwindow.ui \
+           qt_windows/patientdetails.ui

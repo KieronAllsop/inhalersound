@@ -12,6 +12,7 @@
 
 // Custom Includes
 #include "data_model/schema.hpp"
+#include "patientdetails.h"
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
  
