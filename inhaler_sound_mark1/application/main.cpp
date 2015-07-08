@@ -7,7 +7,7 @@
 #include <quince_postgresql/database.h>
 
 // Custom Includes
-#include "qt_windows/mainwindow.h"
+#include "qt_windows/login.h"
 #include "data_model/schema.hpp"
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
@@ -26,7 +26,7 @@ int main( int argc, char *argv[] )
     
     // Pass the shared pointer to the Schema into our MainWindow instance so it
     // can make use of it (Dependency Injection - preferred way to share state)
-    MainWindow window( Schema );
+    Login window( Schema );
 
     window.show();
 

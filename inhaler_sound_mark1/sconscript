@@ -12,7 +12,7 @@ sources = [
 ]
 
 uifiles = [
-        'qt_windows/mainwindow.ui',
+        'qt_windows/login.ui',
         'qt_windows/patientdetails.ui',
 ]
 

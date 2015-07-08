@@ -3,20 +3,20 @@
 // None
 
 // Header Include
-#include "qt_windows/mainwindow.h"
+#include "qt_windows/login.h"
 #include "qt_windows/patientdetails.h"
 
 // Qt UI Generated Include
-#include "qt_windows/ui_mainwindow.h"
+#include "qt_windows/ui_login.h"
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
 
-MainWindow::
-MainWindow
+Login::
+Login
 (   const shared_schema_t& schema,
     QWidget* parent ) :
     QMainWindow( parent ),
-    ui_( new Ui::MainWindow ),
+    ui_( new Ui::Login ),
     schema_( schema )
 {
     schema_->open_all_tables();
@@ -24,13 +24,13 @@ MainWindow
     ui_->setupUi( this );
 }
 
-MainWindow::
-~MainWindow()
+Login::
+~Login()
 {
     delete ui_;
 }
 
-void MainWindow::on_pushButton_clicked()
+void Login::on_pushButton_clicked()
 {
     QString username, password;
     username=ui_->lineEdit_username->text();

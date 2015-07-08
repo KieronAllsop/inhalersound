@@ -1,6 +1,6 @@
 // G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G
-#ifndef QT_WINDOWS_MAINWINDOW_HPP_INCLUDED
-#define QT_WINDOWS_MAINWINDOW_HPP_INCLUDED
+#ifndef QT_WINDOWS_LOGIN_HPP_INCLUDED
+#define QT_WINDOWS_LOGIN_HPP_INCLUDED
 // G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
@@ -23,10 +23,10 @@
 // the associated ui file by running "uic"
 namespace Ui 
 {
-    class MainWindow;
+    class Login;
 }    
     
-class MainWindow : public QMainWindow
+class Login : public QMainWindow
 {
     Q_OBJECT
 
@@ -34,19 +34,19 @@ public:
     
     using shared_schema_t = std::shared_ptr<data_model::schema>;
        
-    explicit MainWindow ( const shared_schema_t& schema,
+    explicit Login ( const shared_schema_t& schema,
                           QWidget* parent = 0 );
     
-             ~MainWindow();
+             ~Login();
     
 private slots:
     void on_pushButton_clicked();
 
 private:
     
-    Ui::MainWindow* ui_;
+    Ui::Login* ui_;
     shared_schema_t schema_;
 };
 
 // G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G
-#endif // QT_WINDOWS_MAINWINDOW_HPP_INCLUDED
+#endif // QT_WINDOWS_LOGIN_HPP_INCLUDED

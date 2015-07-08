@@ -84,6 +84,19 @@ public:
         const quince::serial sys_admin_id = Users_.insert({quince::serial(),
               "The", "System", "Administrator", "SystemAdministrator", "non_set" });
         Userlogins_.insert({"admin", sys_admin_id, "admin"});
+
+        //TODO remove after testing
+        //default DataTechnician for testing
+        const quince::serial data_tech_id = Users_.insert({quince::serial(),
+              "A", "Data", "Technician", "DataTechnician", "non_set" });
+        Userlogins_.insert({"datatech", data_tech_id, "datatech"});
+
+        //TODO remove after testing
+        // default DiagnosingDoctor for testing
+        const quince::serial diag_doc_id = Users_.insert({quince::serial(),
+              "A", "Diagnosing", "Doctor", "DiagnosingDoctor", "non_set" });
+        Userlogins_.insert({"diagdoc", diag_doc_id, "diagdoc"});
+
         }
     }
 
@@ -93,9 +106,8 @@ public:
         const quince::query<userlogin> Query = Userlogins_.where(Userlogins_->username==InputUsername);
         const auto User = Query.begin();
 
-        if( User != Query.end() )
+        if( User != Query.end() && InputPassword==User->password)
         {
-            if (InputPassword==User->password)
             return true;
         }
         return false;
