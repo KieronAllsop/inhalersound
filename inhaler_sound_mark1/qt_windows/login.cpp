@@ -30,25 +30,34 @@ Login::
     delete ui_;
 }
 
+
 void Login::on_pushButton_clicked()
 {
     QString username, password;
     username=ui_->lineEdit_username->text();
     password=ui_->lineEdit_password->text();
 
-    auto valid_user = schema_->validate_user( username.toStdString(), password.toStdString() );
+    bool valid_user = false;
+    auto user_role = schema_->validate_user( valid_user, username.toStdString(), password.toStdString() );
 
     if( valid_user )
     {
-         ui_->label->setText("success");
-         this->hide();
-         PatientDetails patientDetails( schema_, this);
-         patientDetails.setModal(true);
-         patientDetails.exec();
+         ui_->label->setText(QString::fromStdString(user_role));  // displays system admin user name on label
+         if (user_role == "DataTechnician" || user_role == "DiagnosingDoctor")
+         {
+            this->hide();
+            PatientDetails patientDetails( schema_, this);
+            patientDetails.setModal(true);
+            patientDetails.exec();
+         }
+         else
+         {
+             // System Admin bit goes here
+         }
     }
     else
     {
-         ui_->label->setText("try again");
+         ui_->label->setText(QString::fromStdString(user_role));
     }
 
 }

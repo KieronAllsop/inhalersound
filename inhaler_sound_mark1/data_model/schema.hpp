@@ -101,16 +101,26 @@ public:
     }
 
     // validate user based on input data
-    bool validate_user(std::string InputUsername, std::string InputPassword)
+    std::string validate_user( bool& valid_user, std::string InputUsername, std::string InputPassword)
     {
         const quince::query<userlogin> Query = Userlogins_.where(Userlogins_->username==InputUsername);
-        const auto User = Query.begin();
+        const auto Login = Query.begin();
 
-        if( User != Query.end() && InputPassword==User->password)
+        std::string Role = "Try again";
+
+
+        if( Login != Query.end() && InputPassword==Login->password)
         {
-            return true;
+            valid_user = true;
+            const quince::query<user>UserQuery = Users_.where( Users_->id == Login->user_id );
+            auto User = UserQuery.begin();
+            if( User != UserQuery.end() )
+            {
+                Role = User->user_role;
+            }
+            return Role;
         }
-        return false;
+        return Role;
     }
 
     void clear_all_tables()
@@ -118,7 +128,7 @@ public:
         Users_.remove();
         Userlogins_.remove();
     }
-    
+
 public:
     
     // Accessor functions to allow querying and manipulation

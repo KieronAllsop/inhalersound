@@ -1,6 +1,9 @@
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
+// Standard Includes
+#include <vector>
+
 // Qt Includes
-// None
+#include <QFileDialog>
 
 // Header Include
 #include "qt_windows/patientdetails.h"
@@ -25,4 +28,21 @@ PatientDetails::
 ~PatientDetails()
 {
     delete ui_;
+}
+
+void PatientDetails::on_pushButton_selectFiles_clicked()
+{
+    QStringList files = QFileDialog::getOpenFileNames(
+                this,
+                "Select one or more wave files to open",
+                "/home",
+                "Wave Files (*.wav)");
+
+    QStringList list = files;
+    QStringList::Iterator it = list.begin();
+    while(it != list.end()) {
+        //myProcessing(*it);
+        ++it;
+    }
+
 }

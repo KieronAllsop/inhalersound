@@ -34,6 +34,9 @@ public:
 
              ~PatientDetails();
 
+private slots:
+    void on_pushButton_selectFiles_clicked();
+
 private:
     Ui::PatientDetails* ui_;
     shared_schema_t schema_;
