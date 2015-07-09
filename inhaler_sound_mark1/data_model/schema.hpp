@@ -86,7 +86,7 @@ public:
                                                   &patientwave::creation_timestamp )
     {
         Userlogins_.specify_foreign( Userlogins_->user_id, Users_ );
-        //Patientwaves_.specify_foreign( Patientwaves_->patient_id, Patients_);
+        Patientwaves_.specify_foreign( Patientwaves_->patient_id, Patients_);
     }
   
 public:
