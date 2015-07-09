@@ -5,7 +5,7 @@
 // Header Include
 #include "qt_windows/login.h"
 #include "qt_windows/patientdetails.h"
-
+#include "qt_windows/administration.h"
 
 // Qt UI Generated Include
 #include "qt_windows/ui_login.h"
@@ -57,10 +57,10 @@ void Login::on_pushButton_clicked()
         }
         else
         {
-      //      this->hide();
-     //       Administration administration( schema_, this);
-      //      administration.setModal(true);
-       //     administration.exec();
+            this->hide();
+            Administration administration( schema_, this);
+            administration.setModal(true);
+            administration.exec();
         }
    }
    else

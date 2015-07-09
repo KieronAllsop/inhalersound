@@ -9,7 +9,6 @@
 
 // Quince Includes
 #include <quince/quince.h>
-
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n

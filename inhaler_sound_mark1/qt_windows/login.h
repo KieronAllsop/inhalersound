@@ -13,7 +13,7 @@
 // Custom Includes
 #include "data_model/schema.hpp"
 #include "qt_windows/patientdetails.h"
-
+#include "qt_windows/administration.h"
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
 

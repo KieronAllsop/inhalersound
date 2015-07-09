@@ -14,6 +14,7 @@ sources = [
 uifiles = [
         'qt_windows/login.ui',
         'qt_windows/patientdetails.ui',
+        'qt_windows/administration.ui',
 ]
 
 env.Uic5( uifiles )
