@@ -85,13 +85,13 @@ public:
               "The", "System", "Administrator", "SystemAdministrator", "non_set" });
         Userlogins_.insert({"admin", sys_admin_id, "admin"});
 
-        //TODO remove after testing
+        // TODO: remove after testing
         //default DataTechnician for testing
         const quince::serial data_tech_id = Users_.insert({quince::serial(),
               "A", "Data", "Technician", "DataTechnician", "non_set" });
         Userlogins_.insert({"datatech", data_tech_id, "datatech"});
 
-        //TODO remove after testing
+        // TODO: remove after testing
         // default DiagnosingDoctor for testing
         const quince::serial diag_doc_id = Users_.insert({quince::serial(),
               "A", "Diagnosing", "Doctor", "DiagnosingDoctor", "non_set" });
@@ -100,27 +100,27 @@ public:
         }
     }
 
-    // validate user based on input data
-    std::string validate_user( bool& valid_user, std::string InputUsername, std::string InputPassword)
+    // TODO: move this function into its own class
+    boost::optional<user> validate_user( bool& ValidUser, std::string& UserRole, const std::string& Username, const std::string& Password )
     {
-        const quince::query<userlogin> Query = Userlogins_.where(Userlogins_->username==InputUsername);
-        const auto Login = Query.begin();
+        const quince::query<userlogin>
+                LoginQuery = Userlogins_.where( Userlogins_->username==Username );
+        const auto Login = LoginQuery.begin();
 
-        std::string Role = "Try again";
-
-
-        if( Login != Query.end() && InputPassword==Login->password)
+        if( Login != LoginQuery.end() &&  Password == Login->password )
         {
-            valid_user = true;
-            const quince::query<user>UserQuery = Users_.where( Users_->id == Login->user_id );
+            ValidUser = true;                               // confirms valid user
+            const quince::query<user>
+                    UserQuery = Users_.where( Users_->id == Login->user_id );
             auto User = UserQuery.begin();
+
             if( User != UserQuery.end() )
             {
-                Role = User->user_role;
+                UserRole = User->user_role;                 // set user role
+                return boost::optional<user>( *User );      // return all user details
             }
-            return Role;
         }
-        return Role;
+        return boost::optional<user>();
     }
 
     void clear_all_tables()

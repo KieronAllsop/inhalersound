@@ -14,14 +14,14 @@ TEMPLATE = app
 
 SOURCES += application/main.cpp \
            qt_windows/patientdetails.cpp \
-    qt_windows/login.cpp
+           qt_windows/login.cpp
 
 
 HEADERS += \
            data_model/schema.hpp \
            qt_windows/patientdetails.h \
-    qt_windows/login.h
+           qt_windows/login.h
 
 FORMS   += \
            qt_windows/patientdetails.ui \
-    qt_windows/login.ui
+           qt_windows/login.ui

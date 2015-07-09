@@ -6,6 +6,7 @@
 #include "qt_windows/login.h"
 #include "qt_windows/patientdetails.h"
 
+
 // Qt UI Generated Include
 #include "qt_windows/ui_login.h"
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
@@ -38,26 +39,33 @@ void Login::on_pushButton_clicked()
     password=ui_->lineEdit_password->text();
 
     bool valid_user = false;
-    auto user_role = schema_->validate_user( valid_user, username.toStdString(), password.toStdString() );
+    std::string user_role = "Invalid user";
+
+    // this returns the complete tuple of user details from the database - this can then be used
+    // if a user wishes to alter any login details, such as title, name, email
+    auto user_details = schema_->validate_user( valid_user, user_role, username.toStdString(), password.toStdString() );
 
     if( valid_user )
     {
-         ui_->label->setText(QString::fromStdString(user_role));  // displays system admin user name on label
-         if (user_role == "DataTechnician" || user_role == "DiagnosingDoctor")
-         {
+        ui_->label->setText(QString::fromStdString(user_role));  // displays system admin user name on label
+        if (user_role == "DataTechnician" || user_role == "DiagnosingDoctor")
+        {
             this->hide();
             PatientDetails patientDetails( schema_, this);
             patientDetails.setModal(true);
             patientDetails.exec();
-         }
-         else
-         {
-             // System Admin bit goes here
-         }
-    }
-    else
-    {
-         ui_->label->setText(QString::fromStdString(user_role));
-    }
+        }
+        else
+        {
+      //      this->hide();
+     //       Administration administration( schema_, this);
+      //      administration.setModal(true);
+       //     administration.exec();
+        }
+   }
+   else
+   {
+        ui_->label->setText(QString::fromStdString(user_role));
+   }
 
 }
