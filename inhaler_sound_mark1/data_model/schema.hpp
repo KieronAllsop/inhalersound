@@ -40,17 +40,36 @@ struct userlogin
 QUINCE_MAP_CLASS(userlogin, (username)(user_id)(password))
 
 
-// useful for patients
-// boost::posix_time::ptime date_of_birth;
+struct patient
+{
+    quince::serial                  id;                  // primary key
+    std::string                     title;
+    std::string                     forename;
+    boost::optional<std::string>    middlename;
+    std::string                     surname;
+    boost::posix_time::ptime        date_of_birth;
+};
+QUINCE_MAP_CLASS(patient, (id)(title)(forename)(middlename)(surname)(date_of_birth))
 
+struct patientwave
+{
+    quince::serial          patient_id;             // primary key ( and foreign key )
+    std::string             inhaler_type;           // primary key
+    quince::timestamp       creation_timestamp;     // primary key
+    quince::timestamp       import_timestamp;
+    std::vector<uint8_t>    wave_file;
+};
+QUINCE_MAP_CLASS(patientwave, (patient_id)(inhaler_type)(creation_timestamp)(import_timestamp)(wave_file))
 
 // We encapsulate the nature and relationships within our data model in a schema
 class schema
 {
 public:
  
-    using users_t      = quince::serial_table<user>;
-    using userlogins_t = quince::table<userlogin>;
+    using users_t        = quince::serial_table<user>;
+    using userlogins_t   = quince::table<userlogin>;
+    using patient_t      = quince::serial_table<patient>;
+    using patientwave_t  = quince::table<patientwave>;
     
 public:
     
@@ -59,10 +78,15 @@ public:
     // or using the same backend but in different databases
     template<class DatabaseT>
     explicit schema( const DatabaseT& Database )
-    : Users_      ( Database, "users",      &user::id  )
-    , Userlogins_ ( Database, "userlogins", &userlogin::username )
+    : Users_        ( Database, "users",          &user::id  )
+    , Userlogins_   ( Database, "userlogins",     &userlogin::username )
+    , Patients_     ( Database, "patients",       &patient::id )
+    , Patientwaves_ ( Database, "patientwaves",   &patientwave::patient_id,
+                                                  &patientwave::inhaler_type,
+                                                  &patientwave::creation_timestamp )
     {
         Userlogins_.specify_foreign( Userlogins_->user_id, Users_ );
+        //Patientwaves_.specify_foreign( Patientwaves_->patient_id, Patients_);
     }
   
 public:
@@ -73,6 +97,8 @@ public:
     {
         Users_.open();
         Userlogins_.open();
+        Patients_.open();
+        Patientwaves_.open();
     }
 
     // initial population of user data
@@ -126,6 +152,8 @@ public:
     {
         Users_.remove();
         Userlogins_.remove();
+        Patients_.remove();
+        Patientwaves_.remove();
     }
 
 public:
@@ -153,12 +181,32 @@ public:
         return Userlogins_;
     }
 
+    const patient_t& patients() const
+    {
+        return Patients_;
+    }
+
+    patient_t& patients()
+    {
+        return Patients_;
+    }
+
+    const patientwave_t& patientwaves() const
+    {
+        return Patientwaves_;
+    }
+
+    patientwave_t& patientwaves()
+    {
+        return Patientwaves_;
+    }
         
 private:
     
     quince::serial_table<user> Users_;
     quince::table<userlogin> Userlogins_;
-
+    quince::serial_table<patient> Patients_;
+    quince::table<patientwave> Patientwaves_;
 };
 
 
