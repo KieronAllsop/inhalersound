@@ -5,7 +5,11 @@
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 // Standard Library Includes
-// None 
+#include <vector>
+
+// Custom Includes
+#include "boost/date_time/posix_time/posix_time.hpp"
+#include <boost/optional.hpp>
 
 // Quince Includes
 #include <quince/quince.h>
@@ -53,11 +57,11 @@ QUINCE_MAP_CLASS(patient, (id)(title)(forename)(middlename)(surname)(date_of_bir
 
 struct patientwave
 {
-    quince::serial          patient_id;             // primary key ( and foreign key )
-    std::string             inhaler_type;           // primary key
-    quince::timestamp       creation_timestamp;     // primary key
-    quince::timestamp       import_timestamp;
-    std::vector<uint8_t>    wave_file;
+    quince::serial              patient_id;             // primary key ( and foreign key )
+    std::string                 inhaler_type;           // primary key
+    boost::posix_time::ptime    creation_timestamp;     // primary key
+    boost::posix_time::ptime    import_timestamp;
+    std::vector<uint8_t>        wave_file;
 };
 QUINCE_MAP_CLASS(patientwave, (patient_id)(inhaler_type)(creation_timestamp)(import_timestamp)(wave_file))
 
@@ -68,8 +72,8 @@ public:
  
     using users_t        = quince::serial_table<user>;
     using userlogins_t   = quince::table<userlogin>;
-    using patient_t      = quince::serial_table<patient>;
-    using patientwave_t  = quince::table<patientwave>;
+    using patients_t      = quince::serial_table<patient>;
+    using patientwaves_t  = quince::table<patientwave>;
     
 public:
     
@@ -81,11 +85,12 @@ public:
     : Users_        ( Database, "users",          &user::id  )
     , Userlogins_   ( Database, "userlogins",     &userlogin::username )
     , Patients_     ( Database, "patients",       &patient::id )
-    , Patientwaves_ ( Database, "patientwaves",   &patientwave::patient_id,
-                                                  &patientwave::inhaler_type,
-                                                  &patientwave::creation_timestamp )
+    , Patientwaves_ ( Database, "patientwaves" )
     {
         Userlogins_.specify_foreign( Userlogins_->user_id, Users_ );
+        Patientwaves_.specify_key( Patientwaves_->patient_id,
+                                   Patientwaves_->inhaler_type,
+                                   Patientwaves_->creation_timestamp );
         Patientwaves_.specify_foreign( Patientwaves_->patient_id, Patients_);
     }
   
@@ -122,6 +127,15 @@ public:
               "A", "Diagnosing", "Doctor", "DiagnosingDoctor", "non_set" });
         Userlogins_.insert({"diagdoc", diag_doc_id, "diagdoc"});
 
+        }
+        if (Patients_.empty())
+        {
+        const std::string default_time = " 00:00:00.000";
+        std::string dob_string = "2000-Aug-12" + default_time;
+        boost::posix_time::ptime dob_ptime = boost::posix_time::time_from_string(dob_string);
+        boost::optional<std::string> mid_name = std::string("");
+        const quince::serial generic_patient_id = Patients_.insert({quince::serial(),
+              "Mr", "Generic", mid_name, "Patient", dob_ptime });
         }
     }
 
@@ -181,26 +195,26 @@ public:
         return Userlogins_;
     }
 
-    const patient_t& patients() const
+    const patients_t& patients() const
     {
         return Patients_;
     }
 
-    patient_t& patients()
+    patients_t& patients()
     {
         return Patients_;
     }
 
-    const patientwave_t& patientwaves() const
+    const patientwaves_t& patientwaves() const
     {
         return Patientwaves_;
     }
 
-    patientwave_t& patientwaves()
+    patientwaves_t& patientwaves()
     {
         return Patientwaves_;
     }
-        
+
 private:
     
     quince::serial_table<user> Users_;
