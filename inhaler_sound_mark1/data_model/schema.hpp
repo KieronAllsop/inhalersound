@@ -52,8 +52,9 @@ struct patient
     boost::optional<std::string>    middlename;
     std::string                     surname;
     boost::posix_time::ptime        date_of_birth;
+    std::string                     postcode;
 };
-QUINCE_MAP_CLASS(patient, (id)(title)(forename)(middlename)(surname)(date_of_birth))
+QUINCE_MAP_CLASS(patient, (id)(title)(forename)(middlename)(surname)(date_of_birth)(postcode))
 
 struct patientwave
 {
@@ -131,12 +132,38 @@ public:
         if (Patients_.empty())
         {
         const std::string default_time = " 00:00:00.000";
-        std::string dob_string = "2000-Aug-12" + default_time;
+        std::string dob_string = "1972-Oct-14" + default_time;
         boost::posix_time::ptime dob_ptime = boost::posix_time::time_from_string(dob_string);
         boost::optional<std::string> mid_name = std::string("");
-        const quince::serial generic_patient_id = Patients_.insert({quince::serial(),
-              "Mr", "Generic", mid_name, "Patient", dob_ptime });
+        Patients_.insert({quince::serial(),
+              "Mr", "Kieron", mid_name, "Allsop", dob_ptime, "BT191YX" });
         }
+    }
+
+    quince::serial get_patient_id ( std::string Forename, std::string Surname, std::string DOB, std::string Postcode )
+    {
+        const std::string default_time = " 00:00:00.000";
+        boost::posix_time::ptime DateOfBirth = boost::posix_time::time_from_string(DOB + default_time);
+        const quince::query<patient> PatientQuery = Patients_.where( Patients_->forename==Forename &&
+                                                                     Patients_->surname==Surname &&
+                                                                     Patients_->date_of_birth==DateOfBirth &&
+                                                                     Patients_->postcode==Postcode);
+        const auto Patient = PatientQuery.begin();
+        quince::serial PatientID;
+        if ( Patient != PatientQuery.end())
+        {
+            PatientID = Patient->id;
+        }
+        return PatientID;
+    }
+
+    void insert_wave ( quince::serial PatientID, std::string Inhaler, std::string Created, std::vector<uint8_t> WaveFile )
+    {
+        Patientwaves_.insert({PatientID, Inhaler,
+                            boost::posix_time::time_from_string(Created),
+                            boost::posix_time::microsec_clock::local_time(), WaveFile});
+        //int confirmation = 1;
+        //return confirmation;
     }
 
     // TODO: move this function into its own class

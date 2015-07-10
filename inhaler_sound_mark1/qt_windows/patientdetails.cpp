@@ -1,6 +1,9 @@
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 // Standard Includes
-// none
+#include <vector>
+
+// Quince Includes
+#include <quince/quince.h>
 
 // Qt Includes
 #include <QFileDialog>
@@ -38,11 +41,18 @@ void PatientDetails::on_pushButton_selectFiles_clicked()
                 "/home",
                 "Wave Files (*.wav)");
 
+    int file_count = 0;
     QStringList list = files;
-    QStringList::Iterator it = list.begin();
+    //std::vector<uint8_t> vlist;
+    QStringList::iterator it = list.begin();
     while(it != list.end()) {
+        //vlist.push_back(*it);
         //myProcessing(*it);
+        //schema_->insert_wave(schema_->get_patient_id("Kieron","Allsop","1972-Oct-14","BT191YX"),
+        //                     "Accuhaler", "2015-Jul-05", *it);
+        ++file_count;
         ++it;
+
     }
 
 }
