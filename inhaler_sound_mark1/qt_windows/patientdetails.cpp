@@ -1,6 +1,11 @@
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 // Standard Includes
 #include <vector>
+#include <fstream>
+
+// Boost Library Includes
+#include <boost/filesystem.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
 
 // Quince Includes
 #include <quince/quince.h>
@@ -35,24 +40,36 @@ PatientDetails::
 
 void PatientDetails::on_pushButton_selectFiles_clicked()
 {
-    QStringList files = QFileDialog::getOpenFileNames(
-                this,
-                "Select one or more wave files to open",
-                "/home",
-                "Wave Files (*.wav)");
+    QStringList FileNames = QFileDialog::getOpenFileNames(
+                            this,
+                            "Select one or more wave files to open",
+                            "/home",
+                            "Wave Files (*.wav)");
 
-    int file_count = 0;
-    QStringList list = files;
-    //std::vector<uint8_t> vlist;
-    QStringList::iterator it = list.begin();
-    while(it != list.end()) {
-        //vlist.push_back(*it);
-        //myProcessing(*it);
-        //schema_->insert_wave(schema_->get_patient_id("Kieron","Allsop","1972-Oct-14","BT191YX"),
-        //                     "Accuhaler", "2015-Jul-05", *it);
-        ++file_count;
-        ++it;
+    for( const auto& FileName: FileNames )
+    {
+        boost::filesystem::path Path( FileName.toStdString() );       
+        auto Filename = Path.filename();
+        auto FileSize  = file_size( Path );
+        auto WriteTime = boost::posix_time::from_time_t( last_write_time( Path ) );
 
-    }
+        std::ifstream File( Path.c_str(), std::ios::binary );
+
+            if( File )
+            {
+                std::vector<uint8_t> Data;
+                Data.reserve( FileSize );
+                Data.assign
+                (   std::istreambuf_iterator<char>( File ),
+                    std::istreambuf_iterator<char>()   );
+
+                auto PatientID = schema_->get_patient_id("Kieron","Allsop","1972-Oct-14","BT191YX");
+
+                if (PatientID)
+                {
+                schema_->insert_wave(*PatientID,"Accuhaler", Filename.string(), WriteTime, Data);
+                }
+            }
+     }
 
 }

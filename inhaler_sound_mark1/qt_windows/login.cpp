@@ -34,21 +34,27 @@ Login::
 
 void Login::on_pushButton_clicked()
 {
-    QString username, password;
-    username=ui_->lineEdit_username->text();
-    password=ui_->lineEdit_password->text();
+    QString Username, Password;
+    Username=ui_->lineEdit_username->text();
+    Password=ui_->lineEdit_password->text();
 
-    bool valid_user = false;
-    std::string user_role = "Invalid user";
+    bool ValidUser = false;
+    std::string UserRole = "Invalid user";
 
     // this returns the complete tuple of user details from the database - this can then be used
     // if a user wishes to alter any login details, such as title, name, email
-    auto user_details = schema_->validate_user( valid_user, user_role, username.toStdString(), password.toStdString() );
+    auto UserDetails=
+            schema_->
+            validate_user(
+                ValidUser,
+                UserRole,
+                Username.toStdString(),
+                Password.toStdString() );
 
-    if( valid_user )
+    if( ValidUser )
     {
-        ui_->label->setText(QString::fromStdString(user_role));  // displays system admin user name on label
-        if (user_role == "DataTechnician" || user_role == "DiagnosingDoctor")
+        if (UserRole == "DataTechnician" ||
+                UserRole == "DiagnosingDoctor")
         {
             this->hide();
             PatientDetails patientDetails( schema_, this);
@@ -65,7 +71,7 @@ void Login::on_pushButton_clicked()
    }
    else
    {
-        ui_->label->setText(QString::fromStdString(user_role));
+        ui_->label->setText(QString::fromStdString(UserRole));
    }
 
 }

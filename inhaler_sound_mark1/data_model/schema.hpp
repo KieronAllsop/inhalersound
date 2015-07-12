@@ -9,6 +9,7 @@
 
 // Custom Includes
 #include "boost/date_time/posix_time/posix_time.hpp"
+#include "boost/date_time/gregorian/gregorian.hpp"
 #include <boost/optional.hpp>
 
 // Quince Includes
@@ -22,31 +23,32 @@ namespace data_model {
 // We place our basic data model in here. In the first case the tables we
 // will use and then later the schema that defines the nature of the tables
 // and how they are related to each other, for example foreign key constraints
-    
+
+
 struct user
 {
-    quince::serial id;                  // primary key with automatically assigned values
-    std::string    title;
-    std::string    forename;
-    std::string    surname;
-    std::string    user_role;
-    std::string    email_address;
+    quince::serial                  id;                     // primary key
+    std::string                     title;
+    std::string                     forename;
+    std::string                     surname;
+    std::string                     user_role;
+    boost::optional<std::string>    email_address;
 };
 QUINCE_MAP_CLASS(user, (id)(title)(forename)(surname)(user_role)(email_address))
 
 
 struct userlogin
 {
-    std::string    username;            // primary key
-    quince::serial user_id;             // foreign key
-    std::string    password;
+    std::string                     username;               // primary key
+    quince::serial                  user_id;                // foreign key
+    std::string                     password;
 };
 QUINCE_MAP_CLASS(userlogin, (username)(user_id)(password))
 
 
 struct patient
 {
-    quince::serial                  id;                  // primary key
+    quince::serial                  id;                     // primary key
     std::string                     title;
     std::string                     forename;
     boost::optional<std::string>    middlename;
@@ -56,23 +58,26 @@ struct patient
 };
 QUINCE_MAP_CLASS(patient, (id)(title)(forename)(middlename)(surname)(date_of_birth)(postcode))
 
+
 struct patientwave
 {
-    quince::serial              patient_id;             // primary key ( and foreign key )
-    std::string                 inhaler_type;           // primary key
-    boost::posix_time::ptime    creation_timestamp;     // primary key
-    boost::posix_time::ptime    import_timestamp;
-    std::vector<uint8_t>        wave_file;
+    quince::serial                  patient_id;             // primary key & foreign key
+    std::string                     inhaler_type;           // primary key
+    std::string                     file_name;              // primary key
+    boost::posix_time::ptime        creation_timestamp;     // primary key
+    boost::posix_time::ptime        import_timestamp;
+    std::vector<uint8_t>            wave_file;
 };
-QUINCE_MAP_CLASS(patientwave, (patient_id)(inhaler_type)(creation_timestamp)(import_timestamp)(wave_file))
+QUINCE_MAP_CLASS(patientwave, (patient_id)(inhaler_type)(file_name)(creation_timestamp)(import_timestamp)(wave_file))
+
 
 // We encapsulate the nature and relationships within our data model in a schema
 class schema
 {
 public:
  
-    using users_t        = quince::serial_table<user>;
-    using userlogins_t   = quince::table<userlogin>;
+    using users_t         = quince::serial_table<user>;
+    using userlogins_t    = quince::table<userlogin>;
     using patients_t      = quince::serial_table<patient>;
     using patientwaves_t  = quince::table<patientwave>;
     
@@ -88,10 +93,11 @@ public:
     , Patients_     ( Database, "patients",       &patient::id )
     , Patientwaves_ ( Database, "patientwaves" )
     {
-        Userlogins_.specify_foreign( Userlogins_->user_id, Users_ );
-        Patientwaves_.specify_key( Patientwaves_->patient_id,
-                                   Patientwaves_->inhaler_type,
-                                   Patientwaves_->creation_timestamp );
+        Userlogins_.specify_foreign(   Userlogins_  ->user_id, Users_ );
+        Patientwaves_.specify_key(     Patientwaves_->patient_id,
+                                       Patientwaves_->file_name,
+                                       Patientwaves_->inhaler_type,
+                                       Patientwaves_->creation_timestamp );
         Patientwaves_.specify_foreign( Patientwaves_->patient_id, Patients_);
     }
   
@@ -112,72 +118,147 @@ public:
     {
         if (Users_.empty())       // only allows this to run on first install
         {
-        const quince::serial sys_admin_id = Users_.insert({quince::serial(),
-              "The", "System", "Administrator", "SystemAdministrator", "non_set" });
-        Userlogins_.insert({"admin", sys_admin_id, "admin"});
+            const quince::serial sys_admin_id =
+                    Users_.insert({
+                                      quince::serial(),
+                                      "The",
+                                      "System",
+                                      "Administrator",
+                                      "SystemAdministrator",
+                                      boost::optional<std::string>() });
 
-        // TODO: remove after testing
-        //default DataTechnician for testing
-        const quince::serial data_tech_id = Users_.insert({quince::serial(),
-              "A", "Data", "Technician", "DataTechnician", "non_set" });
-        Userlogins_.insert({"datatech", data_tech_id, "datatech"});
+                    Userlogins_.insert({
+                                      "admin",
+                                      sys_admin_id,
+                                      "admin" });
 
-        // TODO: remove after testing
-        // default DiagnosingDoctor for testing
-        const quince::serial diag_doc_id = Users_.insert({quince::serial(),
-              "A", "Diagnosing", "Doctor", "DiagnosingDoctor", "non_set" });
-        Userlogins_.insert({"diagdoc", diag_doc_id, "diagdoc"});
+            // TODO: remove after testing - default DataTechnician
+            const quince::serial data_tech_id =
+                    Users_.insert({
+                                      quince::serial(),
+                                      "Mr",
+                                      "Data",
+                                      "Technician",
+                                      "DataTechnician",
+                                      boost::optional<std::string>() });
+
+                    Userlogins_.insert({
+                                      "datatech",
+                                      data_tech_id,
+                                      "datatech" });
+
+            // TODO: remove after testing - default DiagnosingDoctor
+            const quince::serial diag_doc_id =
+                    Users_.insert({
+                                      quince::serial(),
+                                      "Dr",
+                                      "Diagnosing",
+                                      "Doctor",
+                                      "DiagnosingDoctor",
+                                      boost::optional<std::string>() });
+
+                    Userlogins_.insert({
+                                      "diagdoc",
+                                      diag_doc_id,
+                                      "diagdoc"});
 
         }
         if (Patients_.empty())
         {
-        const std::string default_time = " 00:00:00.000";
-        std::string dob_string = "1972-Oct-14" + default_time;
-        boost::posix_time::ptime dob_ptime = boost::posix_time::time_from_string(dob_string);
-        boost::optional<std::string> mid_name = std::string("");
-        Patients_.insert({quince::serial(),
-              "Mr", "Kieron", mid_name, "Allsop", dob_ptime, "BT191YX" });
+            // TODO: remove after testing - default patient
+            Patients_.insert( { quince::serial(),
+                                "Mr",
+                                "Kieron",
+                                boost::optional<std::string>(),
+                                "Allsop",
+                                boost::posix_time::ptime
+                                  (   boost::gregorian::from_string( "1972-Oct-14" ),
+                                      boost::posix_time::time_duration( 0, 0, 0 )    ),
+                                "BT191YX" } );
         }
     }
 
-    quince::serial get_patient_id ( std::string Forename, std::string Surname, std::string DOB, std::string Postcode )
+
+    // TODO: move this function into its own class
+    boost::optional<quince::serial>
+            get_patient_id (
+                const std::string& Forename,
+                const std::string& Surname,
+                const std::string& DateOfBirth,
+                const std::string& Postcode )
     {
-        const std::string default_time = " 00:00:00.000";
-        boost::posix_time::ptime DateOfBirth = boost::posix_time::time_from_string(DOB + default_time);
-        const quince::query<patient> PatientQuery = Patients_.where( Patients_->forename==Forename &&
-                                                                     Patients_->surname==Surname &&
-                                                                     Patients_->date_of_birth==DateOfBirth &&
-                                                                     Patients_->postcode==Postcode);
+        auto Timestamp
+            = boost::posix_time::ptime
+                (   boost::gregorian::from_string( DateOfBirth ),
+                    boost::posix_time::time_duration( 0, 0, 0 )    );
+
+        const quince::query<patient>
+                PatientQuery
+                = Patients_
+                .where( Patients_->forename==Forename &&
+                        Patients_->surname==Surname &&
+                        Patients_->date_of_birth==Timestamp &&
+                        Patients_->postcode==Postcode);
+
         const auto Patient = PatientQuery.begin();
-        quince::serial PatientID;
+
         if ( Patient != PatientQuery.end())
         {
-            PatientID = Patient->id;
+            return boost::optional<quince::serial>( Patient->id );
         }
-        return PatientID;
+        return boost::optional<quince::serial>();       // allows for a zero return
     }
 
-    void insert_wave ( quince::serial PatientID, std::string Inhaler, std::string Created, std::vector<uint8_t> WaveFile )
+
+    // TODO: move this function into its own class
+    void
+            insert_wave (
+                const quince::serial& PatientID,
+                const std::string& Inhaler,
+                const std::string& Filename,
+                const boost::posix_time::ptime& Modified,
+                const std::vector<uint8_t>& WaveFile )
     {
-        Patientwaves_.insert({PatientID, Inhaler,
-                            boost::posix_time::time_from_string(Created),
-                            boost::posix_time::microsec_clock::local_time(), WaveFile});
+        auto Timestamp
+            = boost::posix_time::microsec_clock::local_time();
+
+        Patientwaves_.insert({
+                                 PatientID,
+                                 Inhaler,
+                                 Filename,
+                                 Modified,
+                                 Timestamp,
+                                 WaveFile });
         //int confirmation = 1;
         //return confirmation;
     }
 
+
     // TODO: move this function into its own class
-    boost::optional<user> validate_user( bool& ValidUser, std::string& UserRole, const std::string& Username, const std::string& Password )
-    {
+    boost::optional<user>
+            validate_user(
+                bool& ValidUser,
+                std::string& UserRole,
+                const std::string& Username,
+                const std::string& Password )
+    {       
         const quince::query<userlogin>
-                LoginQuery = Userlogins_.where( Userlogins_->username==Username );
+                LoginQuery
+                = Userlogins_
+                .where( Userlogins_->username==Username );
+
         const auto Login = LoginQuery.begin();
 
-        if( Login != LoginQuery.end() &&  Password == Login->password )
+        if( Login != LoginQuery.end()
+                &&  Password == Login->password )
         {
             ValidUser = true;                               // confirms valid user
+
             const quince::query<user>
-                    UserQuery = Users_.where( Users_->id == Login->user_id );
+                    UserQuery
+                    = Users_
+                    .where( Users_->id == Login->user_id );
+
             auto User = UserQuery.begin();
 
             if( User != UserQuery.end() )
@@ -189,6 +270,7 @@ public:
         return boost::optional<user>();
     }
 
+
     void clear_all_tables()
     {
         Users_.remove();
@@ -196,6 +278,7 @@ public:
         Patients_.remove();
         Patientwaves_.remove();
     }
+
 
 public:
     
@@ -242,12 +325,14 @@ public:
         return Patientwaves_;
     }
 
+
 private:
     
     quince::serial_table<user> Users_;
     quince::table<userlogin> Userlogins_;
     quince::serial_table<patient> Patients_;
     quince::table<patientwave> Patientwaves_;
+
 };
 
 
