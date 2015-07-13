@@ -31,13 +31,16 @@ class Login : public QMainWindow
     Q_OBJECT
 
 public:
-    
+
+    void initialise_server_connection();
+
     using shared_schema_t = std::shared_ptr<data_model::schema>;
        
     explicit Login ( const shared_schema_t& schema,
                           QWidget* parent = 0 );
     
              ~Login();
+
     
 private slots:
     void on_pushButton_clicked();

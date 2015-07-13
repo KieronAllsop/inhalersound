@@ -2,6 +2,10 @@
 // Qt Includes
 // None
 
+// Standard includes
+#include <thread>
+#include <chrono>
+
 // Header Include
 #include "qt_windows/login.h"
 #include "qt_windows/patientdetails.h"
@@ -20,8 +24,6 @@ Login
     ui_( new Ui::Login ),
     schema_( schema )
 {
-    schema_->open_all_tables();
-    schema_->initial_population();
     ui_->setupUi( this );
 }
 
@@ -74,4 +76,26 @@ void Login::on_pushButton_clicked()
         ui_->label->setText(QString::fromStdString(UserRole));
    }
 
+}
+
+void Login::initialise_server_connection()
+{
+    bool Connected = false;
+
+    do
+    {
+        try
+        {
+           schema_->open_all_tables( Connected );
+           schema_->initial_population();
+        }
+        catch( const quince::failed_connection_exception& Error )
+        {
+           ui_->label->setText(Error.what());
+           std::this_thread::sleep_for ( std::chrono::seconds(5) );
+           ui_->label->setText("Trying again...");
+        }
+
+    }
+    while( !Connected );
 }

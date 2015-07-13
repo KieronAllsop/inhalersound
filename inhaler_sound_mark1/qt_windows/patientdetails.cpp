@@ -40,11 +40,12 @@ PatientDetails::
 
 void PatientDetails::on_pushButton_selectFiles_clicked()
 {
-    QStringList FileNames = QFileDialog::getOpenFileNames(
-                            this,
-                            "Select one or more wave files to open",
-                            "/home",
-                            "Wave Files (*.wav)");
+    QStringList FileNames
+        = QFileDialog::getOpenFileNames
+            (   this,
+                "Select one or more wave files to open",
+                "/home",
+                "Wave Files (*.wav)" );
 
     for( const auto& FileName: FileNames )
     {
@@ -55,21 +56,23 @@ void PatientDetails::on_pushButton_selectFiles_clicked()
 
         std::ifstream File( Path.c_str(), std::ios::binary );
 
-            if( File )
-            {
-                std::vector<uint8_t> Data;
-                Data.reserve( FileSize );
-                Data.assign
+        if( File )
+        {
+            std::vector<uint8_t> Data;
+            Data.reserve( FileSize );
+            Data.assign
                 (   std::istreambuf_iterator<char>( File ),
                     std::istreambuf_iterator<char>()   );
 
-                auto PatientID = schema_->get_patient_id("Kieron","Allsop","1972-Oct-14","BT191YX");
+            auto PatientID
+                = schema_->get_patient_id
+                    ( "Kieron", "Allsop", "1972-Oct-14", "BT191YX" );
 
-                if (PatientID)
-                {
-                schema_->insert_wave(*PatientID,"Accuhaler", Filename.string(), WriteTime, Data);
-                }
+            if( PatientID )
+            {
+            schema_->insert_wave
+                    ( *PatientID, "Accuhaler", Filename.string(), WriteTime, Data, FileSize );
             }
-     }
-
+        }
+    }
 }

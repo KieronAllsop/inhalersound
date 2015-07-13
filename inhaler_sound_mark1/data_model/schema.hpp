@@ -67,8 +67,9 @@ struct patientwave
     boost::posix_time::ptime        creation_timestamp;     // primary key
     boost::posix_time::ptime        import_timestamp;
     std::vector<uint8_t>            wave_file;
+    int                             file_size;
 };
-QUINCE_MAP_CLASS(patientwave, (patient_id)(inhaler_type)(file_name)(creation_timestamp)(import_timestamp)(wave_file))
+QUINCE_MAP_CLASS(patientwave, (patient_id)(inhaler_type)(file_name)(creation_timestamp)(import_timestamp)(wave_file)(file_size))
 
 
 // We encapsulate the nature and relationships within our data model in a schema
@@ -93,11 +94,14 @@ public:
         , Patients_     ( Database, "patients",       &patient::id )
         , Patientwaves_ ( Database, "patientwaves" )
     {
-        Userlogins_.specify_foreign(   Userlogins_  ->user_id, Users_ );
-        Patientwaves_.specify_key(     Patientwaves_->patient_id,
-                                       Patientwaves_->file_name,
-                                       Patientwaves_->inhaler_type,
-                                       Patientwaves_->creation_timestamp );
+        Userlogins_.specify_foreign( Userlogins_  ->user_id, Users_ );
+
+        Patientwaves_.specify_key
+            ( Patientwaves_->patient_id,
+              Patientwaves_->file_name,
+              Patientwaves_->inhaler_type,
+              Patientwaves_->creation_timestamp );
+
         Patientwaves_.specify_foreign( Patientwaves_->patient_id, Patients_ );
     }
 
@@ -105,9 +109,10 @@ public:
 
     // Convenience functions
 
-    void open_all_tables()
+    void open_all_tables( bool& Connected )
     {
         Users_.open();
+        Connected = true;
         Userlogins_.open();
         Patients_.open();
         Patientwaves_.open();
@@ -225,7 +230,8 @@ public:
         const std::string& Inhaler,
         const std::string& Filename,
         const boost::posix_time::ptime& Modified,
-        const std::vector<uint8_t>& WaveFile )
+        const std::vector<uint8_t>& WaveFile,
+        const int FileSize )
     {
         auto Timestamp
             = boost::posix_time::microsec_clock::local_time();
@@ -237,7 +243,8 @@ public:
             Filename,
             Modified,
             Timestamp,
-            WaveFile } );
+            WaveFile,
+            FileSize } );
     }
 
 

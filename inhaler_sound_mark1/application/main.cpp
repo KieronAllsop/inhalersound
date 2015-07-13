@@ -47,13 +47,13 @@ int main( int argc, char *argv[] )
     boost::program_options::store( boost::program_options::parse_command_line( argc, argv, OptionsDescription ), vm );
     boost::program_options::notify( vm );
 
-    if ( vm.count( "help" ) )
+    if( vm.count( "help" ) )
     {
         std::cout << OptionsDescription << "\n";
         return 1;
     }
 
-    if ( vm.count( "version" ) )
+    if( vm.count( "version" ) )
     {
         std::cout << inhalersound::build::identity::report() << std::endl;
         return 1;
@@ -75,6 +75,8 @@ int main( int argc, char *argv[] )
     Login window( Schema );
 
     window.show();
+
+    window.initialise_server_connection();
 
     return GuiApplication.exec();
 }
