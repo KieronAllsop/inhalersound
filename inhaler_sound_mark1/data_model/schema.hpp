@@ -17,9 +17,9 @@
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
-namespace data_model {
+namespace data_model{
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
-    
+
 // We place our basic data model in here. In the first case the tables we
 // will use and then later the schema that defines the nature of the tables
 // and how they are related to each other, for example foreign key constraints
@@ -75,36 +75,36 @@ QUINCE_MAP_CLASS(patientwave, (patient_id)(inhaler_type)(file_name)(creation_tim
 class schema
 {
 public:
- 
+
     using users_t         = quince::serial_table<user>;
     using userlogins_t    = quince::table<userlogin>;
     using patients_t      = quince::serial_table<patient>;
     using patientwaves_t  = quince::table<patientwave>;
-    
+
 public:
-    
+
     // Making this a function template allows us to take any database backend
     // This way we can aribrarily instantiate the schema on different backends
     // or using the same backend but in different databases
     template<class DatabaseT>
     explicit schema( const DatabaseT& Database )
-    : Users_        ( Database, "users",          &user::id  )
-    , Userlogins_   ( Database, "userlogins",     &userlogin::username )
-    , Patients_     ( Database, "patients",       &patient::id )
-    , Patientwaves_ ( Database, "patientwaves" )
+        : Users_        ( Database, "users",          &user::id  )
+        , Userlogins_   ( Database, "userlogins",     &userlogin::username )
+        , Patients_     ( Database, "patients",       &patient::id )
+        , Patientwaves_ ( Database, "patientwaves" )
     {
         Userlogins_.specify_foreign(   Userlogins_  ->user_id, Users_ );
         Patientwaves_.specify_key(     Patientwaves_->patient_id,
                                        Patientwaves_->file_name,
                                        Patientwaves_->inhaler_type,
                                        Patientwaves_->creation_timestamp );
-        Patientwaves_.specify_foreign( Patientwaves_->patient_id, Patients_);
+        Patientwaves_.specify_foreign( Patientwaves_->patient_id, Patients_ );
     }
-  
+
 public:
-    
+
     // Convenience functions
-    
+
     void open_all_tables()
     {
         Users_.open();
@@ -116,76 +116,85 @@ public:
     // initial population of user data
     void initial_population()
     {
-        if (Users_.empty())       // only allows this to run on first install
+        if( Users_.empty() )       // only allows this to run on first install
         {
-            const quince::serial sys_admin_id =
-                    Users_.insert({
-                                      quince::serial(),
-                                      "The",
-                                      "System",
-                                      "Administrator",
-                                      "SystemAdministrator",
-                                      boost::optional<std::string>() });
+            const quince::serial
+                sys_admin_id
+                    = Users_.insert
+                    ( { quince::serial(),
+                        "The",
+                        "System",
+                        "Administrator",
+                        "SystemAdministrator",
+                        boost::optional<std::string>() } );
 
-                    Userlogins_.insert({
-                                      "admin",
-                                      sys_admin_id,
-                                      "admin" });
+            Userlogins_.insert(
+            {
+                "admin",
+                sys_admin_id,
+                "admin" } );
 
             // TODO: remove after testing - default DataTechnician
-            const quince::serial data_tech_id =
-                    Users_.insert({
-                                      quince::serial(),
-                                      "Mr",
-                                      "Data",
-                                      "Technician",
-                                      "DataTechnician",
-                                      boost::optional<std::string>() });
+            const quince::serial
+                data_tech_id
+                    = Users_.insert
+                    ( { quince::serial(),
+                        "Mr",
+                        "Data",
+                        "Technician",
+                        "DataTechnician",
+                        boost::optional<std::string>() } );
 
-                    Userlogins_.insert({
-                                      "datatech",
-                                      data_tech_id,
-                                      "datatech" });
+            Userlogins_.insert(
+            {
+                "datatech",
+                data_tech_id,
+                "datatech" } );
 
             // TODO: remove after testing - default DiagnosingDoctor
-            const quince::serial diag_doc_id =
-                    Users_.insert({
-                                      quince::serial(),
-                                      "Dr",
-                                      "Diagnosing",
-                                      "Doctor",
-                                      "DiagnosingDoctor",
-                                      boost::optional<std::string>() });
+            const quince::serial
+                diag_doc_id
+                    = Users_.insert
+                    ( { quince::serial(),
+                        "Dr",
+                        "Diagnosing",
+                        "Doctor",
+                        "DiagnosingDoctor",
+                        boost::optional<std::string>()
+                });
 
-                    Userlogins_.insert({
-                                      "diagdoc",
-                                      diag_doc_id,
-                                      "diagdoc"});
+            Userlogins_.insert(
+            {
+                "diagdoc",
+                diag_doc_id,
+                "diagdoc" } );
 
         }
-        if (Patients_.empty())
+
+        if( Patients_.empty() )
         {
             // TODO: remove after testing - default patient
-            Patients_.insert( { quince::serial(),
-                                "Mr",
-                                "Kieron",
-                                boost::optional<std::string>(),
-                                "Allsop",
-                                boost::posix_time::ptime
-                                  (   boost::gregorian::from_string( "1972-Oct-14" ),
-                                      boost::posix_time::time_duration( 0, 0, 0 )    ),
-                                "BT191YX" } );
+            Patients_.insert(
+            {
+                quince::serial(),
+                "Mr",
+                "Kieron",
+                boost::optional<std::string>(),
+                "Allsop",
+                boost::posix_time::ptime
+                    (   boost::gregorian::from_string( "1972-Oct-14" ),
+                        boost::posix_time::time_duration( 0, 0, 0 )    ),
+                "BT191YX" } );
         }
     }
 
 
     // TODO: move this function into its own class
-    boost::optional<quince::serial>
-            get_patient_id (
-                const std::string& Forename,
-                const std::string& Surname,
-                const std::string& DateOfBirth,
-                const std::string& Postcode )
+    boost::optional<quince::serial> get_patient_id(
+        const std::string& Forename,
+        const std::string& Surname,
+        const std::string& DateOfBirth,
+        const std::string& Postcode )
     {
         auto Timestamp
             = boost::posix_time::ptime
@@ -193,16 +202,16 @@ public:
                     boost::posix_time::time_duration( 0, 0, 0 )    );
 
         const quince::query<patient>
-                PatientQuery
+            PatientQuery
                 = Patients_
-                .where( Patients_->forename==Forename &&
-                        Patients_->surname==Surname &&
-                        Patients_->date_of_birth==Timestamp &&
-                        Patients_->postcode==Postcode);
+                    .where( Patients_->forename==Forename &&
+                            Patients_->surname==Surname &&
+                            Patients_->date_of_birth==Timestamp &&
+                            Patients_->postcode==Postcode );
 
         const auto Patient = PatientQuery.begin();
 
-        if ( Patient != PatientQuery.end())
+        if( Patient != PatientQuery.end())
         {
             return boost::optional<quince::serial>( Patient->id );
         }
@@ -211,53 +220,50 @@ public:
 
 
     // TODO: move this function into its own class
-    void
-            insert_wave (
-                const quince::serial& PatientID,
-                const std::string& Inhaler,
-                const std::string& Filename,
-                const boost::posix_time::ptime& Modified,
-                const std::vector<uint8_t>& WaveFile )
+    void insert_wave(
+        const quince::serial& PatientID,
+        const std::string& Inhaler,
+        const std::string& Filename,
+        const boost::posix_time::ptime& Modified,
+        const std::vector<uint8_t>& WaveFile )
     {
         auto Timestamp
             = boost::posix_time::microsec_clock::local_time();
 
-        Patientwaves_.insert({
-                                 PatientID,
-                                 Inhaler,
-                                 Filename,
-                                 Modified,
-                                 Timestamp,
-                                 WaveFile });
-        //int confirmation = 1;
-        //return confirmation;
+        Patientwaves_.insert(
+        {
+            PatientID,
+            Inhaler,
+            Filename,
+            Modified,
+            Timestamp,
+            WaveFile } );
     }
 
 
     // TODO: move this function into its own class
-    boost::optional<user>
-            validate_user(
-                bool& ValidUser,
-                std::string& UserRole,
-                const std::string& Username,
-                const std::string& Password )
-    {       
+    boost::optional<user> validate_user(
+        bool& ValidUser,
+        std::string& UserRole,
+        const std::string& Username,
+        const std::string& Password )
+    {
         const quince::query<userlogin>
-                LoginQuery
+            LoginQuery
                 = Userlogins_
-                .where( Userlogins_->username==Username );
+                    .where( Userlogins_->username==Username );
 
         const auto Login = LoginQuery.begin();
 
-        if( Login != LoginQuery.end()
-                &&  Password == Login->password )
+        if( Login != LoginQuery.end() &&
+                Password == Login->password )
         {
             ValidUser = true;                               // confirms valid user
 
             const quince::query<user>
-                    UserQuery
+                UserQuery
                     = Users_
-                    .where( Users_->id == Login->user_id );
+                        .where( Users_->id == Login->user_id );
 
             auto User = UserQuery.begin();
 
@@ -281,20 +287,20 @@ public:
 
 
 public:
-    
+
     // Accessor functions to allow querying and manipulation
     // of the objects (tables) in the schema
-    
+
     const users_t& users() const
     {
         return Users_;
     }
-    
+
     users_t& users()
     {
         return Users_;
     }
-    
+
     const userlogins_t& userlogins() const
     {
         return Userlogins_;
@@ -327,7 +333,7 @@ public:
 
 
 private:
-    
+
     quince::serial_table<user> Users_;
     quince::table<userlogin> Userlogins_;
     quince::serial_table<patient> Patients_;
