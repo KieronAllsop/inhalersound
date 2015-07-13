@@ -36,8 +36,8 @@ public:
 
     using shared_schema_t = std::shared_ptr<data_model::schema>;
        
-    explicit Login ( const shared_schema_t& schema,
-                          QWidget* parent = 0 );
+    explicit Login ( const shared_schema_t& Schema,
+                          QWidget* Parent = 0 );
     
              ~Login();
 
@@ -47,8 +47,8 @@ private slots:
 
 private:
     
-    Ui::Login* ui_;
-    shared_schema_t schema_;
+    Ui::Login* Ui_;
+    shared_schema_t Schema_;
 };
 
 // G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G

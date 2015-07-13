@@ -1,6 +1,8 @@
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 // Qt Includes
-// None
+#include <QStyle>
+#include <QDesktopWidget>
+#include <QApplication>
 
 // Standard includes
 #include <thread>
@@ -18,27 +20,35 @@
 
 Login::
 Login
-(   const shared_schema_t& schema,
-    QWidget* parent ) :
-    QMainWindow( parent ),
-    ui_( new Ui::Login ),
-    schema_( schema )
+(   const shared_schema_t& Schema,
+    QWidget* Parent ) :
+    QMainWindow( Parent ),
+    Ui_( new Ui::Login ),
+    Schema_( Schema )
 {
-    ui_->setupUi( this );
+    Ui_->setupUi( this );
+
+    // Centre the window
+    setGeometry
+    (   QStyle::alignedRect
+        (   Qt::LeftToRight,
+            Qt::AlignCenter,
+            size(),
+            QApplication::desktop()->availableGeometry()  )  );
 }
 
 Login::
 ~Login()
 {
-    delete ui_;
+    delete Ui_;
 }
 
 
 void Login::on_pushButton_clicked()
 {
     QString Username, Password;
-    Username=ui_->lineEdit_username->text();
-    Password=ui_->lineEdit_password->text();
+    Username=Ui_->lineEdit_username->text();
+    Password=Ui_->lineEdit_password->text();
 
     bool ValidUser = false;
     std::string UserRole = "Invalid user";
@@ -46,7 +56,7 @@ void Login::on_pushButton_clicked()
     // this returns the complete tuple of user details from the database - this can then be used
     // if a user wishes to alter any login details, such as title, name, email
     auto UserDetails=
-            schema_->
+        Schema_->
             validate_user(
                 ValidUser,
                 UserRole,
@@ -55,25 +65,25 @@ void Login::on_pushButton_clicked()
 
     if( ValidUser )
     {
-        if (UserRole == "DataTechnician" ||
-                UserRole == "DiagnosingDoctor")
+        if(UserRole == "DataTechnician" ||
+               UserRole == "DiagnosingDoctor")
         {
             this->hide();
-            PatientDetails patientDetails( schema_, this);
+            PatientDetails patientDetails( Schema_, this);
             patientDetails.setModal(true);
             patientDetails.exec();
         }
         else
         {
             this->hide();
-            Administration administration( schema_, this);
+            Administration administration( Schema_, this);
             administration.setModal(true);
             administration.exec();
         }
    }
    else
    {
-        ui_->label->setText(QString::fromStdString(UserRole));
+        Ui_->label->setText(QString::fromStdString(UserRole));
    }
 
 }
@@ -86,14 +96,14 @@ void Login::initialise_server_connection()
     {
         try
         {
-           schema_->open_all_tables( Connected );
-           schema_->initial_population();
+           Connected = Schema_->open_all_tables();
+           Schema_->initial_population();
         }
         catch( const quince::failed_connection_exception& Error )
         {
-           ui_->label->setText(Error.what());
+           Ui_->label->setText(Error.what());
            std::this_thread::sleep_for ( std::chrono::seconds(5) );
-           ui_->label->setText("Trying again...");
+           Ui_->label->setText("Trying again...");
         }
 
     }

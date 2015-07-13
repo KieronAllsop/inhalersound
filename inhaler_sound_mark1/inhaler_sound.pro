@@ -16,7 +16,11 @@ INCLUDEPATH += $$PWD/.build/gcc49/rel/working
 SOURCES += application/main.cpp \
            qt_windows/patientdetails.cpp \
            qt_windows/login.cpp \
-           qt_windows/administration.cpp
+           qt_windows/administration.cpp \
+           qt_windows/process_sounds_import_files.cpp \
+           qt_windows/process_sounds_intro_page.cpp \
+           qt_windows/process_sounds_confirm_files.cpp \
+    qt_windows/process_sounds_get_patient_page.cpp
 
 
 HEADERS += \
@@ -24,9 +28,12 @@ HEADERS += \
            qt_windows/patientdetails.h \
            qt_windows/ui_patientdetails.h \
            qt_windows/login.h \
-           qt_windows/administration.h
+           qt_windows/administration.h \
+           qt_windows/process_sounds_import_files.h \
+           qt_windows/process_sounds_intro_page.h \
+           qt_windows/process_sounds_confirm_files.h \
+    qt_windows/process_sounds_get_patient_page.h
 
 FORMS   += \
-           qt_windows/patientdetails.ui \
            qt_windows/login.ui \
            qt_windows/administration.ui

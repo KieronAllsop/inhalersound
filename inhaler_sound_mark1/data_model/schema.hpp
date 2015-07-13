@@ -109,13 +109,13 @@ public:
 
     // Convenience functions
 
-    void open_all_tables( bool& Connected )
+    bool open_all_tables()
     {
         Users_.open();
-        Connected = true;
         Userlogins_.open();
         Patients_.open();
         Patientwaves_.open();
+        return true;
     }
 
     // initial population of user data

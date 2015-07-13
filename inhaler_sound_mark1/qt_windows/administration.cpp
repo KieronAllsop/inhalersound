@@ -12,17 +12,17 @@
 
 Administration::
 Administration
-(   const shared_schema_t& schema,
-    QWidget *parent) :
-    QDialog(parent),
-    ui_(new Ui::Administration),
-    schema_( schema )
+(   const shared_schema_t& Schema,
+    QWidget *Parent) :
+    QDialog(Parent),
+    Ui_(new Ui::Administration),
+    Schema_( Schema )
 {
-    ui_->setupUi(this);
+    Ui_->setupUi(this);
 }
 
 Administration::
 ~Administration()
 {
-    delete ui_;
+    delete Ui_;
 }

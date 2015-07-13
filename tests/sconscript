@@ -1,0 +1,8 @@
+Import( 'env' )
+
+Tests = [
+    'test'
+]
+
+for Test in Tests:
+    env.BuildTest( Test, Test + '.cpp' )

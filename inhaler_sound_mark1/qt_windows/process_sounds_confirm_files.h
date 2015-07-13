@@ -1,21 +1,22 @@
 // G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G
-#ifndef QT_WINDOWS_PATIENTDETAILS_H_INCLUDED
-#define QT_WINDOWS_PATIENTDETAILS_H_INCLUDED
+#ifndef QT_WINDOWS_PROCESS_SOUNDS_CONFIRM_PAGE_H_INCLUDED
+#define QT_WINDOWS_PROCESS_SOUNDS_CONFIRM_PAGE_H_INCLUDED
 // G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
+
 // Standard Library Includes
 // none
 
 // Qt Includes
-#include <QWizard>
+#include <QWizardPage>
 
 // Custom Includes
 #include "data_model/schema.hpp"
+
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
-
-class PatientDetails : public QWizard
+class ProcessSoundsConfirmFiles : public QWizardPage
 {
     Q_OBJECT
 
@@ -23,15 +24,14 @@ public:
 
     using shared_schema_t = std::shared_ptr<data_model::schema>;
 
-    explicit    PatientDetails  ( const shared_schema_t& Schema,
-                                  QWidget* parent = 0 );
-
-    void        accept          () Q_DECL_OVERRIDE;
+    ProcessSoundsConfirmFiles    (   const shared_schema_t& Schema,
+                                     QWidget* Parent=0   );
 
 private:
+    // Data Variables
+    shared_schema_t     Schema_;
 
-    shared_schema_t Schema_;
 };
 
 // G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G
-#endif // QT_WINDOWS_PATIENTDETAILS_H_INCLUDED
+#endif // QT_WINDOWS_PROCESS_SOUNDS_CONFIRM_PAGE_H_INCLUDED
