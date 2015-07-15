@@ -7,7 +7,7 @@
 // Standard Library Includes
 #include <vector>
 
-// Custom Includes
+// Boost Includes
 #include "boost/date_time/posix_time/posix_time.hpp"
 #include "boost/date_time/gregorian/gregorian.hpp"
 #include <boost/optional.hpp>
@@ -198,20 +198,16 @@ public:
     boost::optional<quince::serial> get_patient_id(
         const std::string& Forename,
         const std::string& Surname,
-        const std::string& DateOfBirth,
+        const boost::posix_time::ptime DateOfBirth,
         const std::string& Postcode )
     {
-        auto Timestamp
-            = boost::posix_time::ptime
-                (   boost::gregorian::from_string( DateOfBirth ),
-                    boost::posix_time::time_duration( 0, 0, 0 )    );
 
         const quince::query<patient>
             PatientQuery
                 = Patients_
                     .where( Patients_->forename==Forename &&
                             Patients_->surname==Surname &&
-                            Patients_->date_of_birth==Timestamp &&
+                            Patients_->date_of_birth==DateOfBirth &&
                             Patients_->postcode==Postcode );
 
         const auto Patient = PatientQuery.begin();
