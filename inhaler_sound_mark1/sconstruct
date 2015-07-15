@@ -3,10 +3,10 @@ import cuppa
 cuppa.run(
     default_options = {
         'boost-version'             : "latest",
-        'quince-location'           : "git+https://github.com/ja11sop/quince",
-        'quince-postgresql-location': "git+https://github.com/ja11sop/quince_postgresql",
-        'spdlog-location': 'git+https://github.com/gabime/spdlog.git',
-        'spdlog-include' : 'include'
+        'quince-location'           : "git+https://github.com/mshepanski/quince.git@dev",
+        'quince-postgresql-location': "git+https://github.com/mshepanski/quince_postgresql.git@dev",
+        'spdlog-location'           : 'git+https://github.com/gabime/spdlog.git',
+        'spdlog-include'            : 'include'
     },
     dependencies = {
         'spdlog': cuppa.header_library_dependency( 'spdlog' )

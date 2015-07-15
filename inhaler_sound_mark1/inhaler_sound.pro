@@ -20,7 +20,7 @@ SOURCES += application/main.cpp \
            qt_windows/process_sounds_import_files.cpp \
            qt_windows/process_sounds_intro_page.cpp \
            qt_windows/process_sounds_confirm_files.cpp \
-    qt_windows/process_sounds_get_patient_page.cpp
+           qt_windows/process_sounds_get_patient_page.cpp
 
 
 HEADERS += \
@@ -32,8 +32,9 @@ HEADERS += \
            qt_windows/process_sounds_import_files.h \
            qt_windows/process_sounds_intro_page.h \
            qt_windows/process_sounds_confirm_files.h \
-    qt_windows/process_sounds_get_patient_page.h
+           qt_windows/process_sounds_get_patient_page.h
 
 FORMS   += \
            qt_windows/login.ui \
-           qt_windows/administration.ui
+           qt_windows/administration.ui \
+

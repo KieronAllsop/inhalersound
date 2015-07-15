@@ -27,6 +27,7 @@ class QLabel;
 class QLineEdit;
 class QDateEdit;
 class QPushButton;
+class QCalendarWidget;
 
 
 class ProcessSoundsGetPatientPage : public QWizardPage
@@ -34,6 +35,8 @@ class ProcessSoundsGetPatientPage : public QWizardPage
     Q_OBJECT
 
 public:
+
+    bool isComplete() const;
 
     boost::optional<quince::serial> getPatientID() {  return PatientID_; }
     void setPatientID( boost::optional<quince::serial> PatientID ) { PatientID_ = PatientID; }
@@ -62,10 +65,12 @@ private:
     QLabel*             LastName_Label_;
     QLabel*             DOB_Label_;
     QLabel*             Postcode_Label_;
-    QLabel*             RetrievalOutcome_Label_;
+    QLabel*             PatientRetrieved_Label_;
+    QLabel*             TryAgain_Label_;
     QLineEdit*          FirstName_Edit_;
     QLineEdit*          LastName_Edit_;
     QLineEdit*          PostCode_Edit_;
+    QCalendarWidget*    Calendar_Widget_;
     QDateEdit*          DOB_DateEdit_;
     QPushButton*        RetrievePatient_Button_;
 

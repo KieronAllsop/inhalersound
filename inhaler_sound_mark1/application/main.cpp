@@ -1,15 +1,17 @@
-// I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
-// Qt Includes
-#include <QApplication>
 
+// I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 // Standard Library Includes
 #include <iostream>
 
 // Boost Includes
 #include <boost/program_options.hpp>
+#include <boost/filesystem.hpp>
 
 // Quince Includes
 #include <quince_postgresql/database.h>
+
+// Qt Includes
+#include <QApplication>
 
 // Custom Includes
 #include "qt_windows/login.h"
@@ -24,6 +26,13 @@
 
 void logger()
 {
+    auto log_dir = boost::filesystem::initial_path() / "logfiles";
+
+    if( !exists( log_dir ) )
+    {
+        create_directories( log_dir );
+    }
+
     auto ConsoleLog = spdlog::stdout_logger_mt( "console" );
     ConsoleLog->info( inhalersound::build::identity::product_version() );
 
