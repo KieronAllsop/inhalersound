@@ -21,11 +21,11 @@
 // about the MainWindow when we call setupUi( this ) in the constructor. This
 // is a forward declaration for a class that will be generated from processing
 // the associated ui file by running "uic"
-namespace Ui 
+namespace Ui
 {
     class Login;
-}    
-    
+}
+
 class Login : public QMainWindow
 {
     Q_OBJECT
@@ -35,18 +35,18 @@ public:
     void initialise_server_connection();
 
     using shared_schema_t = std::shared_ptr<data_model::schema>;
-       
+
     explicit Login ( const shared_schema_t& Schema,
                           QWidget* Parent = 0 );
-    
+
              ~Login();
 
-    
+
 private slots:
     void on_pushButton_clicked();
 
 private:
-    
+
     Ui::Login* Ui_;
     shared_schema_t Schema_;
 };

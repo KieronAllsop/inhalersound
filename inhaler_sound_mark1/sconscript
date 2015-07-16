@@ -35,8 +35,8 @@ env.AppendUnique( STATICLIBS =
 )
 
 uifiles = [
-        'qt_windows/login.ui',
-        'qt_windows/administration.ui'
+        'qt_windows/administration.ui',
+        'qt_windows/login.ui'
 ]
 
 env.Uic5( uifiles )

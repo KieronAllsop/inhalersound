@@ -44,6 +44,7 @@ private:
 
     // Owned Widgets
     QLabel*             SelectFiles_Label_;
+    QLabel*             SelectionConfirmation_Label_;
     QPushButton*        SelectFiles_Button_;
     QTreeView*          AudioFiles_View_;
     QStandardItemModel* AudioFiles_;

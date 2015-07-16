@@ -56,7 +56,6 @@ ProcessSoundsGetPatientPage
     connect( LastName_Edit_,            SIGNAL( textChanged(const QString&) ),  this, SLOT( on_text_credentials_changed(const QString&) ) );
     connect( DOB_DateEdit_,             SIGNAL( dateChanged(const QDate&) ),    this, SLOT( on_date_credentials_changed(const QDate&) ) );
     connect( PostCode_Edit_,            SIGNAL( textChanged(const QString&) ),  this, SLOT( on_text_credentials_changed(const QString&) ) );
-    connect( PatientRetrieved_Label_,   SIGNAL( textChanged(const QString&) ),  this, SIGNAL( completeChanged() ) );
 
     // Initialise State
     RetrievePatient_Button_->setDefault( true );      // Handle keyboard enter
@@ -147,6 +146,7 @@ void ProcessSoundsGetPatientPage::on_retrieve_clicked()
     if( PatientID_ )
     {
         PatientRetrieved_Label_->setText( "Patient successfully retrieved" );
+        completeChanged();
         TryAgain_Label_->clear();
     }
     else

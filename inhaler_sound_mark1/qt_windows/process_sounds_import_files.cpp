@@ -33,10 +33,11 @@ ProcessSoundsImportFiles
 , Schema_( Schema )
 
 // Create Widgets
-, SelectFiles_Label_  ( new QLabel( "Step 1. Select Inhaler Audio Files", this ) )
-, SelectFiles_Button_ ( new QPushButton( "Select Audio Files", this ) )
-, AudioFiles_View_    ( new QTreeView( this ) )
-, AudioFiles_         ( new QStandardItemModel( this ) )
+, SelectFiles_Label_            ( new QLabel(               "Step 1. Select Inhaler Audio Files", this ) )
+, SelectionConfirmation_Label_  ( new QLabel(               "", this ) )
+, SelectFiles_Button_           ( new QPushButton(          "Select Audio Files", this ) )
+, AudioFiles_View_              ( new QTreeView(            this ) )
+, AudioFiles_                   ( new QStandardItemModel(   this ) )
 {
     setTitle( "Select Inhaler sound files for Processing" );
 
@@ -69,8 +70,10 @@ ProcessSoundsImportFiles
 
     MasterLayout->addLayout( TopRow );
     MasterLayout->addWidget( AudioFiles_View_ );
+    MasterLayout->addWidget( SelectionConfirmation_Label_ );
 
     setLayout( MasterLayout );
+
 }
 
 
@@ -112,6 +115,9 @@ on_SelectFiles_clicked()
 
         AudioFiles_->appendRow( Items );
     }
+
+    SelectionConfirmation_Label_->setText( "You have successfully selected files for importation" );
+
 }
 
 

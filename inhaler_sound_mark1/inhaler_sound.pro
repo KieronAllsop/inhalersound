@@ -35,6 +35,6 @@ HEADERS += \
            qt_windows/process_sounds_get_patient_page.h
 
 FORMS   += \
-           qt_windows/login.ui \
            qt_windows/administration.ui \
+           qt_windows/login.ui
 
