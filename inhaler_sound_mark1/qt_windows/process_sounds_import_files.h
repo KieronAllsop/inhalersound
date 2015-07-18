@@ -10,6 +10,7 @@
 
 // Qt Includes
 #include <QWizardPage>
+#include <QStringList>
 
 // Custom Includes
 #include "data_model/schema.hpp"
@@ -21,6 +22,7 @@ class QLabel;
 class QPushButton;
 class QTreeView;
 class QStandardItemModel;
+//class QAbstractButton;
 
 
 class ProcessSoundsImportFiles : public QWizardPage
@@ -28,6 +30,11 @@ class ProcessSoundsImportFiles : public QWizardPage
     Q_OBJECT
 
 public:
+
+    QStringList getFileNames() {  return FileNames_; }
+    void setFileNames( QStringList FileNames ) { FileNames_ = FileNames; }
+
+
 
     using shared_schema_t = std::shared_ptr<data_model::schema>;
 
@@ -37,17 +44,22 @@ public:
 private slots:
 
     void            on_SelectFiles_clicked      ();
+    void            on_Next_Button_Clicked      ();
+
 
 private:
     // Data Variables
     shared_schema_t     Schema_;
+    QStringList         FileNames_;
 
     // Owned Widgets
     QLabel*             SelectFiles_Label_;
     QLabel*             SelectionConfirmation_Label_;
     QPushButton*        SelectFiles_Button_;
+    QPushButton*        ImportFiles_Button_;
     QTreeView*          AudioFiles_View_;
     QStandardItemModel* AudioFiles_;
+    //QAbstractButton*    NextButton_;
 };
 
 // G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G

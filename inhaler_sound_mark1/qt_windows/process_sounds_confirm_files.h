@@ -16,6 +16,12 @@
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
+// Forward Declarations
+class QLabel;
+class QPushButton;
+class QProgressBar;
+
+
 class ProcessSoundsConfirmFiles : public QWizardPage
 {
     Q_OBJECT
@@ -27,9 +33,20 @@ public:
     ProcessSoundsConfirmFiles    (   const shared_schema_t& Schema,
                                      QWidget* Parent=0   );
 
+private slots:
+
+    void on_ImportFiles_clicked();
+
+
 private:
     // Data Variables
     shared_schema_t     Schema_;
+
+    // Owned Widgets
+    QLabel*              ImportFiles_Label_;
+    QLabel*              ImportConfirmation_Label_;
+    QPushButton*         ImportFiles_Button_;
+
 
 };
 

@@ -37,7 +37,6 @@ class ProcessSoundsGetPatientPage : public QWizardPage
 public:
 
     bool isComplete() const;
-
     boost::optional<quince::serial> getPatientID() {  return PatientID_; }
     void setPatientID( boost::optional<quince::serial> PatientID ) { PatientID_ = PatientID; }
 
