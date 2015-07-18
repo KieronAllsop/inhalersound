@@ -6,6 +6,7 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/date_time/gregorian/gregorian.hpp>
 #include <boost/optional.hpp>
+#include <boost/optional/optional_io.hpp>
 
 // Qt Includes
 #include <QVBoxLayout>
@@ -147,6 +148,7 @@ void ProcessSoundsGetPatientPage::on_retrieve_clicked()
     {
         PatientRetrieved_Label_->setText( "Patient successfully retrieved" );
         completeChanged();
+        std::cout << "Patient ID is " << getPatientID() << std::endl;
         TryAgain_Label_->clear();
     }
     else

@@ -8,6 +8,7 @@
 #include <boost/filesystem/detail/utf8_codecvt_facet.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/optional.hpp>
+#include <boost/optional/optional_io.hpp>
 
 // Qt Includes
 #include <QFileDialog>
@@ -50,7 +51,7 @@ ProcessSoundsImportFiles
 
     // Set up event handling
     connect( SelectFiles_Button_,   SIGNAL( released() ),   this, SLOT( on_SelectFiles_clicked() ) );
-    connect( ImportFiles_Button_,           SIGNAL( released() ),    this, SLOT( on_Next_Button_Clicked() ) );
+    connect( ImportFiles_Button_,           SIGNAL( clicked() ),    this, SLOT( on_Next_Button_Clicked() ) );
     //connect( NextButton_,           SIGNAL( clicked() ),    this, SLOT( on_Next_Button_Clicked() ) );
 
     // Initialise Widgets
@@ -89,8 +90,12 @@ ProcessSoundsImportFiles
 void ProcessSoundsImportFiles::
 on_Next_Button_Clicked()
 {
+    std::cout << "Inside on next button clicked, before for loop" << std::endl;
+
     for( const auto& FileName: getFileNames() )
     {
+        std::cout << "Inside for loop" << std::endl;
+
         boost::filesystem::path Path( FileName.toStdString() );
         auto Filename = Path.filename();
         auto FileSize  = file_size( Path );
@@ -100,6 +105,9 @@ on_Next_Button_Clicked()
 
         if( File )
         {
+            std::cout << "Inside if File loop" << std::endl;
+            std::cout << Filename.string() << std::endl;
+
             std::vector<uint8_t> Data;
             Data.reserve( FileSize );
             Data.assign
@@ -109,8 +117,12 @@ on_Next_Button_Clicked()
             ProcessSoundsGetPatientPage processSoundsGetPatientPage( Schema_, this );
             auto PatientID = processSoundsGetPatientPage.getPatientID();
 
+            std::cout << "Retrieved Patient ID is " << PatientID << std::endl;
+
             if ( PatientID )
             {
+
+            std::cout << "Retrieved Patient ID is " << PatientID << std::endl;
             Schema_->insert_wave
                     ( *PatientID, "Accuhaler", Filename.string(), WriteTime, Data, FileSize );
             }
