@@ -22,6 +22,7 @@ class QLabel;
 class QPushButton;
 class QTreeView;
 class QStandardItemModel;
+class QComboBox;
 //class QAbstractButton;
 
 
@@ -31,10 +32,10 @@ class ProcessSoundsImportFiles : public QWizardPage
 
 public:
 
+    bool isComplete() const;
+
     QStringList getFileNames() {  return FileNames_; }
     void setFileNames( QStringList FileNames ) { FileNames_ = FileNames; }
-
-
 
     using shared_schema_t = std::shared_ptr<data_model::schema>;
 
@@ -44,21 +45,25 @@ public:
 private slots:
 
     void            on_SelectFiles_clicked      ();
-    void            on_Next_Button_Clicked      ();
-
+    void            on_Import_Button_Clicked      ();
+    void            on_Inhaler_selected         (QString);
 
 private:
     // Data Variables
     shared_schema_t     Schema_;
     QStringList         FileNames_;
+    QString             Inhaler_;
+    bool                Imported_ = false;
 
     // Owned Widgets
     QLabel*             SelectFiles_Label_;
-    QLabel*             SelectionConfirmation_Label_;
+    QLabel*             SelectInhaler_Label_;
+    QLabel*             ImportFiles_Label_;
     QPushButton*        SelectFiles_Button_;
     QPushButton*        ImportFiles_Button_;
     QTreeView*          AudioFiles_View_;
     QStandardItemModel* AudioFiles_;
+    QComboBox*          SelectInhaler_;
     //QAbstractButton*    NextButton_;
 };
 

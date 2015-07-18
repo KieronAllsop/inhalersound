@@ -20,6 +20,7 @@
 #include <QLabel>
 #include <QStandardItemModel>
 #include <QAbstractButton>
+#include <QComboBox>
 
 // Header Include
 #include "qt_windows/process_sounds_import_files.h"
@@ -38,11 +39,13 @@ ProcessSoundsImportFiles
 
 // Create Widgets
 , SelectFiles_Label_            ( new QLabel             ( "Step 1. Select Inhaler Audio Files", this ) )
-, SelectionConfirmation_Label_  ( new QLabel             ( "", this ) )
+, SelectInhaler_Label_          ( new QLabel             ( "Step 2. Select Inhaler Type", this ) )
+, ImportFiles_Label_            ( new QLabel             ( "Step 3. Import Files", this ) )
 , SelectFiles_Button_           ( new QPushButton        ( "Select Audio Files", this ) )
 , ImportFiles_Button_           ( new QPushButton        ( "Import Files", this ) )
 , AudioFiles_View_              ( new QTreeView          ( this ) )
 , AudioFiles_                   ( new QStandardItemModel ( this ) )
+, SelectInhaler_                ( new QComboBox          ( this ) )
 {
     setTitle( "Select Inhaler sound files for Processing" );
 
@@ -50,13 +53,20 @@ ProcessSoundsImportFiles
     //NextButton_ = wizard()->button(QWizard::NextButton);
 
     // Set up event handling
-    connect( SelectFiles_Button_,   SIGNAL( released() ),   this, SLOT( on_SelectFiles_clicked() ) );
-    connect( ImportFiles_Button_,           SIGNAL( clicked() ),    this, SLOT( on_Next_Button_Clicked() ) );
+    connect( SelectFiles_Button_,   SIGNAL( released() ),           this, SLOT( on_SelectFiles_clicked() ) );
+    connect( ImportFiles_Button_,   SIGNAL( clicked() ),            this, SLOT( on_Import_Button_Clicked() ) );
+    connect( SelectInhaler_,        SIGNAL( highlighted(QString) ), this, SLOT( on_Inhaler_selected(QString) ) );
     //connect( NextButton_,           SIGNAL( clicked() ),    this, SLOT( on_Next_Button_Clicked() ) );
 
     // Initialise Widgets
     AudioFiles_View_->setSizePolicy( QSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding ) );
     AudioFiles_View_->setModel( AudioFiles_ );
+
+    SelectInhaler_->setEnabled(false);
+    SelectInhaler_->addItem("Accuhaler");
+    SelectInhaler_->setEditable(false);
+
+    ImportFiles_Button_->setEnabled(false);
 
     AudioFiles_->setColumnCount(3);
     QStringList Headers;
@@ -73,22 +83,46 @@ ProcessSoundsImportFiles
 
     // Make the top Box contain a Horizontal Box Layout
     QHBoxLayout* TopRow = new QHBoxLayout();
-
     TopRow->addWidget( SelectFiles_Label_, 0, Qt::AlignLeft );
     TopRow->addWidget( SelectFiles_Button_, 0, Qt::AlignLeft );
     TopRow->addStretch();
 
+    // Make the a Horizontal Box Layout to hold labels
+    QHBoxLayout* LabelRow = new QHBoxLayout();
+    LabelRow->addWidget( SelectInhaler_Label_, 0, Qt::AlignLeft );
+    LabelRow->addWidget( ImportFiles_Label_, 0, Qt::AlignLeft );
+
+    // Make the a Horizontal Box Layout
+    QHBoxLayout* ButtonRow = new QHBoxLayout();
+    ButtonRow->addWidget( SelectInhaler_, 0, Qt::AlignLeft );
+    ButtonRow->addWidget( ImportFiles_Button_, 0, Qt::AlignLeft );
+
+
     MasterLayout->addLayout( TopRow );
     MasterLayout->addWidget( AudioFiles_View_ );
-    MasterLayout->addWidget( SelectionConfirmation_Label_ );
-    MasterLayout->addWidget( ImportFiles_Button_ );
+    MasterLayout->addLayout( LabelRow );
+    MasterLayout->addLayout( ButtonRow );
 
     setLayout( MasterLayout );
 
 }
 
+bool ProcessSoundsImportFiles::isComplete() const
+{
+    return( Imported_ );
+}
+
+
 void ProcessSoundsImportFiles::
-on_Next_Button_Clicked()
+on_Inhaler_selected(QString Inhaler)
+{
+    Inhaler_ = Inhaler;
+    ImportFiles_Button_->setEnabled(true);
+    std::cout << Inhaler_.toStdString() << std::endl;
+}
+
+void ProcessSoundsImportFiles::
+on_Import_Button_Clicked()
 {
     std::cout << "Inside on next button clicked, before for loop" << std::endl;
 
@@ -117,17 +151,23 @@ on_Next_Button_Clicked()
             ProcessSoundsGetPatientPage processSoundsGetPatientPage( Schema_, this );
             auto PatientID = processSoundsGetPatientPage.getPatientID();
 
+            std::cout << Inhaler_.toStdString() << std::endl;
             std::cout << "Retrieved Patient ID is " << PatientID << std::endl;
+
+            Imported_ = true;
+            completeChanged();
 
             if ( PatientID )
             {
 
             std::cout << "Retrieved Patient ID is " << PatientID << std::endl;
             Schema_->insert_wave
-                    ( *PatientID, "Accuhaler", Filename.string(), WriteTime, Data, FileSize );
+                    ( *PatientID, Inhaler_.toStdString(), Filename.string(), WriteTime, Data, FileSize );
             }
         }
     }
+    //Imported_ = true;
+    //completeChanged();
 }
 
 void ProcessSoundsImportFiles::
@@ -171,8 +211,7 @@ on_SelectFiles_clicked()
         AudioFiles_->appendRow( Items );
     }
 
-    SelectionConfirmation_Label_->setText( "You have successfully selected files for importation. If you are happy with your selection " );
-
+    SelectInhaler_->setEnabled(true);
 }
 // TODO: Make this confirm page follow on from previous page
 
