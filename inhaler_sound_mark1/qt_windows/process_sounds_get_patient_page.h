@@ -6,19 +6,11 @@
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
 // Standard Library Includes
-// none
+#include <memory>
 
 // Qt Includes
 #include <QWizardPage>
 
-// Custom Includes
-#include "data_model/schema.hpp"
-
-// Boost Includes
-#include <boost/optional.hpp>
-
-// Quince Includes
-#include <quince/quince.h>
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
@@ -29,6 +21,10 @@ class QDateEdit;
 class QPushButton;
 class QCalendarWidget;
 
+namespace inhaler
+{
+    class wave_importer;
+}
 
 class ProcessSoundsGetPatientPage : public QWizardPage
 {
@@ -36,14 +32,14 @@ class ProcessSoundsGetPatientPage : public QWizardPage
 
 public:
 
-    bool isComplete() const;
-    boost::optional<quince::serial> getPatientID() {  return PatientID_; }
-    void setPatientID( boost::optional<quince::serial> PatientID ) { PatientID_ = PatientID; }
+    using shared_importer_t = std::shared_ptr<inhaler::wave_importer>;
 
-    using shared_schema_t = std::shared_ptr<data_model::schema>;
+public:
 
-    ProcessSoundsGetPatientPage     (   const shared_schema_t& Schema,
+    ProcessSoundsGetPatientPage     (   const shared_importer_t& Importer,
                                         QWidget* Parent=0   );
+
+    bool isComplete() const;
 
 private slots:
 
@@ -52,11 +48,13 @@ private slots:
     void on_date_credentials_changed( const QDate& Date );
 
 private:
-    // Data Variables
-    shared_schema_t     Schema_;
-    boost::optional<quince::serial> PatientID_;
-    bool DateChanged_ = false;
+
     void update_retrieval_state();
+
+private:
+    // Data Variables
+    shared_importer_t   Importer_;
+    bool                DateChanged_;
 
     // Owned Widgets
     QLabel*             EnterPatientDetails_Label_;

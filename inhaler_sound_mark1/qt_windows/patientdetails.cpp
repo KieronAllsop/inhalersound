@@ -1,6 +1,6 @@
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 // Standard Includes
-// None
+#include <memory>
 
 // Boost Library Includes
 // None
@@ -15,14 +15,17 @@
 #include <QGridLayout>
 #include <QSizePolicy>
 
-// Header Include
-#include "qt_windows/patientdetails.h"
+// Custom Includes
+#include "inhaler/wave_importer.hpp"
 
 // Custom Includes
 #include "qt_windows/process_sounds_intro_page.h"
 #include "qt_windows/process_sounds_import_files.h"
-#include "qt_windows/process_sounds_confirm_files.h"
+#include "qt_windows/process_sounds_process_files.h"
 #include "qt_windows/process_sounds_get_patient_page.h"
+
+// Header Include
+#include "qt_windows/patientdetails.h"
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
 
@@ -33,11 +36,13 @@ PatientDetails
     QWizard( Parent ),
     Schema_( Schema )
 {
+    auto WaveImporter = std::make_shared<inhaler::wave_importer>( Schema_ );
+
     // Add Wizard pages
     addPage( new ProcessSoundsIntroPage() );
-    addPage( new ProcessSoundsGetPatientPage( Schema_ ) );
-    addPage( new ProcessSoundsImportFiles( Schema_ ) );
-    addPage( new ProcessSoundsConfirmFiles( Schema_ ) );
+    addPage( new ProcessSoundsGetPatientPage( WaveImporter ) );
+    addPage( new ProcessSoundsImportFiles( WaveImporter ) );
+    addPage( new ProcessSoundsProcessFiles( WaveImporter ) );
     setWindowTitle( "Process Patient Data Wizard" );
 }
 

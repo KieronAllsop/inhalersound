@@ -72,20 +72,11 @@ int main( int argc, char *argv[] )
 
     QApplication GuiApplication( argc, argv );
 
-    // TODO: Hard code this or make it possible to change?
-    const quince_postgresql::database
-        Database("localhost", "inhaler", "inhaler", "inhalersound", "inhalersound");
+    auto Server = std::make_shared<inhaler::server>();
 
-    // Create a shared instance of a single Schema
-    auto Schema = std::make_shared<data_model::schema>( Database );
-
-    // Pass the shared pointer to the Schema into our Login instance so it
-    // can make use of it (Dependency Injection - preferred way to share state)
-    Login window( Schema );
-
+    Login window( Server );
     window.show();
-
-    window.initialise_server_connection();
+    window.initialise_connection();
 
     return GuiApplication.exec();
 }

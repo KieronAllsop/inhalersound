@@ -19,8 +19,8 @@ SOURCES += application/main.cpp \
            qt_windows/administration.cpp \
            qt_windows/process_sounds_import_files.cpp \
            qt_windows/process_sounds_intro_page.cpp \
-           qt_windows/process_sounds_confirm_files.cpp \
-           qt_windows/process_sounds_get_patient_page.cpp
+           qt_windows/process_sounds_get_patient_page.cpp \
+           qt_windows/process_sounds_process_files.cpp
 
 
 HEADERS += \
@@ -31,10 +31,14 @@ HEADERS += \
            qt_windows/administration.h \
            qt_windows/process_sounds_import_files.h \
            qt_windows/process_sounds_intro_page.h \
-           qt_windows/process_sounds_confirm_files.h \
-           qt_windows/process_sounds_get_patient_page.h
+           qt_windows/process_sounds_get_patient_page.h \
+           qt_windows/process_sounds_process_files.h \
+           inhaler/server.hpp \
+           inhaler/wave_importer.hpp
 
 FORMS   += \
-           qt_windows/administration.ui \
-           qt_windows/login.ui
+           qt_windows/administration.ui
+
+OTHER_FILES += \
+           initial_data/accuhaler.voc
 

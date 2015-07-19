@@ -11,7 +11,7 @@
 #include <QWizard>
 
 // Custom Includes
-#include "data_model/schema.hpp"
+#include "inhaler/server.hpp"
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
 
@@ -21,7 +21,7 @@ class PatientDetails : public QWizard
 
 public:
 
-    using shared_schema_t = std::shared_ptr<data_model::schema>;
+    using shared_schema_t = inhaler::server::shared_schema_t;
 
     explicit    PatientDetails  ( const shared_schema_t& Schema,
                                   QWidget* parent = 0 );

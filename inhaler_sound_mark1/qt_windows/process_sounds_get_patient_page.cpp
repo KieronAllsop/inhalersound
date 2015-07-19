@@ -5,8 +5,6 @@
 // Boost Includes
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/date_time/gregorian/gregorian.hpp>
-#include <boost/optional.hpp>
-#include <boost/optional/optional_io.hpp>
 
 // Qt Includes
 #include <QVBoxLayout>
@@ -20,6 +18,9 @@
 #include <QDate>
 #include <QWizardPage>
 
+// Importer Includes
+#include "inhaler/wave_importer.hpp"
+
 // Header Include
 #include "qt_windows/process_sounds_get_patient_page.h"
 
@@ -27,12 +28,12 @@
 
 ProcessSoundsGetPatientPage::
 ProcessSoundsGetPatientPage
-(   const shared_schema_t& Schema,
+(   const shared_importer_t& Importer,
     QWidget* Parent )
 
 : QWizardPage( Parent )
 
-, Schema_( Schema )
+, Importer_( Importer )
 
 // Create Widgets
 , EnterPatientDetails_Label_    ( new QLabel( "Please enter patient details (all fields must be completed)", this ) )
@@ -112,8 +113,8 @@ void ProcessSoundsGetPatientPage::on_date_credentials_changed( const QDate& Date
 {
     if( Date != QDate::currentDate() )
     {
-    DateChanged_ = true;
-    update_retrieval_state();
+        DateChanged_ = true;
+        update_retrieval_state();
     }
 }
 
@@ -140,18 +141,14 @@ void ProcessSoundsGetPatientPage::on_retrieve_clicked()
                     ( EnteredDate.year(), EnteredDate.month(), EnteredDate.day() ),
                 boost::posix_time::time_duration( 0, 0, 0 ) );
 
-    setPatientID
-        ( Schema_->get_patient_id
-            ( FirstName, LastName, DateOfBirth, Postcode ) );
-
-    if( PatientID_ )
+    try
     {
+        Importer_->set_patient( FirstName, LastName, DateOfBirth, Postcode );
         PatientRetrieved_Label_->setText( "Patient successfully retrieved" );
         completeChanged();
-        std::cout << "Patient ID is " << getPatientID() << std::endl;
         TryAgain_Label_->clear();
     }
-    else
+    catch( const boost::exception& Error )
     {
         TryAgain_Label_->setText( "No match! Please try again" );
         PatientRetrieved_Label_->clear();

@@ -8,8 +8,8 @@
 #include <vector>
 
 // Boost Includes
-#include "boost/date_time/posix_time/posix_time.hpp"
-#include "boost/date_time/gregorian/gregorian.hpp"
+#include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/date_time/gregorian/gregorian.hpp>
 #include <boost/optional.hpp>
 
 // Quince Includes
@@ -72,29 +72,39 @@ struct patientwave
 QUINCE_MAP_CLASS(patientwave, (patient_id)(inhaler_type)(file_name)(creation_timestamp)(import_timestamp)(wave_file)(file_size))
 
 
-// We encapsulate the nature and relationships within our data model in a schema
+struct inhalerdata
+{
+    std::string                     inhaler_type;           // primary key
+    std::vector<uint8_t>            vocabulary_voc;
+};
+QUINCE_MAP_CLASS(inhalerdata, (inhaler_type)(vocabulary_voc))
+
+
+template<class DatabaseT>
 class schema
 {
 public:
 
+    using database_t      = DatabaseT;
     using users_t         = quince::serial_table<user>;
     using userlogins_t    = quince::table<userlogin>;
     using patients_t      = quince::serial_table<patient>;
     using patientwaves_t  = quince::table<patientwave>;
+    using inhalersdata_t  = quince::table<inhalerdata>;
 
 public:
 
-    // Making this a function template allows us to take any database backend
-    // This way we can aribrarily instantiate the schema on different backends
-    // or using the same backend but in different databases
-    template<class DatabaseT>
-    explicit schema( const DatabaseT& Database )
-        : Users_        ( Database, "users",          &user::id  )
-        , Userlogins_   ( Database, "userlogins",     &userlogin::username )
-        , Patients_     ( Database, "patients",       &patient::id )
-        , Patientwaves_ ( Database, "patientwaves" )
+    // forward all the arguments from Schema to the Database
+    template<class... ArgsT>
+    explicit schema( ArgsT&&... Args )                     // parameter pack
+        : Database_     ( std::forward<ArgsT>(Args)... )   // takes type list and parameter pack
+        , Users_        ( Database_, "users",          &user::id  )
+        , Userlogins_   ( Database_, "userlogins",     &userlogin::username )
+        , Patients_     ( Database_, "patients",       &patient::id )
+        , Patientwaves_ ( Database_, "patientwaves" )
+        , Inhalersdata_ ( Database_, "inhalersdata",   &inhalerdata::inhaler_type )
     {
-        Userlogins_.specify_foreign( Userlogins_  ->user_id, Users_ );
+        Userlogins_.specify_foreign( Userlogins_->user_id, Users_ );
 
         Patientwaves_.specify_key
             ( Patientwaves_->patient_id,
@@ -105,17 +115,24 @@ public:
         Patientwaves_.specify_foreign( Patientwaves_->patient_id, Patients_ );
     }
 
-public:
+
+    void initialise()
+    {
+        open_all_tables();
+        initial_population();
+    }
+
+private:
 
     // Convenience functions
 
-    bool open_all_tables()
+    void open_all_tables()
     {
         Users_.open();
         Userlogins_.open();
         Patients_.open();
         Patientwaves_.open();
-        return true;
+        Inhalersdata_.open();
     }
 
     // initial population of user data
@@ -193,99 +210,13 @@ public:
         }
     }
 
-
-    // TODO: move this function into its own class
-    boost::optional<quince::serial> get_patient_id(
-        const std::string& Forename,
-        const std::string& Surname,
-        const boost::posix_time::ptime DateOfBirth,
-        const std::string& Postcode )
-    {
-
-        const quince::query<patient>
-            PatientQuery
-                = Patients_
-                    .where( Patients_->forename==Forename &&
-                            Patients_->surname==Surname &&
-                            Patients_->date_of_birth==DateOfBirth &&
-                            Patients_->postcode==Postcode );
-
-        const auto Patient = PatientQuery.begin();
-
-        if( Patient != PatientQuery.end())
-        {
-            return boost::optional<quince::serial>( Patient->id );
-        }
-        return boost::optional<quince::serial>();       // allows for a zero return
-    }
-
-
-    // TODO: move this function into its own class
-    void insert_wave(
-        const quince::serial& PatientID,
-        const std::string& Inhaler,
-        const std::string& Filename,
-        const boost::posix_time::ptime& Modified,
-        const std::vector<uint8_t>& WaveFile,
-        const int FileSize )
-    {
-        auto Timestamp
-            = boost::posix_time::microsec_clock::local_time();
-
-        Patientwaves_.insert(
-        {
-            PatientID,
-            Inhaler,
-            Filename,
-            Modified,
-            Timestamp,
-            WaveFile,
-            FileSize } );
-    }
-
-
-    // TODO: move this function into its own class
-    boost::optional<user> validate_user(
-        bool& ValidUser,
-        std::string& UserRole,
-        const std::string& Username,
-        const std::string& Password )
-    {
-        const quince::query<userlogin>
-            LoginQuery
-                = Userlogins_
-                    .where( Userlogins_->username==Username );
-
-        const auto Login = LoginQuery.begin();
-
-        if( Login != LoginQuery.end() &&
-                Password == Login->password )
-        {
-            ValidUser = true;                               // confirms valid user
-
-            const quince::query<user>
-                UserQuery
-                    = Users_
-                        .where( Users_->id == Login->user_id );
-
-            auto User = UserQuery.begin();
-
-            if( User != UserQuery.end() )
-            {
-                UserRole = User->user_role;                 // set user role
-                return boost::optional<user>( *User );      // return all user details
-            }
-        }
-        return boost::optional<user>();
-    }
-
-
     void clear_all_tables()
     {
         Users_.remove();
         Userlogins_.remove();
         Patients_.remove();
         Patientwaves_.remove();
+        Inhalersdata_.remove();
     }
 
 
@@ -334,14 +265,26 @@ public:
         return Patientwaves_;
     }
 
+    const inhalersdata_t& inhalersdata() const
+    {
+        return Inhalersdata_;
+    }
+
+    inhalersdata_t& inhalersdata()
+    {
+        return Inhalersdata_;
+    }
 
 private:
 
-    quince::serial_table<user> Users_;
-    quince::table<userlogin> Userlogins_;
-    quince::serial_table<patient> Patients_;
-    quince::table<patientwave> Patientwaves_;
+    DatabaseT Database_;
 
+    // Schema Objects
+    quince::serial_table<user>      Users_;
+    quince::table<userlogin>        Userlogins_;
+    quince::serial_table<patient>   Patients_;
+    quince::table<patientwave>      Patientwaves_;
+    quince::table<inhalerdata>      Inhalersdata_;
 };
 
 
