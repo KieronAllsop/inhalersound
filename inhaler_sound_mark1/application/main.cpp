@@ -10,10 +10,12 @@
 
 // Qt Includes
 #include <QApplication>
+#include <QMainWindow>
 
 // Custom Includes
 #include "qt_gui/login.h"
 #include "inhaler/server.hpp"
+#include "qt_gui/mainwindow.h"
 
 // Local Includes
 #include "version.hpp"
@@ -73,11 +75,8 @@ int main( int argc, char *argv[] )
 
     QApplication GuiApplication( argc, argv );
 
-    auto Server = std::make_shared<inhaler::server>();
-
-    qt_gui::login_dialog LoginWindow( Server );
-    LoginWindow.show();
-    LoginWindow.initialise_connection();
+    qt_gui::MainWindow mainWindow;
+    mainWindow.show();
 
     return GuiApplication.exec();
 }

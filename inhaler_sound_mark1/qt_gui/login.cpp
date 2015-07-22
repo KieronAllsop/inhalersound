@@ -26,6 +26,9 @@
 // Self Include
 #include "qt_gui/login.h"
 
+// Custom Includes
+#include "qt_gui/mainwindow.h"
+
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
@@ -249,10 +252,13 @@ on_login_clicked()
         if(     User->user_role == "DataTechnician"
             ||  User->user_role == "DiagnosingDoctor" )
         {
-            hide();
-            qt_gui::import_wizard::wizard ImportWizard( Schema_, this );
-            ImportWizard.setModal( true );
-            ImportWizard.exec();
+           // hide();
+           // qt_gui::import_wizard::wizard ImportWizard( Schema_, this );
+           // ImportWizard.setModal( true );
+           // ImportWizard.exec();
+           hide();
+           qt_gui::MainWindow mainWindow;
+           mainWindow.move_stack_to_datatech();
         }
         else
         {
