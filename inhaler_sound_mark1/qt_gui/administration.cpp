@@ -3,10 +3,10 @@
 // none
 
 // Header Include
-#include "qt_windows/administration.h"
+#include "qt_gui/administration.h"
 
 // Qt UI Generated Include
-#include "qt_windows/ui_administration.h"
+#include "qt_gui/ui_administration.h"
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
 

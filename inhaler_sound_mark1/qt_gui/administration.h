@@ -40,4 +40,3 @@ private:
 
 // G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G
 #endif // ADMINISTRATION_H
-

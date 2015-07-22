@@ -23,21 +23,27 @@
 #include <QComboBox>
 
 // Importer Includes
+#include "inhaler/wave_details.hpp"
 #include "inhaler/wave_importer.hpp"
 
-// Header Include
-#include "qt_windows/process_sounds_import_files.h"
+// Self Include
+#include "qt_gui/import_wizard/select_files_page.h"
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
+// n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
+namespace qt_gui {
+namespace import_wizard {
+// n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 
-ProcessSoundsImportFiles::
-ProcessSoundsImportFiles
+
+select_files_page::
+select_files_page
 (   const shared_importer_t& Importer,
     QWidget* Parent )
 
 : QWizardPage( Parent )
 
-, Importer_ ( Importer )
+, Importer_( Importer )
 
 // Create Widgets
 , SelectFiles_Label_            ( new QLabel             ( "Step 1. Select Inhaler Audio Files", this ) )
@@ -49,16 +55,12 @@ ProcessSoundsImportFiles
 , AudioFiles_                   ( new QStandardItemModel ( this ) )
 , SelectInhaler_                ( new QComboBox          ( this ) )
 {
-    setTitle( "Select sound files for Processing" );
-
-    // Create instance of Wizard NEXT button
-    //NextButton_ = wizard()->button(QWizard::NextButton);
+    setTitle( "Select Inhaler sound files for Processing" );
 
     // Set up event handling
-    connect( SelectFiles_Button_,   SIGNAL( released() ),           this, SLOT( on_SelectFiles_clicked() ) );
-    connect( ConfirmFiles_Button_,  SIGNAL( clicked() ),            this, SLOT( on_Confirm_Button_Clicked() ) );
-    connect( SelectInhaler_,        SIGNAL( highlighted(QString) ), this, SLOT( on_Inhaler_selected(QString) ) );
-    //connect( NextButton_,         SIGNAL( clicked() ),            this, SLOT( on_Next_Button_Clicked() ) );
+    connect( SelectFiles_Button_,   SIGNAL( released() ),           this, SLOT( on_select_files_clicked() ) );
+    connect( ConfirmFiles_Button_,  SIGNAL( clicked() ),            this, SLOT( on_confirm_button_clicked() ) );
+    connect( SelectInhaler_,        SIGNAL( highlighted(QString) ), this, SLOT( on_inhaler_selected(QString) ) );
 
     // Initialise Widgets
     AudioFiles_View_->setSizePolicy( QSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding ) );
@@ -85,17 +87,20 @@ ProcessSoundsImportFiles
 
     // Make the top Box contain a Horizontal Box Layout
     QHBoxLayout* TopRow = new QHBoxLayout();
+
     TopRow->addWidget( SelectFiles_Label_, 0, Qt::AlignLeft );
     TopRow->addWidget( SelectFiles_Button_, 0, Qt::AlignLeft );
     TopRow->addStretch();
 
     // Make the a Horizontal Box Layout to hold labels
     QHBoxLayout* LabelRow = new QHBoxLayout();
+
     LabelRow->addWidget( SelectInhaler_Label_, 0, Qt::AlignLeft );
     LabelRow->addWidget( ConfirmFiles_Label_, 0, Qt::AlignLeft );
 
     // Make the a Horizontal Box Layout
     QHBoxLayout* ButtonRow = new QHBoxLayout();
+
     ButtonRow->addWidget( SelectInhaler_, 0, Qt::AlignLeft );
     ButtonRow->addWidget( ConfirmFiles_Button_, 0, Qt::AlignLeft );
 
@@ -109,21 +114,22 @@ ProcessSoundsImportFiles
 
 }
 
-bool ProcessSoundsImportFiles::isComplete() const
+bool select_files_page::
+isComplete() const
 {
     return( Confirmed_ );
 }
 
 
-void ProcessSoundsImportFiles::
-on_Inhaler_selected(QString Inhaler)
+void select_files_page::
+on_inhaler_selected(QString Inhaler)
 {
     Importer_->set_inhaler_model(Inhaler.toStdString());
     ConfirmFiles_Button_->setEnabled(true);
 }
 
-void ProcessSoundsImportFiles::
-on_Confirm_Button_Clicked()
+void select_files_page::
+on_confirm_button_clicked()
 {
     SelectFiles_Button_->setEnabled(false);
     SelectInhaler_->setEnabled(false);
@@ -132,8 +138,8 @@ on_Confirm_Button_Clicked()
     completeChanged();
 }
 
-void ProcessSoundsImportFiles::
-on_SelectFiles_clicked()
+void select_files_page::
+on_select_files_clicked()
 {
     QStringList FileNames
          = QFileDialog::getOpenFileNames
@@ -144,16 +150,13 @@ on_SelectFiles_clicked()
 
     if( FileNames.size() )
     {
-        AudioFiles_->clear();
-
-        //std::locale Utf8Locale( std::locale(), new boost::filesystem::detail::utf8_codecvt_facet );
-        //boost::filesystem::path::imbue( Utf8Locale );
+        AudioFiles_->removeRows( 0, AudioFiles_->rowCount() );
 
         boost::posix_time::time_facet* TimeFacet = new boost::posix_time::time_facet();
         std::locale TimeLocale( std::locale(), TimeFacet );
         TimeFacet->format( "%Y-%m-%d %H:%M" );
 
-        std::vector< inhaler::wave_file_details > Waves;
+        std::vector<inhaler::wave_details> Waves;
 
         for( const auto& FileName: FileNames )
         {
@@ -164,6 +167,8 @@ on_SelectFiles_clicked()
             auto DateTime = boost::posix_time::from_time_t( last_write_time( Path ) );
 
             Waves.emplace_back( Path, DateTime, Size );
+
+            // TODO: Format Size as a B, KiB, MiB or GiB string first
 
             std::stringstream Date;
             Date.imbue( TimeLocale );
@@ -181,50 +186,7 @@ on_SelectFiles_clicked()
     SelectInhaler_->setEnabled(true);
 }
 
-
-// TODO: Make this confirm page follow on from previous page
-
-// For now I want to import files and start trying to get a file to play
-
-
-    /*
-    void PatientDetails::on_pushButton_selectFiles_clicked()
-    {
-        QStringList FileNames
-            = QFileDialog::getOpenFileNames
-                (   this,
-                    "Select one or more wave files to open",
-                    "/home",
-                    "Wave Files (*.wav)" );
-
-        for( const auto& FileName: FileNames )
-        {
-            boost::filesystem::path Path( FileName.toStdString() );
-            auto Filename = Path.filename();
-            auto FileSize  = file_size( Path );
-            auto WriteTime = boost::posix_time::from_time_t( last_write_time( Path ) );
-
-            std::ifstream File( Path.c_str(), std::ios::binary );
-
-            if( File )
-            {
-                std::vector<uint8_t> Data;
-                Data.reserve( FileSize );
-                Data.assign
-                    (   std::istreambuf_iterator<char>( File ),
-                        std::istreambuf_iterator<char>()   );
-
-                auto PatientID
-                    = Schema_->get_patient_id
-                        ( "Kieron", "Allsop", "1972-Oct-14", "BT191YX" );
-
-                if( PatientID )
-                {
-                Schema_->insert_wave
-                        ( *PatientID, "Accuhaler", Filename.string(), WriteTime, Data, FileSize );
-                }
-
-            }
-        }
-    }
-    */
+// n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
+} // end import_wizard
+} // end qt_gui
+// n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n

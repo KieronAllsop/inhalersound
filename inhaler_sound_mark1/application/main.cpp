@@ -6,22 +6,21 @@
 // Boost Includes
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>
-
-// Quince Includes
-#include <quince_postgresql/database.h>
+#include <boost/filesystem/detail/utf8_codecvt_facet.hpp>
 
 // Qt Includes
 #include <QApplication>
 
 // Custom Includes
-#include "qt_windows/login.h"
-#include "data_model/schema.hpp"
+#include "qt_gui/login.h"
+#include "inhaler/server.hpp"
 
 // Local Includes
 #include "version.hpp"
 
 // spdlog includes
 #include "spdlog/spdlog.h"
+
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
 void logger()
@@ -45,6 +44,8 @@ void logger()
 
 int main( int argc, char *argv[] )
 {
+    std::locale Utf8Locale( std::locale(), new boost::filesystem::detail::utf8_codecvt_facet );
+    boost::filesystem::path::imbue( Utf8Locale );
 
     boost::program_options::options_description OptionsDescription( "Program Options" );
     OptionsDescription.add_options()
@@ -74,9 +75,9 @@ int main( int argc, char *argv[] )
 
     auto Server = std::make_shared<inhaler::server>();
 
-    Login window( Server );
-    window.show();
-    window.initialise_connection();
+    qt_gui::login_dialog LoginWindow( Server );
+    LoginWindow.show();
+    LoginWindow.initialise_connection();
 
     return GuiApplication.exec();
 }

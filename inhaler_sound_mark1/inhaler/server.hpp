@@ -26,8 +26,10 @@
 namespace inhaler {
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 
-
-struct could_not_connect_to_server : virtual boost::exception, virtual std::exception {};
+namespace exception
+{
+    struct could_not_connect_to_server : virtual boost::exception, virtual std::exception {};
+}
 
 
 class server
@@ -68,11 +70,11 @@ public:
         }
         catch( const quince::failed_connection_exception& Error )
         {
-            BOOST_THROW_EXCEPTION( could_not_connect_to_server() );
+            BOOST_THROW_EXCEPTION( exception::could_not_connect_to_server() );
         }
     }
 
-    // rename validate user
+    // validate user
     optional_user_t authenticate
         (   const std::string& Username,
             const std::string& Password   )

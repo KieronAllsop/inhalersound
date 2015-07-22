@@ -15,15 +15,12 @@
 // Boost Includes
 #include <boost/filesystem.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
-#include <boost/date_time/gregorian/gregorian.hpp>
 #include <boost/optional.hpp>
 #include <boost/exception/all.hpp>
 
-// Quince Includes
-#include <quince/quince.h>
-
-// Data Model Includes
+// Inhaler Includes
 #include "inhaler/server.hpp"
+#include "inhaler/wave_details.hpp"
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
@@ -32,51 +29,11 @@ namespace inhaler {
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 
 
-class wave_file_details
+namespace exception
 {
-public:
-
-    using path_t        = boost::filesystem::path;
-    using timestamp_t   = boost::posix_time::ptime;
-    using size_t        = int; //std::streamsize;
-
-public:
-
-    wave_file_details
-        (   const path_t&       Path,
-            const timestamp_t&  Modified,
-            const size_t        Size   )
-    : Path_( Path )
-    , Modified_( Modified )
-    , Size_( Size )
-    {
-    }
-
-    const path_t& path() const
-    {
-        return Path_;
-    }
-
-    const timestamp_t& modified_time() const
-    {
-        return Modified_;
-    }
-
-    const size_t& size() const
-    {
-        return Size_;
-    }
-
-private:
-
-    path_t          Path_;
-    timestamp_t     Modified_;
-    size_t          Size_;
-
-};
-
-struct patient_not_found : virtual boost::exception, virtual std::exception {};
-struct no_patient_set    : virtual boost::exception, virtual std::exception {};
+    struct patient_not_found : virtual boost::exception, virtual std::exception {};
+    struct no_patient_set    : virtual boost::exception, virtual std::exception {};
+}
 
 
 enum class import_status
@@ -87,18 +44,33 @@ enum class import_status
     finished
 };
 
+
+constexpr const char* c_str( import_status& Status )
+{
+    switch( Status )
+    {
+        case import_status::reading    : return "Reading";
+        case import_status::storing    : return "Storing";
+        case import_status::processing : return "Processing";
+        case import_status::finished   : return "Finished";
+    }
+    return nullptr;
+}
+
+
 class wave_importer
 {
 public:
 
     // Type Interface
     using shared_schema_t       = inhaler::server::shared_schema_t;
-    using import_handler_t      = std::function< void( const wave_file_details&, int, import_status ) >;
+    using wave_details_t        = inhaler::wave_details;
+    using import_handler_t      = std::function< void( const wave_details_t&, int, import_status ) >;
     using date_t                = boost::posix_time::ptime;
     using timestamp_t           = boost::posix_time::ptime;
     using patient_t             = data_model::patient;
     using optional_patient_t    = boost::optional<patient_t>;
-    using wave_files_t          = std::vector<wave_file_details>;
+    using wave_files_t          = std::vector<wave_details_t>;
     using data_t                = std::vector<uint8_t>;
 
 public:
@@ -148,13 +120,13 @@ public:
 
         if( Patient == Query.end())
         {
-            BOOST_THROW_EXCEPTION( patient_not_found() );
+            BOOST_THROW_EXCEPTION( exception::patient_not_found() );
         }
         Patient_ = *Patient;
     }
 
     void set_wave_files
-        (   std::vector<wave_file_details>&& WaveFiles   )
+        (   wave_files_t&& WaveFiles   )
     {
         WaveFiles_ = std::move( WaveFiles );
     }
@@ -169,12 +141,13 @@ public:
     {
         if( !Patient_ )
         {
-            BOOST_THROW_EXCEPTION( no_patient_set() );
+            BOOST_THROW_EXCEPTION( exception::no_patient_set() );
         }
 
         auto ImportTime = boost::posix_time::microsec_clock::local_time();
 
         int Index = 0;
+
         for( const auto& WaveFile: WaveFiles_ )
         {
             Handler( WaveFile, Index, import_status::reading );
@@ -185,20 +158,19 @@ public:
 
             store_file( WaveFile, ImportTime, Data );
 
-//            Handler( WaveFile, Index, import_status::processing );
-//
-//            process_file( WaveFile, InhalerModel_ );
-//
-//            Handler( WaveFile, Index, import_status::finished );
-//
+            Handler( WaveFile, Index, import_status::processing );
+
+            process_file( WaveFile, InhalerModel_ );
+
+            Handler( WaveFile, Index, import_status::finished );
+
             ++Index;
         }
     }
 
-
 private:
 
-    data_t read_file( const wave_file_details::path_t& Path, wave_file_details::size_t Size )
+    data_t read_file( const wave_details_t::path_t& Path, wave_details_t::size_t Size )
     {
         std::ifstream File( Path.c_str(), std::ios::binary );
 
@@ -211,17 +183,22 @@ private:
         return std::move( Data );
     }
 
-    void store_file( const wave_file_details& WaveFile, const timestamp_t& ImportTime, const data_t& Data )
+    void store_file( const wave_details_t& WaveFile, const timestamp_t& ImportTime, const data_t& Data )
     {
         Schema_->patientwaves()
             .insert
                 ( { Patient_->id,
                     InhalerModel_,
-                    WaveFile.path().string(),
+                    WaveFile.path().filename().string(),
                     WaveFile.modified_time(),
                     ImportTime,
                     Data,
                     WaveFile.size() } );
+    }
+
+    void process_file( const wave_details_t& WaveFile, const std::string& InhalerModel )
+    {
+        // TODO
     }
 
 private:

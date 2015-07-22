@@ -1,34 +1,35 @@
 // G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G
-#ifndef QT_WINDOWS_PROCESS_SOUNDS_INTRO_PAGE_H_INCLUDED
-#define QT_WINDOWS_PROCESS_SOUNDS_INTRO_PAGE_H_INCLUDED
+#ifndef QT_WINDOWS_PLAY_WAVE_H_INCLUDED
+#define QT_WINDOWS_PLAY_WAVE_H_INCLUDED
 // G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
-
 // Standard Library Includes
 // none
 
 // Qt Includes
-#include <QWizardPage>
+#include <QDialog>
 
-// Forward Declarations
-class QLabel;
-
+// Custom Includes
+#include "inhaler/wave_importer.hpp"
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
-class ProcessSoundsIntroPage : public QWizardPage
+
+class PlayWave : public QDialog
 {
     Q_OBJECT
 
 public:
-                    ProcessSoundsIntroPage      (   QWidget* Parent=0   );
+
+    using shared_importer_t = std::shared_ptr<inhaler::wave_importer>;
+
+    explicit    PlayWave  ( const shared_importer_t& Importer,
+                                  QWidget* parent = 0 );
 
 private:
 
-    // Owned Widgets
-    QLabel* Introduction_Label_;
+    shared_importer_t   Importer_;
 };
 
 // G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G
-#endif // QT_WINDOWS_PROCESS_SOUNDS_INTRO_PAGE_H_INCLUDED
-
+#endif // QT_WINDOWS_PLAY_WAVE_H_INCLUDED

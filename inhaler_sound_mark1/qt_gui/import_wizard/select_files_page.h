@@ -1,12 +1,12 @@
 // G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G
-#ifndef QT_WINDOWS_PROCESS_SOUNDS_IMPORT_FILES_H_INCLUDED
-#define QT_WINDOWS_PROCESS_SOUNDS_IMPORT_FILES_H_INCLUDED
+#ifndef QT_GUI_IMPORT_WIZARD_SELECT_FILES_PAGE_H_INCLUDED
+#define QT_GUI_IMPORT_WIZARD_SELECT_FILES_PAGE_H_INCLUDED
 // G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
 // Standard Library Includes
-// none
+#include <memory>
 
 // Qt Includes
 #include <QWizardPage>
@@ -23,14 +23,18 @@ class QPushButton;
 class QTreeView;
 class QStandardItemModel;
 class QComboBox;
-//class QAbstractButton;
 
 namespace inhaler
 {
     class wave_importer;
 }
 
-class ProcessSoundsImportFiles : public QWizardPage
+// n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
+namespace qt_gui {
+namespace import_wizard {
+// n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
+
+class select_files_page : public QWizardPage
 {
     Q_OBJECT
 
@@ -39,23 +43,21 @@ public:
     using shared_importer_t = std::shared_ptr<inhaler::wave_importer>;
 
 public:
-
-                    ProcessSoundsImportFiles    (  const shared_importer_t& Importer,
-                                                   QWidget* Parent=0   );
-
-    bool            isComplete                  () const;
+                    select_files_page           (   const shared_importer_t& Importer,
+                                                    QWidget* Parent=0   );
 
 private slots:
 
-    void            on_SelectFiles_clicked      ();
-    void            on_Confirm_Button_Clicked    ();
-    void            on_Inhaler_selected         (QString);
+    void            on_select_files_clicked      ();
+    void            on_confirm_button_clicked    ();
+    void            on_inhaler_selected        	 (QString);
 
 private:
     // Data Variables
     shared_importer_t   Importer_;
     QStringList         FileNames_;
     bool                Confirmed_ = false;
+    bool            	isComplete                  () const;
 
     // Owned Widgets
     QLabel*             SelectFiles_Label_;
@@ -66,9 +68,13 @@ private:
     QTreeView*          AudioFiles_View_;
     QStandardItemModel* AudioFiles_;
     QComboBox*          SelectInhaler_;
-    //QAbstractButton*    NextButton_;
 };
 
+// n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
+} // end import_wizard
+} // end qt_gui
+// n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
+
 // G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G
-#endif // QT_WINDOWS_PROCESS_SOUNDS_IMPORT_FILES_H_INCLUDED
+#endif // QT_GUI_IMPORT_WIZARD_SELECT_FILES_PAGE_H_INCLUDED
 

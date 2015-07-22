@@ -1,6 +1,6 @@
 // G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G
-#ifndef QT_WINDOWS_PROCESS_SOUNDS_GET_PATIENT_PAGE_H_INCLUDED
-#define QT_WINDOWS_PROCESS_SOUNDS_GET_PATIENT_PAGE_H_INCLUDED
+#ifndef QT_GUI_PROCESS_SOUNDS_GET_PATIENT_PAGE_H_INCLUDED
+#define QT_GUI_PROCESS_SOUNDS_GET_PATIENT_PAGE_H_INCLUDED
 // G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
@@ -26,7 +26,12 @@ namespace inhaler
     class wave_importer;
 }
 
-class ProcessSoundsGetPatientPage : public QWizardPage
+// n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
+namespace qt_gui {
+namespace import_wizard {
+// n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
+
+class get_patient_page : public QWizardPage
 {
     Q_OBJECT
 
@@ -36,20 +41,20 @@ public:
 
 public:
 
-    ProcessSoundsGetPatientPage     (   const shared_importer_t& Importer,
-                                        QWidget* Parent=0   );
+                get_patient_page            (   const shared_importer_t& Importer,
+                                                QWidget* Parent=0   );
 
-    bool isComplete() const;
+    bool        isComplete                  () const;
 
 private slots:
 
-    void on_retrieve_clicked();
-    void on_text_credentials_changed( const QString& Text );
-    void on_date_credentials_changed( const QDate& Date );
+    void        on_retrieve_clicked         ();
+    void        on_text_credentials_changed ( const QString& Text );
+    void        on_date_credentials_changed ( const QDate& Date );
 
 private:
 
-    void update_retrieval_state();
+    void        update_retrieval_state      ();
 
 private:
     // Data Variables
@@ -72,6 +77,11 @@ private:
     QPushButton*        RetrievePatient_Button_;
 
 };
+
+// n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
+} // end import_wizard
+} // end qt_gui
+// n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 
 // G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G
 #endif // QT_WINDOWS_PROCESS_SOUNDS_GET_PATIENT_PAGE_H_INCLUDED

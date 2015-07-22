@@ -22,12 +22,17 @@
 #include "inhaler/wave_importer.hpp"
 
 // Header Include
-#include "qt_windows/process_sounds_get_patient_page.h"
+#include "qt_gui/import_wizard/get_patient_page.h"
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
-ProcessSoundsGetPatientPage::
-ProcessSoundsGetPatientPage
+// n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
+namespace qt_gui {
+namespace import_wizard {
+// n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
+
+get_patient_page::
+get_patient_page
 (   const shared_importer_t& Importer,
     QWidget* Parent )
 
@@ -97,19 +102,18 @@ ProcessSoundsGetPatientPage
     adjustSize();
 }
 
-// TODO: Get this to work!!!
 // Disable NEXT button until a patient has been retrieved
-bool ProcessSoundsGetPatientPage::isComplete() const
+bool get_patient_page::isComplete() const
 {
     return( !PatientRetrieved_Label_->text().isEmpty() );
 }
 
-void ProcessSoundsGetPatientPage::on_text_credentials_changed( const QString& Text )
+void get_patient_page::on_text_credentials_changed( const QString& Text )
 {
     update_retrieval_state();
 }
 
-void ProcessSoundsGetPatientPage::on_date_credentials_changed( const QDate& Date )
+void get_patient_page::on_date_credentials_changed( const QDate& Date )
 {
     if( Date != QDate::currentDate() )
     {
@@ -118,7 +122,7 @@ void ProcessSoundsGetPatientPage::on_date_credentials_changed( const QDate& Date
     }
 }
 
-void ProcessSoundsGetPatientPage::update_retrieval_state()
+void get_patient_page::update_retrieval_state()
 {
     RetrievePatient_Button_
         ->setEnabled
@@ -128,11 +132,11 @@ void ProcessSoundsGetPatientPage::update_retrieval_state()
                 &&  DateChanged_ );
 }
 
-void ProcessSoundsGetPatientPage::on_retrieve_clicked()
+void get_patient_page::on_retrieve_clicked()
 {
     auto FirstName = FirstName_Edit_->text().toStdString();
-    auto LastName = LastName_Edit_->text().toStdString();
-    auto Postcode = PostCode_Edit_->text().toStdString();
+    auto LastName =  LastName_Edit_ ->text().toStdString();
+    auto Postcode =  PostCode_Edit_ ->text().toStdString();
     const auto& EnteredDate = DOB_DateEdit_->date();
 
     auto DateOfBirth
@@ -155,4 +159,8 @@ void ProcessSoundsGetPatientPage::on_retrieve_clicked()
     }
 }
 
+// n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
+} // end import_wizard
+} // end qt_gui
+// n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 

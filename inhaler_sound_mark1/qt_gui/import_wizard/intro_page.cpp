@@ -10,12 +10,16 @@
 #include <QLabel>
 
 // Header Include
-#include "qt_windows/process_sounds_intro_page.h"
+#include "qt_gui/import_wizard/intro_page.h"
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
+// n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
+namespace qt_gui {
+namespace import_wizard {
+// n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 
-ProcessSoundsIntroPage::
-ProcessSoundsIntroPage( QWidget* Parent )
+intro_page::
+intro_page( QWidget* Parent )
 : QWizardPage( Parent )
 , Introduction_Label_
     ( new QLabel
@@ -34,3 +38,7 @@ ProcessSoundsIntroPage( QWidget* Parent )
     setLayout( Layout );
 }
 
+// n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
+} // end import_wizard
+} // end qt_gui
+// n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n

@@ -18,13 +18,15 @@ env.EnableQt5Modules( [
 
 sources = [
         'application/main.cpp',
-        'qt_windows/login.cpp',
-        'qt_windows/administration.cpp',
-        'qt_windows/patientdetails.cpp',
-        'qt_windows/process_sounds_import_files.cpp',
-        'qt_windows/process_sounds_intro_page.cpp',
-        'qt_windows/process_sounds_get_patient_page.cpp',
-        'qt_windows/process_sounds_process_files.cpp'
+        'qt_gui/login.cpp',
+        'qt_gui/administration.cpp',
+        'qt_gui/import_wizard/wizard.cpp',
+        'qt_gui/import_wizard/intro_page.cpp',
+        'qt_gui/import_wizard/get_patient_page.cpp',
+        'qt_gui/import_wizard/select_files_page.cpp',
+        'qt_gui/import_wizard/process_files_page.cpp',
+        'qt_gui/play_wave.cpp',
+        'qt_gui/mainwindow.cpp'
 ]
 
 env.AppendUnique( STATICLIBS =
@@ -35,7 +37,7 @@ env.AppendUnique( STATICLIBS =
 )
 
 uifiles = [
-        'qt_windows/administration.ui'
+        'qt_gui/administration.ui'
 ]
 
 env.Uic5( uifiles )

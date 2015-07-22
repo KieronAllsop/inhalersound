@@ -17,19 +17,23 @@
 #include <QPushButton>
 #include <QLineEdit>
 #include <QLabel>
+#include <QCoreApplication>
 
 // Qt Window Includes
-#include "qt_windows/patientdetails.h"
-#include "qt_windows/administration.h"
+#include "qt_gui/import_wizard/wizard.h"
+#include "qt_gui/administration.h"
 
 // Self Include
-#include "qt_windows/login.h"
+#include "qt_gui/login.h"
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
+// n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
+namespace qt_gui {
+// n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 
-Login::
-Login
+login_dialog::
+login_dialog
 (   const shared_server_t& Server,
     QWidget* Parent )
 : QDialog( Parent )
@@ -89,8 +93,8 @@ Login
             QApplication::desktop()->availableGeometry()  )  );
 }
 
-Login::
-~Login()
+login_dialog::
+~login_dialog()
 {
     if( RetryThread_.joinable() )
     {
@@ -100,7 +104,51 @@ Login::
 }
 
 
-void Login::handle_wait
+bool login_dialog::
+event( QEvent* Event )
+{
+    if( Event->type() == connection_status_event::type() )
+    {
+        if( auto* StatusEvent = dynamic_cast<connection_status_event*>( Event ) )
+        {
+            on_connection_status( StatusEvent->schema(), StatusEvent->connected(), StatusEvent->retrying(), StatusEvent->attempt() );
+            return true;
+        }
+    }
+    return QDialog::event( Event );
+}
+
+
+void login_dialog::
+on_connection_status
+(   const shared_schema_t& Schema,
+    bool Connected,
+    bool Retrying,
+    int  Attempt   )
+{
+    if( Connected )
+    {
+        Schema_ = Schema;
+        Status_Label_->setText("Connected to Server");
+        Connected_ = true;
+        update_login_state();
+    }
+    else if( Retrying )
+    {
+        Status_Label_
+            ->setText
+                    (   tr( "Attempt [%1] failed to connect. Trying again..." )
+                        .arg( Attempt )   );
+    }
+    else
+    {
+        Status_Label_->setText("ERROR: Cannot connect to server");
+    }
+}
+
+
+void login_dialog::
+handle_wait
 (   const asio::error_code&     Error,
     int                         Count,
     int                         MaxRetries,
@@ -128,36 +176,25 @@ void Login::handle_wait
 }
 
 
-bool Login::connect_to_server( bool Retry, int Attempt )
+bool login_dialog::
+connect_to_server( bool Retrying, int Attempt )
 {
     try
     {
-        Schema_ = Server_->connect_to_schema();
-        Status_Label_->setText("Connected to Server");
-        Connected_ = true;
-        update_login_state();
+        auto Schema = Server_->connect_to_schema();
+        QCoreApplication::postEvent( this, new connection_status_event( Schema, true, false, Attempt ) );
         return true;
     }
-    catch( const boost::exception& Error )
+    catch( const inhaler::exception::could_not_connect_to_server& Error )
     {
-        if( Retry )
-        {
-            QString Message
-                = QString::fromUtf8
-                    ( str( boost::format("Attempt [%s] failed to connect. Trying again...") % Attempt ).c_str() );
-
-            Status_Label_->setText( Message );
-        }
-        else
-        {
-            Status_Label_->setText("ERROR: Cannot connect to server");
-        }
+        QCoreApplication::postEvent( this, new connection_status_event( shared_schema_t(), false, Retrying, Attempt ) );
     }
     return false;
 }
 
 
-void Login::initialise_connection()
+void login_dialog::
+initialise_connection()
 {
     int Count = 1;
 
@@ -181,13 +218,15 @@ void Login::initialise_connection()
 }
 
 
-void Login::on_credentials_changed( const QString& Text )
+void login_dialog::
+on_credentials_changed( const QString& Text )
 {
     update_login_state();
 }
 
 
-void Login::update_login_state()
+void login_dialog::
+update_login_state()
 {
     Login_Button_
         ->setEnabled
@@ -197,7 +236,8 @@ void Login::update_login_state()
 }
 
 
-void Login::on_login_clicked()
+void login_dialog::
+on_login_clicked()
 {
     auto Username = Username_Edit_->text().toStdString();
     auto Password = Password_Edit_->text().toStdString();
@@ -210,9 +250,9 @@ void Login::on_login_clicked()
             ||  User->user_role == "DiagnosingDoctor" )
         {
             hide();
-            PatientDetails patientDetails( Schema_, this );
-            patientDetails.setModal( true );
-            patientDetails.exec();
+            qt_gui::import_wizard::wizard ImportWizard( Schema_, this );
+            ImportWizard.setModal( true );
+            ImportWizard.exec();
         }
         else
         {
@@ -228,3 +268,7 @@ void Login::on_login_clicked()
         Username_Edit_->setFocus();
    }
 }
+
+// n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
+} // end qt_gui
+// n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n

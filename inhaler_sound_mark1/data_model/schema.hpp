@@ -6,11 +6,13 @@
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 // Standard Library Includes
 #include <vector>
+#include <fstream>
 
 // Boost Includes
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/date_time/gregorian/gregorian.hpp>
 #include <boost/optional.hpp>
+#include <boost/filesystem.hpp>
 
 // Quince Includes
 #include <quince/quince.h>
@@ -75,9 +77,9 @@ QUINCE_MAP_CLASS(patientwave, (patient_id)(inhaler_type)(file_name)(creation_tim
 struct inhalerdata
 {
     std::string                     inhaler_type;           // primary key
-    std::vector<uint8_t>            vocabulary_voc;
+    std::string                     vocabulary;
 };
-QUINCE_MAP_CLASS(inhalerdata, (inhaler_type)(vocabulary_voc))
+QUINCE_MAP_CLASS(inhalerdata, (inhaler_type)(vocabulary))
 
 
 template<class DatabaseT>
@@ -207,6 +209,14 @@ private:
                     (   boost::gregorian::from_string( "1972-Oct-14" ),
                         boost::posix_time::time_duration( 0, 0, 0 )    ),
                 "BT191YX" } );
+        }
+
+        if( Inhalersdata_.empty() )
+        {
+            Inhalersdata_.insert(
+            {
+                "Accuhaler",
+                "on prime inhale exhale off silence" } );
         }
     }
 
