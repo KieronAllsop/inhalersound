@@ -5,6 +5,8 @@
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 #include <QMainWindow>
+// Custom Includes
+#include "inhaler/wave_importer.hpp"
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
 // Forward Declarations
@@ -21,6 +23,9 @@ class MainWindow : public QMainWindow
 {
     Q_OBJECT
 public:
+
+    using shared_importer_t = std::shared_ptr<inhaler::wave_importer>;
+
     explicit MainWindow(QWidget *parent = 0);
 
     void                move_stack_to_datatech();
@@ -30,6 +35,7 @@ signals:
 public slots:
 
     void                on_login_clicked();
+    void                on_register_clicked();
 
 private:
 
@@ -42,7 +48,7 @@ private:
     QPushButton*        PlayWaveButton_;
     QStackedLayout*     StackedLayout_;
 
-
+    shared_importer_t   Importer_;
 };
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n

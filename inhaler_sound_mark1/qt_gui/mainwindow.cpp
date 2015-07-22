@@ -15,6 +15,7 @@
 // Custom Includes
 #include "inhaler/server.hpp"
 #include "qt_gui/login.h"
+#include "qt_gui/play_wave.h"
 
 // Header Includes
 #include "qt_gui/mainwindow.h"
@@ -33,15 +34,30 @@ MainWindow::MainWindow(QWidget *parent) :
   , LoginLabel_         ( new QLabel        ( "PLease select Login or Register", this ) )
   , DataLabel_          ( new QLabel        ( "You can choose to import data or play a wave file", this ) )
   , LoginButton_        ( new QPushButton   ( "Login", this ) )
-  , RegisterButton_     ( new QPushButton   ( "Register", this ) )
+  , RegisterButton_     ( new QPushButton   ( "Register (play wave)", this ) )
   , ImportWizButton_    ( new QPushButton   ( "Open Importation Wizard", this ) )
   , PlayWaveButton_     ( new QPushButton   ( "Play Wave File", this ) )
   , StackedLayout_      ( new QStackedLayout( ) )
 
 {
-    RegisterButton_->setEnabled( false );
+    //RegisterButton_->setEnabled( false );
+    resize(QDesktopWidget().availableGeometry(this).size() * 0.8);
+
+    // experiment time!
+    auto Server = std::make_shared<inhaler::server>();
+    qt_gui::login_dialog* LoginWindow = new qt_gui::login_dialog( Server );
+    //qt_gui::login_dialog LoginWindow( Server );
+    LoginWindow->initialise_connection();
+
+
+
+
+
+
+    PlayWave* playwave = new PlayWave(Importer_,this);
 
     connect( LoginButton_, SIGNAL( released() ),   this, SLOT( on_login_clicked() ) );
+    connect( RegisterButton_, SIGNAL( released()), this, SLOT( on_register_clicked())) ;
 
     QVBoxLayout* MasterLayout = new QVBoxLayout();
     MasterLayout->addWidget( ExplanationLabel_ );
@@ -72,13 +88,20 @@ MainWindow::MainWindow(QWidget *parent) :
 
 
 // Stacked Layout ----------------------------------------------
-    StackedLayout_->addWidget(LoginLayout);
+    StackedLayout_->addWidget(LoginWindow);
     StackedLayout_->addWidget(DataTechLayout);
+    StackedLayout_->addWidget(playwave);
 
     MasterLayout->addLayout(StackedLayout_);
     QWidget *widget = new QWidget();
     widget->setLayout(MasterLayout);
     setCentralWidget(widget);
+}
+
+void MainWindow::
+on_register_clicked()
+{
+    StackedLayout_->setCurrentIndex(2);
 }
 
 void MainWindow::

@@ -14,6 +14,15 @@
 #include "inhaler/wave_importer.hpp"
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
+// Forward Declarations
+class QLabel;
+class QPushButton;
+
+
+// n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
+namespace qt_gui {
+// n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
+
 
 class PlayWave : public QDialog
 {
@@ -29,7 +38,13 @@ public:
 private:
 
     shared_importer_t   Importer_;
+    QLabel*             PageTitle_;
 };
+
+// n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
+} // end qt_gui
+// n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
+
 
 // G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G
 #endif // QT_GUI_PLAY_WAVE_H_INCLUDED
