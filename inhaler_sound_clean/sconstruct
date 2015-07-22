@@ -1,0 +1,32 @@
+import cuppa
+
+class asio( cuppa.header_library_dependency( 'asio' ) ):
+    def __call__( self, env, toolchain, variant ):
+        super(asio,self).__call__( env, toolchain, variant )
+        env.AppendUnique( CPPDEFINES = [
+            'ASIO_NO_DEPRECATED',
+            ] )
+
+cuppa.run(
+    default_options = {
+        'boost-version'             : "latest",
+        'asio-location'             : "git+https://github.com/chriskohlhoff/asio",
+        'asio-sys-include'          : "asio/include",
+        'quince-location'           : "git+https://github.com/mshepanski/quince.git@dev",
+        'quince-postgresql-location': "git+https://github.com/mshepanski/quince_postgresql.git@dev",
+        'spdlog-location'           : 'git+https://github.com/gabime/spdlog.git',
+        'spdlog-include'            : 'include'
+    },
+    dependencies = {
+        'spdlog': cuppa.header_library_dependency( 'spdlog' ),
+        'asio': asio
+    },
+    default_dependencies = [
+        'boost',
+        'asio',
+        'quince',
+        'quince-postgresql',
+        'qt5',
+        'spdlog'
+    ]
+)

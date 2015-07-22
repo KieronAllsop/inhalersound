@@ -1,0 +1,57 @@
+Import('env')
+
+Product = "Inhalersound"
+Major = "00"
+Minor = "01"
+
+Version = "{product_name} {major_ver}.{minor_ver}".format(
+        product_name = Product,
+        major_ver = Major,
+        minor_ver = Minor
+)
+
+env.EnableQt5Modules( [
+        'QtCore',
+        'QtWidgets',
+        'QtGui',
+] )
+
+sources = [
+        'application/main.cpp',
+        'qt_gui/login.cpp',
+        'qt_gui/administration.cpp',
+        'qt_gui/import_wizard/wizard.cpp',
+        'qt_gui/import_wizard/intro_page.cpp',
+        'qt_gui/import_wizard/get_patient_page.cpp',
+        'qt_gui/import_wizard/select_files_page.cpp',
+        'qt_gui/import_wizard/process_files_page.cpp',
+        'qt_gui/play_wave.cpp',
+        'qt_gui/mainwindow.cpp'
+]
+
+env.AppendUnique( STATICLIBS =
+        env.BoostStaticLibs( [
+        'program_options',
+        'filesystem'
+        ] )
+)
+
+uifiles = [
+        'qt_gui/administration.ui'
+]
+
+env.Uic5( uifiles )
+
+objects = env.Compile( sources )
+
+import os
+version_file = env.CreateVersion(
+        'version.cpp',
+        [ objects, uifiles ],
+        [ 'inhalersound' ],
+        Version,
+        os.path.join( env['base_path'], ".." )
+)
+
+env.Build( 'inhalersound', [ objects, version_file ] )
+
