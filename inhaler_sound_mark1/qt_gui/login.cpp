@@ -259,7 +259,7 @@ on_login_clicked()
            // qt_gui::import_wizard::wizard ImportWizard( Schema_, this );
            // ImportWizard.setModal( true );
            // ImportWizard.exec();
-           emit change_stacked_layout_index(1);
+           emit change_stacked_layout_index();
         }
         else
         {

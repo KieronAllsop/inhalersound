@@ -117,7 +117,7 @@ private:
 
 signals:
 
-    void                    change_stacked_layout_index ( int index );
+    void                    change_stacked_layout_index ();
 
 private:
 

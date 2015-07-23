@@ -37,7 +37,9 @@ signals:
 
 public slots:
 
-    void                move_stack(int);
+    void                move_stack_datatech();
+    void                move_stack_importwiz();
+    void                move_stack_playwave();
 
 private:
 

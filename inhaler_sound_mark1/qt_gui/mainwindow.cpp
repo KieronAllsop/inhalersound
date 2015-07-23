@@ -42,26 +42,21 @@ MainWindow::MainWindow
 
 {
     //RegisterButton_->setEnabled( false );
-    resize(QDesktopWidget().availableGeometry(this).size() * 0.8);
+    resize(QDesktopWidget().availableGeometry(this).size() * 0.5);
+
+    connect( ImportWizButton_,  SIGNAL( released() ),                    this, SLOT( move_stack_importwiz() ) );
+    connect( PlayWaveButton_,   SIGNAL( released() ),                    this, SLOT( move_stack_playwave() ) );
 
 // Master Layout -----------------------------------------------
     QVBoxLayout* MasterLayout = new QVBoxLayout();
     MasterLayout->addWidget( ExplanationLabel_ );
-
 
 // Stack Index 0 - Login ---------------------------------------
     auto Server = std::make_shared<inhaler::server>();
     qt_gui::login_dialog* LoginWindow = new qt_gui::login_dialog( Server );
     LoginWindow->initialise_connection();
 
-
-
-
-    PlayWave* playwave = new PlayWave(Importer_,this);
-
-
-    connect( LoginWindow, SIGNAL(change_stacked_layout_index(int)), this, SLOT(move_stack(int)) );
-
+    connect( LoginWindow, SIGNAL( change_stacked_layout_index() ), this, SLOT( move_stack_datatech() ) );
 
 // Stack Index 1 - DataTechician landing screen ----------------
     QVBoxLayout* VDataTechSplit = new QVBoxLayout();
@@ -76,10 +71,10 @@ MainWindow::MainWindow
     DataTechLayout->setLayout( HDataTechSplit );
 
 // Stack Index 2 - Import Files Wizard -------------------------
-
-    //auto WaveImporter = std::make_shared<inhaler::wave_importer>( Schema_ );
     qt_gui::import_wizard::wizard* ImportWizard = new qt_gui::import_wizard::wizard( Schema_ );
 
+// Stack Index 3 - Play Wave Files -----------------------------
+    PlayWave* playwave = new PlayWave(Importer_,this);
 
 // Stacked Layout ----------------------------------------------
     StackedLayout_->addWidget(LoginWindow);
@@ -94,14 +89,24 @@ MainWindow::MainWindow
 }
 
 void MainWindow::
-move_stack(int Index)
+move_stack_datatech()
 {
-    switch( Index )
-    {
-        case 1:
-            StackedLayout_->setCurrentIndex(1);
-            ExplanationLabel_->setText( "Data Technician Landing Page");
-    }
+    StackedLayout_->setCurrentIndex(1);
+    ExplanationLabel_->setText( "Data Technician Landing Page");
+}
+
+void MainWindow::
+move_stack_importwiz()
+{
+    StackedLayout_->setCurrentIndex(2);
+    ExplanationLabel_->setText( "Importation wizard");
+}
+
+void MainWindow::
+move_stack_playwave()
+{
+    StackedLayout_->setCurrentIndex(3);
+    ExplanationLabel_->setText( "Play Wave files");
 }
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
