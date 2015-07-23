@@ -16,6 +16,7 @@
 #include "inhaler/server.hpp"
 #include "qt_gui/login.h"
 #include "qt_gui/play_wave.h"
+#include "qt_gui/import_wizard/wizard.h"
 
 // Header Includes
 #include "qt_gui/mainwindow.h"
@@ -27,14 +28,14 @@ namespace qt_gui {
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 
 
-MainWindow::MainWindow(QWidget *parent) :
+MainWindow::MainWindow
+(
+    QWidget *parent) :
     QMainWindow(parent)
 
+
   , ExplanationLabel_   ( new QLabel        ( "Welcome to the Inhaler Sound analyiser ", this ) )
-  , LoginLabel_         ( new QLabel        ( "PLease select Login or Register", this ) )
   , DataLabel_          ( new QLabel        ( "You can choose to import data or play a wave file", this ) )
-  , LoginButton_        ( new QPushButton   ( "Login", this ) )
-  , RegisterButton_     ( new QPushButton   ( "Register (play wave)", this ) )
   , ImportWizButton_    ( new QPushButton   ( "Open Importation Wizard", this ) )
   , PlayWaveButton_     ( new QPushButton   ( "Play Wave File", this ) )
   , StackedLayout_      ( new QStackedLayout( ) )
@@ -43,38 +44,26 @@ MainWindow::MainWindow(QWidget *parent) :
     //RegisterButton_->setEnabled( false );
     resize(QDesktopWidget().availableGeometry(this).size() * 0.8);
 
-    // experiment time!
+// Master Layout -----------------------------------------------
+    QVBoxLayout* MasterLayout = new QVBoxLayout();
+    MasterLayout->addWidget( ExplanationLabel_ );
+
+
+// Stack Index 0 - Login ---------------------------------------
     auto Server = std::make_shared<inhaler::server>();
     qt_gui::login_dialog* LoginWindow = new qt_gui::login_dialog( Server );
-    //qt_gui::login_dialog LoginWindow( Server );
     LoginWindow->initialise_connection();
-
-
 
 
 
 
     PlayWave* playwave = new PlayWave(Importer_,this);
 
-    connect( LoginButton_, SIGNAL( released() ),   this, SLOT( on_login_clicked() ) );
-    connect( RegisterButton_, SIGNAL( released()), this, SLOT( on_register_clicked())) ;
 
-    QVBoxLayout* MasterLayout = new QVBoxLayout();
-    MasterLayout->addWidget( ExplanationLabel_ );
+    connect( LoginWindow, SIGNAL(change_stacked_layout_index(int)), this, SLOT(move_stack(int)) );
 
-// Login or Register stack -------------------------------------
-    QVBoxLayout* VLoginSplit = new QVBoxLayout();
-    VLoginSplit->addWidget( LoginButton_ );
-    VLoginSplit->addWidget( RegisterButton_ );
 
-    QHBoxLayout* HLoginSplit = new QHBoxLayout();
-    HLoginSplit->addWidget( LoginLabel_ );
-    HLoginSplit->addLayout( VLoginSplit );
-
-    QGroupBox* LoginLayout = new QGroupBox();
-    LoginLayout->setLayout( HLoginSplit );
-
-// DataTechician landing screen --------------------------------
+// Stack Index 1 - DataTechician landing screen ----------------
     QVBoxLayout* VDataTechSplit = new QVBoxLayout();
     VDataTechSplit->addWidget( ImportWizButton_ );
     VDataTechSplit->addWidget( PlayWaveButton_ );
@@ -86,10 +75,16 @@ MainWindow::MainWindow(QWidget *parent) :
     QGroupBox* DataTechLayout = new QGroupBox();
     DataTechLayout->setLayout( HDataTechSplit );
 
+// Stack Index 2 - Import Files Wizard -------------------------
+
+    //auto WaveImporter = std::make_shared<inhaler::wave_importer>( Schema_ );
+    qt_gui::import_wizard::wizard* ImportWizard = new qt_gui::import_wizard::wizard( Schema_ );
+
 
 // Stacked Layout ----------------------------------------------
     StackedLayout_->addWidget(LoginWindow);
     StackedLayout_->addWidget(DataTechLayout);
+    StackedLayout_->addWidget(ImportWizard);
     StackedLayout_->addWidget(playwave);
 
     MasterLayout->addLayout(StackedLayout_);
@@ -99,28 +94,14 @@ MainWindow::MainWindow(QWidget *parent) :
 }
 
 void MainWindow::
-on_register_clicked()
+move_stack(int Index)
 {
-    StackedLayout_->setCurrentIndex(2);
-}
-
-void MainWindow::
-on_login_clicked()
-{
-    auto Server = std::make_shared<inhaler::server>();
-
-    qt_gui::login_dialog LoginWindow( Server );
-    //hide();
-    LoginWindow.initialise_connection();
-    LoginWindow.exec();
-
-}
-
-void MainWindow::
-move_stack_to_datatech()
-{
-    StackedLayout_->setCurrentIndex(1);
-    ExplanationLabel_->setText( "Data Technician Landing Page");
+    switch( Index )
+    {
+        case 1:
+            StackedLayout_->setCurrentIndex(1);
+            ExplanationLabel_->setText( "Data Technician Landing Page");
+    }
 }
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n

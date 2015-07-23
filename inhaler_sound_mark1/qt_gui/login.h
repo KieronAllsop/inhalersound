@@ -88,6 +88,7 @@ private:
     bool            Connected_;
     bool            Retrying_;
     int             Attempt_;
+
 };
 
 
@@ -113,6 +114,10 @@ private:
 
     using timer_t           = asio::basic_waitable_timer<std::chrono::high_resolution_clock>;
     using shared_timer_t    = std::shared_ptr<timer_t>;
+
+signals:
+
+    void                    change_stacked_layout_index ( int index );
 
 private:
 

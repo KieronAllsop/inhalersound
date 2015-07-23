@@ -52,10 +52,13 @@ login_dialog
 , Login_Button_     ( new QPushButton( "Login", this ) )
 
 {
+
+
     // Set up event handling
     connect( Login_Button_,  SIGNAL( released() ), this, SLOT( on_login_clicked() ) );
     connect( Username_Edit_, SIGNAL( textChanged(const QString&) ), this, SLOT( on_credentials_changed(const QString&) ) );
     connect( Password_Edit_, SIGNAL( textChanged(const QString&) ), this, SLOT( on_credentials_changed(const QString&) ) );
+
 
     // Initialise State
     Login_Button_->setDefault( true );   // Handle keyboard Enter
@@ -256,9 +259,7 @@ on_login_clicked()
            // qt_gui::import_wizard::wizard ImportWizard( Schema_, this );
            // ImportWizard.setModal( true );
            // ImportWizard.exec();
-           hide();
-           qt_gui::MainWindow mainWindow;
-           mainWindow.move_stack_to_datatech();
+           emit change_stacked_layout_index(1);
         }
         else
         {

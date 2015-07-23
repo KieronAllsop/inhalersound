@@ -25,30 +25,30 @@ class MainWindow : public QMainWindow
 public:
 
     using shared_importer_t = std::shared_ptr<inhaler::wave_importer>;
+    using shared_schema_t = inhaler::server::shared_schema_t;
 
-    explicit MainWindow(QWidget *parent = 0);
 
-    void                move_stack_to_datatech();
+    explicit MainWindow(
+                        QWidget *parent = 0);
+
+
 
 signals:
 
 public slots:
 
-    void                on_login_clicked();
-    void                on_register_clicked();
+    void                move_stack(int);
 
 private:
 
     QLabel*             ExplanationLabel_;
-    QLabel*             LoginLabel_;
     QLabel*             DataLabel_;
-    QPushButton*        LoginButton_;
-    QPushButton*        RegisterButton_;
     QPushButton*        ImportWizButton_;
     QPushButton*        PlayWaveButton_;
     QStackedLayout*     StackedLayout_;
 
     shared_importer_t   Importer_;
+    shared_schema_t     Schema_;
 };
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
