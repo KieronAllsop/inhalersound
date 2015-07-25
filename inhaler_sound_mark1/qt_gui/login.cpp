@@ -85,7 +85,7 @@ login_dialog
     MasterLayout->addWidget( Login_Button_, 0, Qt::AlignCenter );
 
     setLayout( MasterLayout );
-
+/*
     // Set the size of the window based on the new layout
     // and the widgets it contains
     adjustSize();
@@ -97,6 +97,7 @@ login_dialog
             Qt::AlignCenter,
             size(),
             QApplication::desktop()->availableGeometry()  )  );
+*/
 }
 
 login_dialog::

@@ -18,7 +18,7 @@
 #include "qt_gui/play_wave.h"
 #include "qt_gui/import_wizard/wizard.h"
 
-// Header Includes
+// Self Include
 #include "qt_gui/mainwindow.h"
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
@@ -29,38 +29,44 @@ namespace qt_gui {
 
 
 MainWindow::MainWindow
-(
-    QWidget *parent) :
-    QMainWindow(parent)
+(   const shared_server_t& Server,
+    QWidget* parent  )
+  : QMainWindow(parent)
 
-
+  , Server_             ( Server )
   , ExplanationLabel_   ( new QLabel        ( "Welcome to the Inhaler Sound analyiser ", this ) )
   , DataLabel_          ( new QLabel        ( "You can choose to import data or play a wave file", this ) )
-  , ImportWizButton_    ( new QPushButton   ( "Open Importation Wizard", this ) )
+  , ImportWizardButton_ ( new QPushButton   ( "Open Importation Wizard", this ) )
   , PlayWaveButton_     ( new QPushButton   ( "Play Wave File", this ) )
-  , StackedLayout_      ( new QStackedLayout( ) )
+  , StackedLayout_      ( new QStackedLayout() )
+  , LoginPrompt_        ( new qt_gui::login_dialog( Server_, this ) )
+  , ImportWizard_       ( new qt_gui::import_wizard::wizard( Server_->connect_to_schema(), this ) )
 
 {
     //RegisterButton_->setEnabled( false );
     resize(QDesktopWidget().availableGeometry(this).size() * 0.5);
 
-    connect( ImportWizButton_,  SIGNAL( released() ),                    this, SLOT( move_stack_importwiz() ) );
-    connect( PlayWaveButton_,   SIGNAL( released() ),                    this, SLOT( move_stack_playwave() ) );
+    connect( ImportWizardButton_,   SIGNAL( released() ),       this,  SLOT( move_stack_importwiz() ) );
+    connect( ImportWizard_,         SIGNAL( finished(int) ),    this,  SLOT( import_wizard_finished(int) ) );
+    //connect( PlayWaveButton_,       SIGNAL( released() ),   this, SLOT( move_stack_playwave() ) );
 
-// Master Layout -----------------------------------------------
+    // Master Layout -----------------------------------------------
     QVBoxLayout* MasterLayout = new QVBoxLayout();
     MasterLayout->addWidget( ExplanationLabel_ );
 
-// Stack Index 0 - Login ---------------------------------------
-    auto Server = std::make_shared<inhaler::server>();
-    qt_gui::login_dialog* LoginWindow = new qt_gui::login_dialog( Server );
-    LoginWindow->initialise_connection();
+    // Stack Index 0 - Login ---------------------------------------
 
-    connect( LoginWindow, SIGNAL( change_stacked_layout_index() ), this, SLOT( move_stack_datatech() ) );
+    //
 
-// Stack Index 1 - DataTechician landing screen ----------------
+    LoginPrompt_->initialise_connection();
+
+    connect( LoginPrompt_, SIGNAL( change_stacked_layout_index() ), this, SLOT( move_stack_datatech() ) );
+
+
+
+    // Stack Index 1 - DataTechician landing screen ----------------
     QVBoxLayout* VDataTechSplit = new QVBoxLayout();
-    VDataTechSplit->addWidget( ImportWizButton_ );
+    VDataTechSplit->addWidget( ImportWizardButton_ );
     VDataTechSplit->addWidget( PlayWaveButton_ );
 
     QHBoxLayout* HDataTechSplit = new QHBoxLayout();
@@ -70,17 +76,14 @@ MainWindow::MainWindow
     QGroupBox* DataTechLayout = new QGroupBox();
     DataTechLayout->setLayout( HDataTechSplit );
 
-// Stack Index 2 - Import Files Wizard -------------------------
-    qt_gui::import_wizard::wizard* ImportWizard = new qt_gui::import_wizard::wizard( Schema_ );
+    // Stack Index 3 - Play Wave Files -----------------------------
+    //PlayWave* playwave = new PlayWave(Importer_,this);
 
-// Stack Index 3 - Play Wave Files -----------------------------
-    PlayWave* playwave = new PlayWave(Importer_,this);
-
-// Stacked Layout ----------------------------------------------
-    StackedLayout_->addWidget(LoginWindow);
-    StackedLayout_->addWidget(DataTechLayout);
-    StackedLayout_->addWidget(ImportWizard);
-    StackedLayout_->addWidget(playwave);
+    // Stacked Layout ----------------------------------------------
+    StackedLayout_->addWidget( LoginPrompt_ );
+    StackedLayout_->addWidget( DataTechLayout );
+    StackedLayout_->addWidget( ImportWizard_ );
+    //StackedLayout_->addWidget(playwave);
 
     MasterLayout->addLayout(StackedLayout_);
     QWidget *widget = new QWidget();
@@ -103,11 +106,20 @@ move_stack_importwiz()
 }
 
 void MainWindow::
-move_stack_playwave()
+import_wizard_finished( int Result )
 {
-    StackedLayout_->setCurrentIndex(3);
-    ExplanationLabel_->setText( "Play Wave files");
+    std::cout << "import_wizard_finished, result is: " << Result << std::endl;
+    StackedLayout_->setCurrentIndex(1);
+    ExplanationLabel_->setText( "Data Technician Landing Page");
 }
+
+
+//void MainWindow::
+//move_stack_playwave()
+//{
+//    StackedLayout_->setCurrentIndex(3);
+//    ExplanationLabel_->setText( "Play Wave files");
+//}
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 } // end qt_gui

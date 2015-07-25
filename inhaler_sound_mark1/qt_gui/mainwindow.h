@@ -4,15 +4,26 @@
 // G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
+// Header Includes
 #include <QMainWindow>
+
 // Custom Includes
-#include "inhaler/wave_importer.hpp"
+#include "inhaler/server.hpp"
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
 // Forward Declarations
 class QLabel;
 class QPushButton;
 class QStackedLayout;
+class QWidget;
+
+namespace qt_gui {
+    class login_dialog;
+
+    namespace import_wizard {
+        class wizard;
+    }
+}
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 namespace qt_gui {
@@ -24,33 +35,34 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 public:
 
-    using shared_importer_t = std::shared_ptr<inhaler::wave_importer>;
-    using shared_schema_t = inhaler::server::shared_schema_t;
+    using shared_server_t = std::shared_ptr<inhaler::server>;
 
-
-    explicit MainWindow(
+    explicit MainWindow(const shared_server_t& Server,
                         QWidget *parent = 0);
 
 
-
-signals:
-
-public slots:
+private slots:
 
     void                move_stack_datatech();
     void                move_stack_importwiz();
-    void                move_stack_playwave();
+
+public slots:
+    void                import_wizard_finished(int Result);
+
+//    void                move_stack_playwave();
 
 private:
 
-    QLabel*             ExplanationLabel_;
-    QLabel*             DataLabel_;
-    QPushButton*        ImportWizButton_;
-    QPushButton*        PlayWaveButton_;
-    QStackedLayout*     StackedLayout_;
+    shared_server_t Server_;
 
-    shared_importer_t   Importer_;
-    shared_schema_t     Schema_;
+    // widgets
+    QLabel*                         ExplanationLabel_;
+    QLabel*                         DataLabel_;
+    QPushButton*                    ImportWizardButton_; // change to wizard
+    QPushButton*                    PlayWaveButton_;
+    QStackedLayout*                 StackedLayout_;
+    qt_gui::login_dialog*           LoginPrompt_;   // new
+    qt_gui::import_wizard::wizard*  ImportWizard_;
 };
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n

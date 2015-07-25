@@ -91,7 +91,7 @@ private:
 
 };
 
-
+// login_screen - QWidget ?
 class login_dialog : public QDialog
 {
     Q_OBJECT

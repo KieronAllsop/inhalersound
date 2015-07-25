@@ -40,7 +40,8 @@ HEADERS += \
             qt_gui/administration.h \
             qt_gui/login.h \
             qt_gui/mainwindow.h \
-            qt_gui/play_wave.h
+            qt_gui/play_wave.h \
+    inhaler/data_retriever.hpp
 
 FORMS   += \
             qt_gui/administration.ui

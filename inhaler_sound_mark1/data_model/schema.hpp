@@ -100,6 +100,7 @@ public:
     template<class... ArgsT>
     explicit schema( ArgsT&&... Args )                     // parameter pack
         : Database_     ( std::forward<ArgsT>(Args)... )   // takes type list and parameter pack
+        , Initialised_  ( false )
         , Users_        ( Database_, "users",          &user::id  )
         , Userlogins_   ( Database_, "userlogins",     &userlogin::username )
         , Patients_     ( Database_, "patients",       &patient::id )
@@ -118,10 +119,14 @@ public:
     }
 
 
-    void initialise()
+    void initialise_once()
     {
-        open_all_tables();
-        initial_population();
+        if( !Initialised_ )
+        {
+            open_all_tables();
+            initial_population();
+            Initialised_ = true;
+        }
     }
 
 private:
@@ -287,7 +292,8 @@ public:
 
 private:
 
-    DatabaseT Database_;
+    DatabaseT   Database_;
+    bool        Initialised_;
 
     // Schema Objects
     quince::serial_table<user>      Users_;
