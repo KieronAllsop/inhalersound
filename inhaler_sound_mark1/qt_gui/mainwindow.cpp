@@ -108,7 +108,8 @@ move_stack_importwiz()
 void MainWindow::
 import_wizard_finished( int Result )
 {
-    std::cout << "import_wizard_finished, result is: " << Result << std::endl;
+    // Result = 0 if Cancelled
+    // Result = 1 if Finished
     StackedLayout_->setCurrentIndex(1);
     ExplanationLabel_->setText( "Data Technician Landing Page");
 }

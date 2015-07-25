@@ -14,6 +14,7 @@
 
 // Custom Includes
 #include "inhaler/wave_importer.hpp"
+#include "inhaler/data_retriever.hpp"
 
 // Header Include
 #include "qt_gui/play_wave.h"
@@ -28,16 +29,20 @@ namespace qt_gui {
 
 PlayWave::PlayWave
     (   const shared_importer_t& Importer,
-        QWidget* Parent ):
-        QDialog( Parent ),
-        Importer_( Importer )
+        QWidget* Parent )
+      : QDialog( Parent )
+      , Importer_( Importer )
       , PageTitle_( new QLabel ( "Wave Player test area", this ) )
+
+
+
 {
 
 
         // Master Layout is a Vertical Box Layout
         QVBoxLayout* MasterLayout = new QVBoxLayout();
         MasterLayout->addWidget( PageTitle_ );
+
 
 
 }

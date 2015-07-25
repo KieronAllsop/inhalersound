@@ -71,7 +71,7 @@ get_patient_page
     Calendar_Widget_->setVisible( false );
     DOB_DateEdit_->setCalendarPopup( Calendar_Widget_ );
     DOB_DateEdit_->setMinimumDate( QDate::currentDate().addYears(-120) );
-    DOB_DateEdit_->setMaximumDate( QDate::currentDate() );
+    DOB_DateEdit_->setMaximumDate( QDate::currentDate().addYears(1) );
     DOB_DateEdit_->setDisplayFormat( "dd-MMM-yyyy" );
 
     // Initialise Layout

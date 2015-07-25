@@ -11,12 +11,16 @@
 #include <stdexcept>
 #include <functional>
 #include <fstream>
+#include <tuple>
 
 // Boost Includes
 #include <boost/filesystem.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/optional.hpp>
 #include <boost/exception/all.hpp>
+
+// Quince Includes
+#include <quince/quince.h>
 
 // Inhaler Includes
 #include "inhaler/server.hpp"
@@ -37,35 +41,17 @@ namespace exception
     struct data_not_found    : virtual boost::exception, virtual std::exception {};
 }
 
-enum class import_status
-{
-    retrieving
-};
-
-constexpr const char* c_str( import_status& Status )
-{
-    switch( Status )
-    {
-        case import_status::retrieving    : return "Retrieving";
-    }
-    return nullptr;
-}
-
-
 class data_retriever
 {
 public:
 
     // Type Interface
     using shared_schema_t       = inhaler::server::shared_schema_t;
-    using wave_details_t        = inhaler::wave_details;
- //   using import_handler_t      = std::function< void( const wave_details_t&, int, import_status ) >;
-    using date_t                = boost::posix_time::ptime;
+    using string_t              = std::string;
     using timestamp_t           = boost::posix_time::ptime;
-    using patient_t             = data_model::patient;
+    using patient_t             = inhaler::wave_importer::patient_t;
     using optional_patient_t    = boost::optional<patient_t>;
-    using wave_files_t          = std::vector<wave_details_t>;
-    using data_t                = std::vector<uint8_t>;
+    using results_t             = std::tuple<string_t, string_t, int, timestamp_t, timestamp_t>;
 
 public:
 
@@ -81,41 +67,29 @@ public:
     {
     }
 
-    // Observers -------------------------------------------------------------
 
-    const std::string& inhaler_model() const
-    {
-        return InhalerModel_;
-    }
+void get_all_wave_data()
+{
+    const auto& PatientWaves = Schema_->patientwaves();
+    const quince::query< results_t >
+        Query =
+            PatientWaves
+                .select
+                    (   PatientWaves->inhaler_type,
+                        PatientWaves->file_name,
+                        PatientWaves->file_size,
+                        PatientWaves->creation_timestamp,
+                        PatientWaves->import_timestamp   )
+                .where
+                    (   PatientWaves->patient_id == Patient_->id   );
+}
 
-    const wave_files_t& wave_files() const
-    {
-        return WaveFiles_;
-    }
-
-    // Operations ------------------------------------------------------------
-
-    void set_inhaler_model
-        (   const std::string& InhalerModel   )
-    {
-        InhalerModel_ = InhalerModel;
-    }
-
-    void set_wave_files
-        (   wave_files_t&& WaveFiles   )
-    {
-        WaveFiles_ = std::move( WaveFiles );
-    }
-
-
-//    void set_import_date
 
 private:
 
     shared_schema_t         Schema_;
     optional_patient_t      Patient_;
-    std::string             InhalerModel_;
-    wave_files_t            WaveFiles_;
+
 };
 
 

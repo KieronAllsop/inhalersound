@@ -25,6 +25,10 @@ namespace qt_gui {
     }
 }
 
+namespace inhaler {
+    class wave_importer;
+}
+
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 namespace qt_gui {
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
@@ -47,6 +51,7 @@ private slots:
     void                move_stack_importwiz();
 
 public slots:
+
     void                import_wizard_finished(int Result);
 
 //    void                move_stack_playwave();
@@ -63,6 +68,7 @@ private:
     QStackedLayout*                 StackedLayout_;
     qt_gui::login_dialog*           LoginPrompt_;   // new
     qt_gui::import_wizard::wizard*  ImportWizard_;
+    inhaler::wave_importer*         WaveImporter_;
 };
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n

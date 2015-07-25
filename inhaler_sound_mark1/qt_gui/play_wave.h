@@ -37,8 +37,11 @@ public:
 
 private:
 
-    shared_importer_t   Importer_;
-    QLabel*             PageTitle_;
+    shared_importer_t      Importer_;
+    QLabel*                PageTitle_;
+
+
+
 };
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
