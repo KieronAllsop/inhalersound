@@ -41,7 +41,8 @@ HEADERS += \
             qt_gui/login.h \
             qt_gui/mainwindow.h \
             qt_gui/play_wave.h \
-    inhaler/data_retriever.hpp
+    inhaler/data_retriever.hpp \
+    inhaler/patient_wave_details.hpp
 
 FORMS   += \
             qt_gui/administration.ui

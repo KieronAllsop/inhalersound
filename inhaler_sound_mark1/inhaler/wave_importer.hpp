@@ -99,6 +99,11 @@ public:
         return WaveFiles_;
     }
 
+    const optional_patient_t& patient() const
+    {
+        return Patient_;
+    }
+
     // Operations ------------------------------------------------------------
 
     void set_patient

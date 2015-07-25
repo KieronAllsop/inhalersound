@@ -41,6 +41,7 @@ MainWindow::MainWindow
   , StackedLayout_      ( new QStackedLayout() )
   , LoginPrompt_        ( new qt_gui::login_dialog( Server_, this ) )
   , ImportWizard_       ( new qt_gui::import_wizard::wizard( Server_->connect_to_schema(), this ) )
+  , PlayWave_           ( new qt_gui::play_wave( Schema_, WaveImporter_, DataRetriever_, this ) )
 
 {
     //RegisterButton_->setEnabled( false );
@@ -48,7 +49,7 @@ MainWindow::MainWindow
 
     connect( ImportWizardButton_,   SIGNAL( released() ),       this,  SLOT( move_stack_importwiz() ) );
     connect( ImportWizard_,         SIGNAL( finished(int) ),    this,  SLOT( import_wizard_finished(int) ) );
-    //connect( PlayWaveButton_,       SIGNAL( released() ),   this, SLOT( move_stack_playwave() ) );
+    connect( PlayWaveButton_,       SIGNAL( released() ),       this,  SLOT( move_stack_playwave() ) );
 
     // Master Layout -----------------------------------------------
     QVBoxLayout* MasterLayout = new QVBoxLayout();
@@ -83,7 +84,7 @@ MainWindow::MainWindow
     StackedLayout_->addWidget( LoginPrompt_ );
     StackedLayout_->addWidget( DataTechLayout );
     StackedLayout_->addWidget( ImportWizard_ );
-    //StackedLayout_->addWidget(playwave);
+    StackedLayout_->addWidget( PlayWave_ );
 
     MasterLayout->addLayout(StackedLayout_);
     QWidget *widget = new QWidget();
@@ -115,12 +116,12 @@ import_wizard_finished( int Result )
 }
 
 
-//void MainWindow::
-//move_stack_playwave()
-//{
-//    StackedLayout_->setCurrentIndex(3);
-//    ExplanationLabel_->setText( "Play Wave files");
-//}
+void MainWindow::
+move_stack_playwave()
+{
+    StackedLayout_->setCurrentIndex(3);
+    ExplanationLabel_->setText( "Play Wave files");
+}
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 } // end qt_gui
