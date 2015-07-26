@@ -35,18 +35,16 @@ namespace import_wizard {
 
 wizard::
 wizard
-(   const shared_schema_t& Schema,
+(   const shared_importer_t& Importer,
     QWidget* Parent ):
     QWizard( Parent ),
-    Schema_( Schema )
+    Importer_( Importer )
 {
-    auto WaveImporter = std::make_shared<inhaler::wave_importer>( Schema_ );
-
     // Add Wizard pages
     addPage( new intro_page() );
-    addPage( new get_patient_page( WaveImporter ) );
-    addPage( new select_files_page( WaveImporter ) );
-    addPage( new process_files_page( WaveImporter ) );
+    addPage( new get_patient_page( Importer ) );
+    addPage( new select_files_page( Importer ) );
+    addPage( new process_files_page( Importer ) );
     setWindowTitle( "Process Patient Data Wizard" );
 }
 

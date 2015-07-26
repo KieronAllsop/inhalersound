@@ -11,7 +11,7 @@
 #include <QWizard>
 
 // Custom Includes
-#include "inhaler/server.hpp"
+#include "inhaler/wave_importer.hpp"
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
@@ -25,16 +25,16 @@ class wizard : public QWizard
 
 public:
 
-    using shared_schema_t = inhaler::server::shared_schema_t;
+    using shared_importer_t = std::shared_ptr<inhaler::wave_importer>;
 
-    explicit    wizard          ( const shared_schema_t& Schema,
+    explicit    wizard          ( const shared_importer_t& Importer,
                                   QWidget* parent = 0 );
 
     void        accept          () Q_DECL_OVERRIDE;
 
 private:
 
-    shared_schema_t Schema_;
+    shared_importer_t       Importer_;
 };
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n

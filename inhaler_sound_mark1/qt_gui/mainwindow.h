@@ -48,7 +48,7 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 public:
 
-    using shared_schema_t = inhaler::server::shared_schema_t;
+//    using shared_schema_t = inhaler::server::shared_schema_t;
     using shared_server_t = std::shared_ptr<inhaler::server>;
     using shared_importer_t = std::shared_ptr<inhaler::wave_importer>;
     using shared_data_retriever_t = std::shared_ptr<inhaler::data_retriever>;
@@ -74,7 +74,7 @@ private:
     shared_server_t                 Server_;
     shared_importer_t               WaveImporter_;
     shared_data_retriever_t         DataRetriever_;
-    shared_schema_t                 Schema_;
+//    shared_schema_t                 Schema_;
 
 
     // widgets

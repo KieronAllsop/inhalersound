@@ -34,14 +34,15 @@ MainWindow::MainWindow
   : QMainWindow(parent)
 
   , Server_             ( Server )
+  , WaveImporter_       ( new inhaler::wave_importer( Server_->connect_to_schema() ) )
   , ExplanationLabel_   ( new QLabel        ( "Welcome to the Inhaler Sound analyiser ", this ) )
   , DataLabel_          ( new QLabel        ( "You can choose to import data or play a wave file", this ) )
   , ImportWizardButton_ ( new QPushButton   ( "Open Importation Wizard", this ) )
   , PlayWaveButton_     ( new QPushButton   ( "Play Wave File", this ) )
   , StackedLayout_      ( new QStackedLayout() )
   , LoginPrompt_        ( new qt_gui::login_dialog( Server_, this ) )
-  , ImportWizard_       ( new qt_gui::import_wizard::wizard( Server_->connect_to_schema(), this ) )
-  , PlayWave_           ( new qt_gui::play_wave( Schema_, WaveImporter_, DataRetriever_, this ) )
+  , ImportWizard_       ( new qt_gui::import_wizard::wizard( WaveImporter_, this ) )
+  , PlayWave_           ( new qt_gui::play_wave( Server_->connect_to_schema(), WaveImporter_, DataRetriever_, this ) )
 
 {
     //RegisterButton_->setEnabled( false );
