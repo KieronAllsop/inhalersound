@@ -74,7 +74,7 @@ on_get_data_clicked()
 //    //Patient_ = Importer_->patient()*;
 
     const data_model::patient& Patient = *(Importer_->patient());
-    std::make_shared<inhaler::data_retriever>( Patient, Schema_ );
+    auto DataRetriever = std::make_shared<inhaler::data_retriever>( Patient, Schema_ );
 
 
 }

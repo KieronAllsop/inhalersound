@@ -24,7 +24,13 @@ SOURCES +=  application/main.cpp \
             qt_gui/administration.cpp \
             qt_gui/login.cpp \
             qt_gui/mainwindow.cpp \
-            qt_gui/play_wave.cpp
+            qt_gui/play_wave.cpp \
+    wave/wave_file.cpp \
+    wave/show_form.cpp \
+    wave/utils.cpp \
+    qt_gui/view/explore_patient.cpp \
+    qt_gui/prompt/get_patient.cpp \
+    qt_gui/prompt/login.cpp
 
 
 HEADERS += \
@@ -42,7 +48,14 @@ HEADERS += \
             qt_gui/mainwindow.h \
             qt_gui/play_wave.h \
     inhaler/data_retriever.hpp \
-    inhaler/patient_wave_details.hpp
+    inhaler/patient_wave_details.hpp \
+    wave/wave_file.h \
+    wave/show_form.h \
+    wave/utils.h \
+    qt_gui/view/explore_patient.h \
+    qt_gui/prompt/get_patient.h \
+    qt_gui/prompt/login.h \
+    application/state.hpp
 
 FORMS   += \
             qt_gui/administration.ui
@@ -50,5 +63,6 @@ FORMS   += \
 OTHER_FILES += \
             initial_data/accuhaler.voc \
             sconscript \
-            sconstruct
+            sconstruct \
+    initial_data/test.wav
 

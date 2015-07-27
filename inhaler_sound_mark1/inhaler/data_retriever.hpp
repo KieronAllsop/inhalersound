@@ -39,7 +39,7 @@ namespace exception
     // Patient will always have been retrieved before a wave file or other data is
     // retrieved from the database, only exception will be that the particular data
     // type requested is not available
-    struct data_not_found    : virtual boost::exception, virtual std::exception {};
+    struct data_not_found : virtual boost::exception, virtual std::exception {};
 }
 
 enum class retrieval_status
@@ -88,15 +88,15 @@ public:
         const auto& PatientWaves = Schema_->patientwaves();
         const quince::query< results_t >
                 Query
-                    = PatientWaves
+                    =   PatientWaves
+                        .where
+                            (   PatientWaves->patient_id == Patient_->id  )
                         .select
                             (   PatientWaves->inhaler_type,
                                 PatientWaves->import_timestamp,
                                 PatientWaves->file_name,
                                 PatientWaves->file_size,
-                                PatientWaves->creation_timestamp   )
-                        .where
-                            (   PatientWaves->patient_id == Patient_->id  );
+                                PatientWaves->creation_timestamp   );
 
         for( const auto& WaveTuple: Query )
         {

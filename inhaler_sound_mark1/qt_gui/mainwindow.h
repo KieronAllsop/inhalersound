@@ -4,10 +4,18 @@
 // G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
-// Header Includes
+
+// C++ Standard Library Includes
+// None
+
+
+// Qt Includes
 #include <QMainWindow>
 
-// Custom Includes
+// Application Includes
+#include "application/state.hpp"
+
+// Inhaler Includes
 #include "inhaler/server.hpp"
 #include "inhaler/wave_importer.hpp"
 #include "inhaler/data_retriever.hpp"
@@ -20,14 +28,20 @@ class QLabel;
 class QPushButton;
 class QStackedLayout;
 class QWidget;
+class QFrame;
 
 
-namespace qt_gui {
-    class login_dialog;
-    class play_wave;
+namespace qt_gui
+{
+    namespace prompt
+    {
+        class login;
+        class get_patient;
+    }
 
-    namespace import_wizard {
-        class wizard;
+    namespace view
+    {
+        class explore_patient;
     }
 }
 
@@ -42,50 +56,54 @@ namespace inhaler {
 namespace qt_gui {
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 
+struct display_view
+{
+    enum enum_t
+    {
+        login           = 0,
+        get_patient     = 1,
+        explore_patient = 2
+    };
+};
+
 
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
+
 public:
 
-//    using shared_schema_t = inhaler::server::shared_schema_t;
-    using shared_server_t = std::shared_ptr<inhaler::server>;
-    using shared_importer_t = std::shared_ptr<inhaler::wave_importer>;
-    using shared_data_retriever_t = std::shared_ptr<inhaler::data_retriever>;
+    using shared_schema_t           = inhaler::server::shared_schema_t;
+    using shared_server_t           = std::shared_ptr<inhaler::server>;
+    using shared_importer_t         = std::shared_ptr<inhaler::wave_importer>;
+    using shared_data_retriever_t   = std::shared_ptr<inhaler::data_retriever>;
+    using shared_state_complete_t   = std::shared_ptr<application::signal_state_complete>;
 
-    explicit MainWindow(const shared_server_t& Server,
-                        QWidget *parent = 0);
+public:
 
+    explicit            MainWindow                  (   const shared_server_t& Server,
+                                                        QWidget *parent = 0   );
 
-private slots:
+private:
 
-    void                move_stack_datatech();
-    void                move_stack_importwiz();
-    void                move_stack_playwave();
+    QWidget*            get_prompt_for              (   QFrame* Prompt   );
+    QWidget*            get_view_for                (   QFrame* View   );
 
-public slots:
-
-    void                import_wizard_finished(int Result);
-
-
+    void                on_state_complete           (   const application::state& State   );
 
 private:
 
     shared_server_t                 Server_;
     shared_importer_t               WaveImporter_;
-    shared_data_retriever_t         DataRetriever_;
-//    shared_schema_t                 Schema_;
-
+//    shared_data_retriever_t         DataRetriever_;
+    shared_state_complete_t         SignalComplete_;
 
     // widgets
-    QLabel*                         ExplanationLabel_;
-    QLabel*                         DataLabel_;
-    QPushButton*                    ImportWizardButton_;
-    QPushButton*                    PlayWaveButton_;
     QStackedLayout*                 StackedLayout_;
-    qt_gui::login_dialog*           LoginPrompt_;
-    qt_gui::import_wizard::wizard*  ImportWizard_;
-    qt_gui::play_wave*              PlayWave_;
+    qt_gui::prompt::login*          LoginPrompt_;
+    qt_gui::prompt::get_patient*    GetPatientPrompt_;
+    qt_gui::view::explore_patient*  ExplorePatientView_;
+
 };
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n

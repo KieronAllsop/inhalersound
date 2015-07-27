@@ -16,36 +16,37 @@
 #include <QCalendarWidget>
 #include <QLineEdit>
 #include <QDate>
-#include <QWizardPage>
 
 // Importer Includes
 #include "inhaler/wave_importer.hpp"
 
-// Header Include
-#include "qt_gui/import_wizard/get_patient_page.h"
-
+// Self Include
+#include "qt_gui/prompt/get_patient.h"
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 namespace qt_gui {
-namespace import_wizard {
+namespace prompt {
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 
-get_patient_page::
-get_patient_page
+get_patient::
+get_patient
 (   const shared_importer_t& Importer,
+    const shared_state_complete_t& SignalComplete,
     QWidget* Parent )
 
-: QWizardPage( Parent )
+: QFrame( Parent )
 
-, Importer_( Importer )
+, Importer_             ( Importer )
+, SharedSignalComplete_ ( SignalComplete )
+, SignalComplete_       ( *SharedSignalComplete_ )
 
 // Create Widgets
-, EnterPatientDetails_Label_    ( new QLabel( "Please enter patient details (all fields must be completed)", this ) )
-, FirstName_Label_              ( new QLabel( "First name", this ) )
-, LastName_Label_               ( new QLabel( "Last name", this ) )
-, DOB_Label_                    ( new QLabel( "Date of birth", this ) )
-, Postcode_Label_               ( new QLabel( "Postcode", this ) )
+, Title_Label_                  ( new QLabel( tr("Please enter patient details (all fields must be completed)"), this ) )
+, FirstName_Label_              ( new QLabel( tr("First name"), this ) )
+, LastName_Label_               ( new QLabel( tr("Last name"), this ) )
+, DOB_Label_                    ( new QLabel( tr("Date of birth"), this ) )
+, Postcode_Label_               ( new QLabel( tr("Postcode"), this ) )
 , PatientRetrieved_Label_       ( new QLabel( "", this ) )
 , TryAgain_Label_               ( new QLabel( "", this ) )
 , FirstName_Edit_               ( new QLineEdit( this ) )
@@ -53,20 +54,24 @@ get_patient_page
 , PostCode_Edit_                ( new QLineEdit( this ) )
 , Calendar_Widget_              ( new QCalendarWidget( this ) )
 , DOB_DateEdit_                 ( new QDateEdit( QDate::currentDate() ) )
-, RetrievePatient_Button_       ( new QPushButton( "Retrieve", this ) )
+, RetrievePatient_Button_       ( new QPushButton( tr("Retrieve"), this ) )
+, Finish_Button_                ( new QPushButton( tr("Done"), this ) )
 {
-    setTitle( "Select Patient to associate files with" );
+//    setTitle( "Select Patient to associate files with" );
 
     // Set up event handling
     connect( RetrievePatient_Button_,   SIGNAL( released() ),                   this, SLOT( on_retrieve_clicked() ) );
+    connect( Finish_Button_,            SIGNAL( released() ),                   this, SLOT( on_finished_clicked() ) );
     connect( FirstName_Edit_,           SIGNAL( textChanged(const QString&) ),  this, SLOT( on_text_credentials_changed(const QString&) ) );
     connect( LastName_Edit_,            SIGNAL( textChanged(const QString&) ),  this, SLOT( on_text_credentials_changed(const QString&) ) );
     connect( DOB_DateEdit_,             SIGNAL( dateChanged(const QDate&) ),    this, SLOT( on_date_credentials_changed(const QDate&) ) );
     connect( PostCode_Edit_,            SIGNAL( textChanged(const QString&) ),  this, SLOT( on_text_credentials_changed(const QString&) ) );
 
     // Initialise State
-    RetrievePatient_Button_->setDefault( true );      // Handle keyboard enter
-    RetrievePatient_Button_->setEnabled( false );     // Disabled by default
+    RetrievePatient_Button_->setDefault( true );   // Handle keyboard enter
+    RetrievePatient_Button_->setEnabled( false );  // Disabled by default
+
+    Finish_Button_->setEnabled( false );     // Disabled by default
 
     Calendar_Widget_->setVisible( false );
     DOB_DateEdit_->setCalendarPopup( Calendar_Widget_ );
@@ -79,13 +84,9 @@ get_patient_page
     // Master Layout is a Vertical Box Layout
     QVBoxLayout* MasterLayout = new QVBoxLayout;
 
-    QHBoxLayout* TableHeader = new QHBoxLayout;
-    TableHeader->addWidget( EnterPatientDetails_Label_ );
-    TableHeader->addWidget( RetrievePatient_Button_ );
-
-    QHBoxLayout* TableFooter = new QHBoxLayout;
-    TableFooter->addWidget( TryAgain_Label_ );
-    TableFooter->addWidget( PatientRetrieved_Label_ );
+    QHBoxLayout* StatusLayout = new QHBoxLayout;
+    StatusLayout->addWidget( TryAgain_Label_ );
+    StatusLayout->addWidget( PatientRetrieved_Label_ );
 
     QFormLayout* CredentialsForm = new QFormLayout;
     CredentialsForm->addRow( FirstName_Label_, FirstName_Edit_ );
@@ -93,27 +94,26 @@ get_patient_page
     CredentialsForm->addRow( DOB_Label_, DOB_DateEdit_ );
     CredentialsForm->addRow( Postcode_Label_, PostCode_Edit_ );
 
+    QHBoxLayout* ButtonsLayout = new QHBoxLayout;
+    ButtonsLayout->addWidget( RetrievePatient_Button_ );
+    ButtonsLayout->addWidget( Finish_Button_ );
 
-    MasterLayout->addLayout( TableHeader );
+    MasterLayout->addWidget( Title_Label_ );
     MasterLayout->addLayout( CredentialsForm );
-    MasterLayout->addLayout( TableFooter );
+    MasterLayout->addLayout( StatusLayout );
+    MasterLayout->addLayout( ButtonsLayout );
+
     setLayout( MasterLayout );
 
     adjustSize();
 }
 
-// Disable NEXT button until a patient has been retrieved
-bool get_patient_page::isComplete() const
-{
-    return( !PatientRetrieved_Label_->text().isEmpty() );
-}
-
-void get_patient_page::on_text_credentials_changed( const QString& Text )
+void get_patient::on_text_credentials_changed( const QString& Text )
 {
     update_retrieval_state();
 }
 
-void get_patient_page::on_date_credentials_changed( const QDate& Date )
+void get_patient::on_date_credentials_changed( const QDate& Date )
 {
     if( Date != QDate::currentDate() )
     {
@@ -122,7 +122,7 @@ void get_patient_page::on_date_credentials_changed( const QDate& Date )
     }
 }
 
-void get_patient_page::update_retrieval_state()
+void get_patient::update_retrieval_state()
 {
     RetrievePatient_Button_
         ->setEnabled
@@ -132,7 +132,7 @@ void get_patient_page::update_retrieval_state()
                 &&  DateChanged_ );
 }
 
-void get_patient_page::on_retrieve_clicked()
+void get_patient::on_retrieve_clicked()
 {
     auto FirstName = FirstName_Edit_->text().toStdString();
     auto LastName =  LastName_Edit_ ->text().toStdString();
@@ -148,19 +148,30 @@ void get_patient_page::on_retrieve_clicked()
     try
     {
         Importer_->set_patient( FirstName, LastName, DateOfBirth, Postcode );
-        PatientRetrieved_Label_->setText( "Patient successfully retrieved" );
-        completeChanged();
+        PatientRetrieved_Label_->setText( tr("Patient successfully retrieved") );
+
+        Finish_Button_->setEnabled( true );     // Disabled by default
+        Finish_Button_->setDefault( true );     // Handle keyboard enter
+
         TryAgain_Label_->clear();
     }
     catch( const boost::exception& Error )
     {
-        TryAgain_Label_->setText( "No match! Please try again" );
+        TryAgain_Label_->setText( tr("Patient not found. Please try again") );
         PatientRetrieved_Label_->clear();
     }
 }
 
+
+void get_patient::on_finished_clicked()
+{
+    using state_t = application::state;
+
+    SignalComplete_( state_t::get_patient );
+}
+
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
-} // end import_wizard
+} // end prompt
 } // end qt_gui
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 

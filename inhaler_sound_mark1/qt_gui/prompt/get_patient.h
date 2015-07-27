@@ -1,6 +1,6 @@
 // G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G
-#ifndef QT_GUI_PROCESS_SOUNDS_GET_PATIENT_PAGE_H_INCLUDED
-#define QT_GUI_PROCESS_SOUNDS_GET_PATIENT_PAGE_H_INCLUDED
+#ifndef QT_GUI_PROMPT_GET_PATIENT_H_INCLUDED
+#define QT_GUI_PROMPT_GET_PATIENT_H_INCLUDED
 // G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
@@ -9,7 +9,10 @@
 #include <memory>
 
 // Qt Includes
-#include <QWizardPage>
+#include <QFrame>
+
+// Application Includes
+#include "application/state.hpp"
 
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
@@ -28,29 +31,31 @@ namespace inhaler
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 namespace qt_gui {
-namespace import_wizard {
+namespace prompt {
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 
-class get_patient_page : public QWizardPage
+class get_patient : public QFrame
 {
     Q_OBJECT
 
 public:
 
-    using shared_importer_t = std::shared_ptr<inhaler::wave_importer>;
+    using shared_importer_t         = std::shared_ptr<inhaler::wave_importer>;
+    using state_complete_t          = application::signal_state_complete;
+    using shared_state_complete_t   = std::shared_ptr<state_complete_t>;
 
 public:
 
-                get_patient_page            (   const shared_importer_t& Importer,
+                get_patient                 (   const shared_importer_t& Importer,
+                                                const shared_state_complete_t& SignalComplete,
                                                 QWidget* Parent=0   );
-
-    bool        isComplete                  () const;
 
 private slots:
 
     void        on_retrieve_clicked         ();
     void        on_text_credentials_changed ( const QString& Text );
     void        on_date_credentials_changed ( const QDate& Date );
+    void        on_finished_clicked         ();
 
 private:
 
@@ -58,11 +63,13 @@ private:
 
 private:
     // Data Variables
-    shared_importer_t   Importer_;
-    bool                DateChanged_;
+    shared_importer_t           Importer_;
+    shared_state_complete_t     SharedSignalComplete_;
+    state_complete_t&           SignalComplete_;
+    bool                        DateChanged_;
 
     // Owned Widgets
-    QLabel*             EnterPatientDetails_Label_;
+    QLabel*             Title_Label_;
     QLabel*             FirstName_Label_;
     QLabel*             LastName_Label_;
     QLabel*             DOB_Label_;
@@ -75,13 +82,14 @@ private:
     QCalendarWidget*    Calendar_Widget_;
     QDateEdit*          DOB_DateEdit_;
     QPushButton*        RetrievePatient_Button_;
+    QPushButton*        Finish_Button_;
 
 };
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
-} // end import_wizard
+} // end prompt
 } // end qt_gui
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 
 // G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G
-#endif // QT_WINDOWS_PROCESS_SOUNDS_GET_PATIENT_PAGE_H_INCLUDED
+#endif // QT_GUI_PROMPT_GET_PATIENT_H_INCLUDED

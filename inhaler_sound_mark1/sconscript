@@ -14,31 +14,19 @@ env.EnableQt5Modules( [
         'QtCore',
         'QtWidgets',
         'QtGui',
+        'QtMultimedia'
 ] )
 
-sources = [
-        'application/main.cpp',
-        'qt_gui/login.cpp',
-        'qt_gui/administration.cpp',
-        'qt_gui/import_wizard/wizard.cpp',
-        'qt_gui/import_wizard/intro_page.cpp',
-        'qt_gui/import_wizard/get_patient_page.cpp',
-        'qt_gui/import_wizard/select_files_page.cpp',
-        'qt_gui/import_wizard/process_files_page.cpp',
-        'qt_gui/play_wave.cpp',
-        'qt_gui/mainwindow.cpp'
-]
+sources = env.RecursiveGlob( "*.cpp" )
 
 env.AppendUnique( STATICLIBS =
         env.BoostStaticLibs( [
-        'program_options',
-        'filesystem'
+            'program_options',
+            'filesystem'
         ] )
 )
 
-uifiles = [
-        'qt_gui/administration.ui'
-]
+uifiles = env.RecursiveGlob( "*.ui" )
 
 env.Uic5( uifiles )
 

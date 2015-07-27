@@ -19,41 +19,35 @@
 #include <QLabel>
 #include <QCoreApplication>
 
-// Qt Window Includes
-#include "qt_gui/import_wizard/wizard.h"
-#include "qt_gui/administration.h"
-
 // Self Include
-#include "qt_gui/login.h"
-
-// Custom Includes
-#include "qt_gui/mainwindow.h"
-
+#include "qt_gui/prompt/login.h"
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 namespace qt_gui {
+namespace prompt {
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 
-login_dialog::
-login_dialog
+login::
+login
 (   const shared_server_t& Server,
+    const shared_state_complete_t& SignalComplete,
     QWidget* Parent )
-: QDialog( Parent )
+: QFrame( Parent )
 
-, Server_   ( Server )
-, Connected_( false )
+, Server_               ( Server )
+, SharedSignalComplete_ ( SignalComplete )
+, SignalComplete_       ( *SharedSignalComplete_ )
+, Connected_            ( false )
 
 // Create Widgets
-, Title_Label_      ( new QLabel( "Login to Inhalersound", this ) )
+, Title_Label_      ( new QLabel( tr("<h1>Please Login</h1>"), this ) )
 , Status_Label_     ( new QLabel( "Cconnecting to server...", this ) )
 , Username_Edit_    ( new QLineEdit( this ) )
 , Password_Edit_    ( new QLineEdit( this ) )
 , Login_Button_     ( new QPushButton( "Login", this ) )
 
 {
-
-
     // Set up event handling
     connect( Login_Button_,  SIGNAL( released() ), this, SLOT( on_login_clicked() ) );
     connect( Username_Edit_, SIGNAL( textChanged(const QString&) ), this, SLOT( on_credentials_changed(const QString&) ) );
@@ -64,7 +58,7 @@ login_dialog
     Login_Button_->setDefault( true );   // Handle keyboard Enter
     Login_Button_->setEnabled( false );  // Disabled by default
 
-    Status_Label_->setFrameStyle( QFrame::Panel | QFrame::Sunken );
+    Status_Label_->setFrameStyle( QFrame::StyledPanel | QFrame::Sunken );
     Status_Label_->setAlignment( Qt::AlignCenter );
 
     // Initialise Layout
@@ -85,23 +79,14 @@ login_dialog
     MasterLayout->addWidget( Login_Button_, 0, Qt::AlignCenter );
 
     setLayout( MasterLayout );
-/*
+
     // Set the size of the window based on the new layout
     // and the widgets it contains
     adjustSize();
-
-    // Centre the window
-    setGeometry
-    (   QStyle::alignedRect
-        (   Qt::LeftToRight,
-            Qt::AlignCenter,
-            size(),
-            QApplication::desktop()->availableGeometry()  )  );
-*/
 }
 
-login_dialog::
-~login_dialog()
+login::
+~login()
 {
     if( RetryThread_.joinable() )
     {
@@ -111,7 +96,7 @@ login_dialog::
 }
 
 
-bool login_dialog::
+bool login::
 event( QEvent* Event )
 {
     if( Event->type() == connection_status_event::type() )
@@ -122,11 +107,11 @@ event( QEvent* Event )
             return true;
         }
     }
-    return QDialog::event( Event );
+    return QWidget::event( Event );
 }
 
 
-void login_dialog::
+void login::
 on_connection_status
 (   const shared_schema_t& Schema,
     bool Connected,
@@ -154,7 +139,7 @@ on_connection_status
 }
 
 
-void login_dialog::
+void login::
 handle_wait
 (   const asio::error_code&     Error,
     int                         Count,
@@ -183,7 +168,7 @@ handle_wait
 }
 
 
-bool login_dialog::
+bool login::
 connect_to_server( bool Retrying, int Attempt )
 {
     try
@@ -200,7 +185,7 @@ connect_to_server( bool Retrying, int Attempt )
 }
 
 
-void login_dialog::
+void login::
 initialise_connection()
 {
     int Count = 1;
@@ -225,14 +210,14 @@ initialise_connection()
 }
 
 
-void login_dialog::
+void login::
 on_credentials_changed( const QString& Text )
 {
     update_login_state();
 }
 
 
-void login_dialog::
+void login::
 update_login_state()
 {
     Login_Button_
@@ -243,7 +228,7 @@ update_login_state()
 }
 
 
-void login_dialog::
+void login::
 on_login_clicked()
 {
     auto Username = Username_Edit_->text().toStdString();
@@ -251,23 +236,24 @@ on_login_clicked()
 
     auto User = Server_->authenticate( Username, Password );
 
+    using state_t = application::state;
+
     if( User )
     {
-        if(     User->user_role == "DataTechnician"
-            ||  User->user_role == "DiagnosingDoctor" )
+        if( User->user_role == "DataTechnician" )
         {
-           // hide();
-           // qt_gui::import_wizard::wizard ImportWizard( Schema_, this );
-           // ImportWizard.setModal( true );
-           // ImportWizard.exec();
-           emit change_stacked_layout_index();
+            SignalComplete_( state_t::login_as_data_technician );
+        }
+        else if( User->user_role == "DiagnosingDoctor" )
+        {
+            SignalComplete_( state_t::login_as_diagnosing_doctor );
         }
         else
         {
-            hide();
-            Administration administration( Schema_, this );
-            administration.setModal( true );
-            administration.exec();
+//            hide();
+//            Administration administration( Schema_, this );
+//            administration.setModal( true );
+//            administration.exec();
         }
    }
    else
@@ -278,5 +264,6 @@ on_login_clicked()
 }
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
+} // end prompt
 } // end qt_gui
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n

@@ -11,12 +11,17 @@
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QDesktopWidget>
+#include <QApplication>
+#include <QStyle>
+#include <QPalette>
 
 // Custom Includes
 #include "inhaler/server.hpp"
-#include "qt_gui/login.h"
+#include "qt_gui/prompt/login.h"
+#include "qt_gui/prompt/get_patient.h"
 #include "qt_gui/play_wave.h"
 #include "qt_gui/import_wizard/wizard.h"
+#include "qt_gui/view/explore_patient.h"
 
 // Self Include
 #include "qt_gui/mainwindow.h"
@@ -35,94 +40,110 @@ MainWindow::MainWindow
 
   , Server_             ( Server )
   , WaveImporter_       ( new inhaler::wave_importer( Server_->connect_to_schema() ) )
-  , ExplanationLabel_   ( new QLabel        ( "Welcome to the Inhaler Sound analyiser ", this ) )
-  , DataLabel_          ( new QLabel        ( "You can choose to import data or play a wave file", this ) )
-  , ImportWizardButton_ ( new QPushButton   ( "Open Importation Wizard", this ) )
-  , PlayWaveButton_     ( new QPushButton   ( "Play Wave File", this ) )
+  , SignalComplete_     ( new application::signal_state_complete() )
   , StackedLayout_      ( new QStackedLayout() )
-  , LoginPrompt_        ( new qt_gui::login_dialog( Server_, this ) )
-  , ImportWizard_       ( new qt_gui::import_wizard::wizard( WaveImporter_, this ) )
-  , PlayWave_           ( new qt_gui::play_wave( Server_->connect_to_schema(), WaveImporter_, DataRetriever_, this ) )
-
+  , LoginPrompt_        ( new qt_gui::prompt::login( Server_, SignalComplete_, this ) )
+  , GetPatientPrompt_   ( new qt_gui::prompt::get_patient( WaveImporter_, SignalComplete_, this ) )
+  , ExplorePatientView_ ( new qt_gui::view::explore_patient( Server_, WaveImporter_, this ) )
+//  , ImportWizard_       ( new qt_gui::import_wizard::wizard( Server_->connect_to_schema(), this ) )
+//  , PlayWave_           ( new qt_gui::play_wave( Server_->connect_to_schema(), WaveImporter_, DataRetriever_, this ) )
 {
-    //RegisterButton_->setEnabled( false );
-    resize(QDesktopWidget().availableGeometry(this).size() * 0.5);
+    // Initialise main_window
 
-    connect( ImportWizardButton_,   SIGNAL( released() ),       this,  SLOT( move_stack_importwiz() ) );
-    connect( ImportWizard_,         SIGNAL( finished(int) ),    this,  SLOT( import_wizard_finished(int) ) );
-    connect( PlayWaveButton_,       SIGNAL( released() ),       this,  SLOT( move_stack_playwave() ) );
+//    setWindowFlags( Qt::FramelessWindowHint );
+    setAttribute( Qt::WA_NoSystemBackground, true );
+    setAttribute( Qt::WA_TranslucentBackground, true );
+    setContentsMargins( 0, 0, 0, 0 );
 
-    // Master Layout -----------------------------------------------
-    QVBoxLayout* MasterLayout = new QVBoxLayout();
-    MasterLayout->addWidget( ExplanationLabel_ );
+    // Master Layout
 
-    // Stack Index 0 - Login ---------------------------------------
+    StackedLayout_->addWidget( get_prompt_for( LoginPrompt_ ) );
+    StackedLayout_->addWidget( get_prompt_for( GetPatientPrompt_ ) );
+    StackedLayout_->addWidget( get_view_for( ExplorePatientView_ ) );
 
-    //
+    QWidget *widget = new QWidget();
+    widget->setLayout(StackedLayout_);
+    setCentralWidget(widget);
+
+    setGeometry
+    (   QStyle::alignedRect
+        (   Qt::LeftToRight,
+            Qt::AlignCenter,
+            size(),
+            QApplication::desktop()->availableGeometry()  )  );
+
+    SignalComplete_->connect
+        (   [&]( const application::state& State )
+            {
+                on_state_complete( State );
+            }
+        );
 
     LoginPrompt_->initialise_connection();
-
-    connect( LoginPrompt_, SIGNAL( change_stacked_layout_index() ), this, SLOT( move_stack_datatech() ) );
-
-
-
-    // Stack Index 1 - DataTechician landing screen ----------------
-    QVBoxLayout* VDataTechSplit = new QVBoxLayout();
-    VDataTechSplit->addWidget( ImportWizardButton_ );
-    VDataTechSplit->addWidget( PlayWaveButton_ );
-
-    QHBoxLayout* HDataTechSplit = new QHBoxLayout();
-    HDataTechSplit->addWidget( DataLabel_ );
-    HDataTechSplit->addLayout( VDataTechSplit );
-
-    QGroupBox* DataTechLayout = new QGroupBox();
-    DataTechLayout->setLayout( HDataTechSplit );
-
-    // Stack Index 3 - Play Wave Files -----------------------------
-    //PlayWave* playwave = new PlayWave(Importer_,this);
-
-    // Stacked Layout ----------------------------------------------
-    StackedLayout_->addWidget( LoginPrompt_ );
-    StackedLayout_->addWidget( DataTechLayout );
-    StackedLayout_->addWidget( ImportWizard_ );
-    StackedLayout_->addWidget( PlayWave_ );
-
-    MasterLayout->addLayout(StackedLayout_);
-    QWidget *widget = new QWidget();
-    widget->setLayout(MasterLayout);
-    setCentralWidget(widget);
 }
 
-void MainWindow::
-move_stack_datatech()
+
+QWidget* MainWindow::
+get_prompt_for( QFrame* Prompt )
 {
-    StackedLayout_->setCurrentIndex(1);
-    ExplanationLabel_->setText( "Data Technician Landing Page");
+    Prompt->setFrameStyle( QFrame::StyledPanel | QFrame::Plain );
+
+    QHBoxLayout* Box = new QHBoxLayout();
+    Box->addWidget( Prompt, 0, Qt::AlignCenter );
+
+    QFrame* Frame = new QFrame( this );
+    Frame->setLayout( Box );
+
+    auto Palette = palette();
+    Palette.setBrush( QPalette::Window, QColor(0, 0, 0, 208) );
+    Frame->setPalette( Palette );
+    Frame->setAutoFillBackground( true );
+
+    Prompt->setPalette( palette().color(QPalette::Background) );
+    Prompt->setAutoFillBackground(true);
+
+    return Frame;
 }
 
-void MainWindow::
-move_stack_importwiz()
-{
-    StackedLayout_->setCurrentIndex(2);
-    ExplanationLabel_->setText( "Importation wizard");
-}
 
-void MainWindow::
-import_wizard_finished( int Result )
+QWidget* MainWindow::
+get_view_for( QFrame* View )
 {
-    // Result = 0 if Cancelled
-    // Result = 1 if Finished
-    StackedLayout_->setCurrentIndex(1);
-    ExplanationLabel_->setText( "Data Technician Landing Page");
+    View->setPalette( palette().color( QPalette::Background ) );
+    View->setAutoFillBackground(true);
+
+    return View;
 }
 
 
 void MainWindow::
-move_stack_playwave()
+on_state_complete( const application::state& State )
 {
-    StackedLayout_->setCurrentIndex(3);
-    ExplanationLabel_->setText( "Play Wave files");
+    using state_t = application::state;
+
+    switch( State )
+    {
+        case state_t::login_as_data_technician :
+        case state_t::login_as_diagnosing_doctor :
+        {
+            StackedLayout_->setCurrentIndex( display_view::get_patient );
+            break;
+        }
+        case state_t::get_patient :
+        {
+            const data_model::patient& Patient = *(WaveImporter_->patient());
+            ExplorePatientView_->populate_patient_form( Patient );
+            StackedLayout_->setCurrentIndex( display_view::explore_patient );
+            break;
+        }
+        default :
+        {
+            // TODO
+            break;
+        }
+    }
 }
+
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 } // end qt_gui

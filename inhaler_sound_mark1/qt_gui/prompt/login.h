@@ -1,6 +1,6 @@
 // G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G
-#ifndef QT_GUI_LOGIN_HPP_INCLUDED
-#define QT_GUI_LOGIN_HPP_INCLUDED
+#ifndef QT_GUI_PROMPT_LOGIN_HPP_INCLUDED
+#define QT_GUI_PROMPT_LOGIN_HPP_INCLUDED
 // G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
@@ -14,8 +14,11 @@
 #include <asio/high_resolution_timer.hpp>
 
 // Qt Includes
-#include <QDialog>
+#include <QFrame>
 #include <QEvent>
+
+// Application Includes
+#include "application/state.hpp"
 
 // Inhaler Includes
 #include "inhaler/server.hpp"
@@ -27,11 +30,11 @@
 class QLabel;
 class QLineEdit;
 class QPushButton;
-class QWidget;
 
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 namespace qt_gui {
+namespace prompt {
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 
 
@@ -91,20 +94,23 @@ private:
 
 };
 
-// login_screen - QWidget ?
-class login_dialog : public QDialog
+
+class login : public QFrame
 {
     Q_OBJECT
 
 public:
 
-    using shared_server_t = std::shared_ptr<inhaler::server>;
-    using shared_schema_t = inhaler::server::shared_schema_t;
+    using shared_server_t           = std::shared_ptr<inhaler::server>;
+    using shared_schema_t           = inhaler::server::shared_schema_t;
+    using state_complete_t          = application::signal_state_complete;
+    using shared_state_complete_t   = std::shared_ptr<state_complete_t>;
 
-    explicit                login_dialog                (   const shared_server_t& Server,
+    explicit                login                       (   const shared_server_t& Server,
+                                                            const shared_state_complete_t& SignalComplete,
                                                             QWidget* Parent = 0   );
 
-                            ~login_dialog               ();
+                            ~login                      ();
 
     virtual bool            event                       (   QEvent* Event   );
 
@@ -114,10 +120,6 @@ private:
 
     using timer_t           = asio::basic_waitable_timer<std::chrono::high_resolution_clock>;
     using shared_timer_t    = std::shared_ptr<timer_t>;
-
-signals:
-
-    void                    change_stacked_layout_index ();
 
 private:
 
@@ -146,11 +148,13 @@ private slots:
 
 private:
 
-    shared_server_t     Server_;
-    shared_schema_t     Schema_;
-    asio::io_context    IoContext_;
-    std::thread         RetryThread_;
-    bool                Connected_;
+    shared_server_t             Server_;
+    shared_state_complete_t     SharedSignalComplete_;
+    state_complete_t&           SignalComplete_;
+    shared_schema_t             Schema_;
+    asio::io_context            IoContext_;
+    std::thread                 RetryThread_;
+    bool                        Connected_;
 
     // Owned Widgets
     QLabel*             Title_Label_;
@@ -162,8 +166,9 @@ private:
 };
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
+} // end prompt
 } // end qt_gui
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 
 // G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G
-#endif // QT_GUI_LOGIN_HPP_INCLUDED
+#endif // QT_GUI_PROMPT_LOGIN_HPP_INCLUDED

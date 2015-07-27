@@ -13,7 +13,6 @@
 #include <QMainWindow>
 
 // Custom Includes
-#include "qt_gui/login.h"
 #include "inhaler/server.hpp"
 #include "qt_gui/mainwindow.h"
 

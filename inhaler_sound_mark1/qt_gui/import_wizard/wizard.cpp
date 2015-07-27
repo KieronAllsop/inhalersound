@@ -20,7 +20,6 @@
 
 // Wizard Page Includes
 #include "qt_gui/import_wizard/intro_page.h"
-#include "qt_gui/import_wizard/get_patient_page.h"
 #include "qt_gui/import_wizard/select_files_page.h"
 #include "qt_gui/import_wizard/process_files_page.h"
 
@@ -42,7 +41,6 @@ wizard
 {
     // Add Wizard pages
     addPage( new intro_page() );
-    addPage( new get_patient_page( Importer ) );
     addPage( new select_files_page( Importer ) );
     addPage( new process_files_page( Importer ) );
     setWindowTitle( "Process Patient Data Wizard" );
