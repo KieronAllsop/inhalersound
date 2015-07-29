@@ -7,6 +7,9 @@
 // Standard Library Includes
 #include <functional>
 
+// Boost Includes
+#include <boost/date_time/posix_time/posix_time.hpp>
+
 // Qt Includes
 #include <QFrame>
 
@@ -26,6 +29,7 @@ class QLineEdit;
 class QPushButton;
 class QTreeView;
 class QSplitter;
+class QStandardItemModel;
 
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
@@ -63,9 +67,11 @@ private:
 
     void                    on_import_waves             ();
 
-    call_on_complete_t          CallOnComplete_;
-    shared_data_retriever_t     DataRetriever_;
-    shared_schema_t             Schema_;
+    call_on_complete_t              CallOnComplete_;
+    shared_data_retriever_t         DataRetriever_;
+    shared_schema_t                 Schema_;
+    boost::posix_time::time_facet*  DOBFacet_;
+    std::locale                     DateLocale_;
 
     // Owned Widgets
     QLabel*             PageTitle_Label_;
@@ -82,6 +88,7 @@ private:
     QPushButton*        ImportWaves_Button_;
     QPushButton*        OpenWave_Button_;
     QTreeView*          WaveFiles_View_;
+    QStandardItemModel* WaveFiles_;
     QPushButton*        PlayPauseWave_Button_;
     QPushButton*        StopWave_Button_;
 

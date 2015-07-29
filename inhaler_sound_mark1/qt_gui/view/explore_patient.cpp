@@ -14,6 +14,7 @@
 #include <QTreeView>
 #include <QSizePolicy>
 #include <QSplitter>
+#include <QStandardItemModel>
 #include <QtMultimedia/QMediaPlayer>
 
 // Inhaler Includes
@@ -38,6 +39,9 @@ explore_patient
     QWidget* Parent )
 : QFrame( Parent )
 
+, DOBFacet_             ( new boost::posix_time::time_facet() )
+, DateLocale_           ( std::locale(), DOBFacet_ )
+
 // Create Widgets
 , PageTitle_Label_( new QLabel( this ) )
 , ChangePatient_Button_( new QPushButton( tr("Change"), this ) )
@@ -52,6 +56,7 @@ explore_patient
 , ImportWaves_Button_   ( new QPushButton( tr("Import Files"), this ) )
 , OpenWave_Button_      ( new QPushButton( tr("View File"), this ) )
 , WaveFiles_View_       ( new QTreeView( this ) )
+, WaveFiles_            ( new QStandardItemModel ( this ) )
 , PlayPauseWave_Button_ ( new QPushButton( this ) )
 , StopWave_Button_      ( new QPushButton( this ) )
 
@@ -60,9 +65,13 @@ explore_patient
 , WaveName_Label_       ( new QLabel( tr("<h2>No Wave Selected</h2>"), this ) )
 , WaveView_Frame_       ( new QFrame( this ) )
 
+
 //, PlayWaveTest_         ( new QPushButton( "Test Play Wave", this ) )
 //, PlayWave_           ( new qt_gui::play_wave( Server_->connect_to_schema(), WaveImporter_, DataRetriever_, this ) )
 {
+
+    // Set date layout
+    DOBFacet_->format( "%d-%b-%Y" );
 
     connect( ImportWaves_Button_, &QPushButton::released, [this](){ on_import_waves(); } );
 
@@ -113,6 +122,17 @@ explore_patient
     WaveView_Frame_->setSizePolicy( QSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding ) );
     WaveView_Frame_->setFrameStyle( QFrame::StyledPanel | QFrame::Sunken );
 
+    WaveFiles_View_->setSizePolicy( QSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding ) );
+    WaveFiles_View_->setModel( WaveFiles_ );
+
+    WaveFiles_->setColumnCount(3);
+    QStringList Headers;
+    Headers
+        << "Inhaler"
+        << "Date"
+        << "Filename";
+    WaveFiles_->setHorizontalHeaderLabels( Headers );
+
     WaveLayout->addWidget( WaveName_Label_, 0, Qt::AlignLeft );
     WaveLayout->addWidget( WaveView_Frame_ );
 
@@ -147,21 +167,50 @@ reset
             .arg( QString::fromUtf8( Patient.forename.c_str() ) )
             .arg( QString::fromUtf8( Patient.surname.c_str() ) );
 
-    //std::string DOB = to_simple_string(Patient.date_of_birth);
-
     PageTitle_Label_->setText( Name );
+
+    // Correct Date of Birth
+
+    std::stringstream Date;
+    Date.imbue( DateLocale_ );
+    Date << Patient.date_of_birth;
+
+    // Middlename can be null so is dealt with differently
+
+    std::string MiddleName = Patient.middlename ? *Patient.middlename : "";
 
     // Load patient details view
 
     Title_Label_      ->setText( QString::fromUtf8( Patient.title.c_str() ) );
     Forename_Label_   ->setText( QString::fromUtf8( Patient.forename.c_str() ) );
-//    MiddleName_Label_ ->setText( QString::fromUtf8( Patient.middlename.c_str() ) );
+    MiddleName_Label_ ->setText( QString::fromUtf8( MiddleName.c_str() ) );
     Surname_Label_    ->setText( QString::fromUtf8( Patient.surname.c_str() ) );
-//    DateOfBirth_Label_->setText( QString::fromUtf8( Patient.date_of_birth.c_str() ) );
+    DateOfBirth_Label_->setText( QString::fromUtf8( Date.str().c_str() ) );
     Postcode_Label_   ->setText( QString::fromUtf8( Patient.postcode.c_str() ) );
 
     // Load waves perhaps also
+
+    const auto& Waves = DataRetriever_->wave_files();
+
+    for( const auto& Wave: Waves )
+    {
+        std::stringstream ImportDate;
+        ImportDate.imbue( DateLocale_ );
+        ImportDate << Wave.import_time();
+
+        QList<QStandardItem*> Items;
+        Items.append( new QStandardItem( QString::fromUtf8( Wave.inhaler_model().c_str() ) ) );
+        Items.append( new QStandardItem( QString::fromUtf8( ImportDate.str().c_str() ) ) );
+        Items.append( new QStandardItem( QString::fromUtf8( Wave.name().c_str() ) ) );
+
+        WaveFiles_->appendRow( Items );
+    }
+
+
 }
+
+
+
 
 
 void explore_patient::
