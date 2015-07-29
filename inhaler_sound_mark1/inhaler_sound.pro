@@ -55,7 +55,8 @@ HEADERS += \
     qt_gui/view/explore_patient.h \
     qt_gui/prompt/get_patient.h \
     qt_gui/prompt/login.h \
-    application/state.hpp
+    application/state.hpp \
+    inhaler/patient_retriever.hpp
 
 FORMS   += \
             qt_gui/administration.ui
@@ -64,5 +65,6 @@ OTHER_FILES += \
             initial_data/accuhaler.voc \
             sconscript \
             sconstruct \
-    initial_data/test.wav
+    initial_data/test.wav \
+    qt_gui/view/test.wav
 

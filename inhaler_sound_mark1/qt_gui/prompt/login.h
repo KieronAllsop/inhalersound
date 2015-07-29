@@ -8,6 +8,7 @@
 #include <memory>
 #include <chrono>
 #include <thread>
+#include <functional>
 
 // Asio Includes
 #include <asio.hpp>
@@ -16,9 +17,6 @@
 // Qt Includes
 #include <QFrame>
 #include <QEvent>
-
-// Application Includes
-#include "application/state.hpp"
 
 // Inhaler Includes
 #include "inhaler/server.hpp"
@@ -42,7 +40,7 @@ class connection_status_event : public QEvent
 {
 public:
 
-    using shared_schema_t = inhaler::server::shared_schema_t;
+    using shared_schema_t   = inhaler::server::shared_schema_t;
 
     static QEvent::Type type()
     {
@@ -101,13 +99,15 @@ class login : public QFrame
 
 public:
 
-    using shared_server_t           = std::shared_ptr<inhaler::server>;
-    using shared_schema_t           = inhaler::server::shared_schema_t;
-    using state_complete_t          = application::signal_state_complete;
-    using shared_state_complete_t   = std::shared_ptr<state_complete_t>;
+    using shared_server_t       = std::shared_ptr<inhaler::server>;
+    using shared_schema_t       = inhaler::server::shared_schema_t;
+    using user_t                = shared_schema_t::element_type::user_t;
+    using call_on_complete_t    = std::function< void( const user_t& User, const shared_schema_t& Schema ) >;
+
+public:
 
     explicit                login                       (   const shared_server_t& Server,
-                                                            const shared_state_complete_t& SignalComplete,
+                                                            const call_on_complete_t& CallOnComplete,
                                                             QWidget* Parent = 0   );
 
                             ~login                      ();
@@ -149,8 +149,7 @@ private slots:
 private:
 
     shared_server_t             Server_;
-    shared_state_complete_t     SharedSignalComplete_;
-    state_complete_t&           SignalComplete_;
+    call_on_complete_t          CallOnComplete_;
     shared_schema_t             Schema_;
     asio::io_context            IoContext_;
     std::thread                 RetryThread_;

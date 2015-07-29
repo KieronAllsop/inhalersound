@@ -18,7 +18,7 @@
 #include <QDate>
 
 // Importer Includes
-#include "inhaler/wave_importer.hpp"
+#include "inhaler/patient_retriever.hpp"
 
 // Self Include
 #include "qt_gui/prompt/get_patient.h"
@@ -31,24 +31,20 @@ namespace prompt {
 
 get_patient::
 get_patient
-(   const shared_importer_t& Importer,
-    const shared_state_complete_t& SignalComplete,
+(   const call_on_complete_t& CallOnComplete,
     QWidget* Parent )
 
 : QFrame( Parent )
 
-, Importer_             ( Importer )
-, SharedSignalComplete_ ( SignalComplete )
-, SignalComplete_       ( *SharedSignalComplete_ )
+, CallOnComplete_   ( CallOnComplete )
 
 // Create Widgets
-, Title_Label_                  ( new QLabel( tr("Please enter patient details (all fields must be completed)"), this ) )
+, Title_Label_                  ( new QLabel( tr("<h1>Please Identify the Patient</h1>"), this ) )
 , FirstName_Label_              ( new QLabel( tr("First name"), this ) )
 , LastName_Label_               ( new QLabel( tr("Last name"), this ) )
 , DOB_Label_                    ( new QLabel( tr("Date of birth"), this ) )
 , Postcode_Label_               ( new QLabel( tr("Postcode"), this ) )
-, PatientRetrieved_Label_       ( new QLabel( "", this ) )
-, TryAgain_Label_               ( new QLabel( "", this ) )
+, Status_Label_                 ( new QLabel( "", this ) )
 , FirstName_Edit_               ( new QLineEdit( this ) )
 , LastName_Edit_                ( new QLineEdit( this ) )
 , PostCode_Edit_                ( new QLineEdit( this ) )
@@ -85,8 +81,7 @@ get_patient
     QVBoxLayout* MasterLayout = new QVBoxLayout;
 
     QHBoxLayout* StatusLayout = new QHBoxLayout;
-    StatusLayout->addWidget( TryAgain_Label_ );
-    StatusLayout->addWidget( PatientRetrieved_Label_ );
+    StatusLayout->addWidget( Status_Label_, 0, Qt::AlignCenter );
 
     QFormLayout* CredentialsForm = new QFormLayout;
     CredentialsForm->addRow( FirstName_Label_, FirstName_Edit_ );
@@ -98,7 +93,7 @@ get_patient
     ButtonsLayout->addWidget( RetrievePatient_Button_ );
     ButtonsLayout->addWidget( Finish_Button_ );
 
-    MasterLayout->addWidget( Title_Label_ );
+    MasterLayout->addWidget( Title_Label_, 0, Qt::AlignCenter );
     MasterLayout->addLayout( CredentialsForm );
     MasterLayout->addLayout( StatusLayout );
     MasterLayout->addLayout( ButtonsLayout );
@@ -108,10 +103,18 @@ get_patient
     adjustSize();
 }
 
+
+void get_patient::reset( const patient_retriever_t& Retriever )
+{
+    Retriever_ = Retriever;
+}
+
+
 void get_patient::on_text_credentials_changed( const QString& Text )
 {
     update_retrieval_state();
 }
+
 
 void get_patient::on_date_credentials_changed( const QDate& Date )
 {
@@ -122,6 +125,7 @@ void get_patient::on_date_credentials_changed( const QDate& Date )
     }
 }
 
+
 void get_patient::update_retrieval_state()
 {
     RetrievePatient_Button_
@@ -131,6 +135,7 @@ void get_patient::update_retrieval_state()
                 &&  PostCode_Edit_->text().size()
                 &&  DateChanged_ );
 }
+
 
 void get_patient::on_retrieve_clicked()
 {
@@ -145,30 +150,27 @@ void get_patient::on_retrieve_clicked()
                     ( EnteredDate.year(), EnteredDate.month(), EnteredDate.day() ),
                 boost::posix_time::time_duration( 0, 0, 0 ) );
 
-    try
+    Patient_ = Retriever_->get_patient( FirstName, LastName, DateOfBirth, Postcode );
+
+    if( Patient_ )
     {
-        Importer_->set_patient( FirstName, LastName, DateOfBirth, Postcode );
-        PatientRetrieved_Label_->setText( tr("Patient successfully retrieved") );
+        Status_Label_->setText( tr("Patient successfully retrieved") );
 
         Finish_Button_->setEnabled( true );     // Disabled by default
         Finish_Button_->setDefault( true );     // Handle keyboard enter
-
-        TryAgain_Label_->clear();
     }
-    catch( const boost::exception& Error )
+    else
     {
-        TryAgain_Label_->setText( tr("Patient not found. Please try again") );
-        PatientRetrieved_Label_->clear();
+        Status_Label_->setText( tr("Patient not found. Please try again") );
     }
 }
 
 
 void get_patient::on_finished_clicked()
 {
-    using state_t = application::state;
-
-    SignalComplete_( state_t::get_patient );
+    CallOnComplete_( *Patient_ );
 }
+
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 } // end prompt

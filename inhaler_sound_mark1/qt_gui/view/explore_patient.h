@@ -5,7 +5,7 @@
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 // Standard Library Includes
-// None
+#include <functional>
 
 // Qt Includes
 #include <QFrame>
@@ -15,7 +15,6 @@
 
 // Inhaler Includes
 #include "inhaler/server.hpp"
-#include "inhaler/wave_importer.hpp"
 #include "inhaler/data_retriever.hpp"
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
@@ -25,12 +24,9 @@
 class QLabel;
 class QLineEdit;
 class QPushButton;
+class QTreeView;
+class QSplitter;
 
-namespace inhaler
-{
-    class wave_importer;
-    class server;
-}
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 namespace qt_gui {
@@ -46,47 +42,55 @@ public:
 
     using shared_server_t           = std::shared_ptr<inhaler::server>;
     using shared_schema_t           = inhaler::server::shared_schema_t;
-    using shared_importer_t         = std::shared_ptr<inhaler::wave_importer>;
     using shared_data_retriever_t   = std::shared_ptr<inhaler::data_retriever>;
+    using call_on_complete_t        = std::function< void() >;
 
-//    using state_complete_t          = application::signal_state_complete;
-//    using shared_state_complete_t   = std::shared_ptr<state_complete_t>;
-
-    explicit                explore_patient             (   const shared_server_t& Server,
-                                                            const shared_importer_t& Importer,
-//                                                            const shared_state_complete_t& SignalComplete,
-                                                            QWidget* Parent = 0   );
 public:
 
-    void                   populate_patient_form( const data_model::patient& );
+    explicit                explore_patient             (   const call_on_complete_t& CallOnComplete,
+                                                            QWidget* Parent = 0   );
+
+
+    void                    reset                       (   const shared_data_retriever_t& DataRetriever,
+                                                            const shared_schema_t& Schema   );
+
+//private slots:
+
+//    void                   play_wave_file();
 
 
 private:
 
-    shared_server_t             Server_;
-    shared_importer_t           Importer_;
+    void                    on_import_waves             ();
 
-
-//    shared_data_retriever_t     DataRetriever_;
-
-//    shared_state_complete_t     SharedSignalComplete_;
-//    state_complete_t&           SignalComplete_;
+    call_on_complete_t          CallOnComplete_;
+    shared_data_retriever_t     DataRetriever_;
+    shared_schema_t             Schema_;
 
     // Owned Widgets
     QLabel*             PageTitle_Label_;
+    QPushButton*        ChangePatient_Button_;
+
+    // Patient Details
     QLabel*             Title_Label_;
     QLabel*             Forename_Label_;
     QLabel*             MiddleName_Label_;
     QLabel*             Surname_Label_;
     QLabel*             DateOfBirth_Label_;
     QLabel*             Postcode_Label_;
-    QLineEdit*          Title_Edit_;
-    QLineEdit*          Forename_Edit_;
-    QLineEdit*          MiddleName_Edit_;
-    QLineEdit*          Surname_Edit_;
-    QLineEdit*          DateOfBirth_Edit_;
-    QLineEdit*          Postcode_Edit_;
 
+    QPushButton*        ImportWaves_Button_;
+    QPushButton*        OpenWave_Button_;
+    QTreeView*          WaveFiles_View_;
+    QPushButton*        PlayPauseWave_Button_;
+    QPushButton*        StopWave_Button_;
+
+    QSplitter*          Splitter_;
+
+    QLabel*             WaveName_Label_;
+    QFrame*             WaveView_Frame_;
+
+//    QPushButton*        PlayWaveTest_;
 };
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n

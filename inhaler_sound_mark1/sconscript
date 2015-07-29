@@ -2,7 +2,7 @@ Import('env')
 
 Product = "Inhalersound"
 Major = "00"
-Minor = "01"
+Minor = "02"
 
 Version = "{product_name} {major_ver}.{minor_ver}".format(
         product_name = Product,

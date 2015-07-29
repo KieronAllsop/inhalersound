@@ -8,17 +8,13 @@
 // C++ Standard Library Includes
 // None
 
-
 // Qt Includes
 #include <QMainWindow>
 
-// Application Includes
-#include "application/state.hpp"
-
 // Inhaler Includes
 #include "inhaler/server.hpp"
-#include "inhaler/wave_importer.hpp"
-#include "inhaler/data_retriever.hpp"
+//#include "inhaler/wave_importer.hpp"
+//#include "inhaler/patient_retriever.hpp"
 
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
@@ -46,8 +42,6 @@ namespace qt_gui
 }
 
 namespace inhaler {
-    class wave_importer;
-    class data_retriever;
     class server;
 }
 
@@ -73,11 +67,10 @@ class MainWindow : public QMainWindow
 
 public:
 
-    using shared_schema_t           = inhaler::server::shared_schema_t;
-    using shared_server_t           = std::shared_ptr<inhaler::server>;
-    using shared_importer_t         = std::shared_ptr<inhaler::wave_importer>;
-    using shared_data_retriever_t   = std::shared_ptr<inhaler::data_retriever>;
-    using shared_state_complete_t   = std::shared_ptr<application::signal_state_complete>;
+    using shared_server_t   = std::shared_ptr<inhaler::server>;
+    using shared_schema_t   = inhaler::server::shared_schema_t;
+    using user_t            = shared_schema_t::element_type::user_t;
+    using patient_t         = shared_schema_t::element_type::patient_t;
 
 public:
 
@@ -89,14 +82,19 @@ private:
     QWidget*            get_prompt_for              (   QFrame* Prompt   );
     QWidget*            get_view_for                (   QFrame* View   );
 
-    void                on_state_complete           (   const application::state& State   );
+private:
+
+    void                on_login                    (   const user_t& User,
+                                                        const shared_schema_t& Schema   );
+
+    void                on_get_patient              (   const patient_t& Patient   );
+
+    void                on_leave_patient            ();
 
 private:
 
     shared_server_t                 Server_;
-    shared_importer_t               WaveImporter_;
-//    shared_data_retriever_t         DataRetriever_;
-    shared_state_complete_t         SignalComplete_;
+    shared_schema_t                 Schema_;
 
     // widgets
     QStackedLayout*                 StackedLayout_;

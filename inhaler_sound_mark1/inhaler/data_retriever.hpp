@@ -66,8 +66,7 @@ public:
     using patient_wave_files_t      = std::vector<patient_wave_details_t>;
     using string_t                  = std::string;
     using timestamp_t               = boost::posix_time::ptime;
-    using patient_t                 = inhaler::wave_importer::optional_patient_t;
-    using optional_patient_t        = boost::optional<patient_t>;
+    using patient_t                 = shared_schema_t::element_type::patient_t;
     using result_t                  = std::tuple<string_t, string_t, int, timestamp_t, timestamp_t>;
 
 public:
@@ -79,7 +78,7 @@ public:
     data_retriever& operator=( const data_retriever& other ) = delete;
 
     // Construct with a shared Schema
-    explicit data_retriever( const data_model::patient& Patient, const shared_schema_t& Schema )
+    explicit data_retriever( const patient_t& Patient, const shared_schema_t& Schema )
     : Patient_( Patient )
     , Schema_( Schema )
     {
@@ -88,9 +87,9 @@ public:
         const auto& PatientWaves = Schema_->patientwaves();
         const quince::query< results_t >
                 Query
-                    =   PatientWaves
+                    = PatientWaves
                         .where
-                            (   PatientWaves->patient_id == Patient_->id  )
+                            (   PatientWaves->patient_id == Patient_.id  )
                         .select
                             (   PatientWaves->inhaler_type,
                                 PatientWaves->import_timestamp,
@@ -100,7 +99,7 @@ public:
 
         for( const auto& WaveTuple: Query )
         {
-            std::cout << "Inside retrieved data for loop" << std::endl;
+            std::cout << "Inside retrieved data for loop" << std::endl;   // TODO: remove after testing
             WaveFiles_.emplace_back( WaveTuple );
         }
     }

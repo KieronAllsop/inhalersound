@@ -7,12 +7,16 @@
 
 // Standard Library Includes
 #include <memory>
+#include <functional>
+
+// Boost Library Includes
+#include <boost/optional.hpp>
 
 // Qt Includes
 #include <QFrame>
 
-// Application Includes
-#include "application/state.hpp"
+// Inhaler Includes
+#include "inhaler/patient_retriever.hpp"
 
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
@@ -24,10 +28,6 @@ class QDateEdit;
 class QPushButton;
 class QCalendarWidget;
 
-namespace inhaler
-{
-    class wave_importer;
-}
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 namespace qt_gui {
@@ -40,15 +40,17 @@ class get_patient : public QFrame
 
 public:
 
-    using shared_importer_t         = std::shared_ptr<inhaler::wave_importer>;
-    using state_complete_t          = application::signal_state_complete;
-    using shared_state_complete_t   = std::shared_ptr<state_complete_t>;
+    using patient_retriever_t   = std::shared_ptr<inhaler::patient_retriever>;
+    using patient_t             = inhaler::patient_retriever::patient_t;
+    using optional_patient_t    = boost::optional<patient_t>;
+    using call_on_complete_t    = std::function< void( const patient_t& Patient ) >;
 
 public:
 
-                get_patient                 (   const shared_importer_t& Importer,
-                                                const shared_state_complete_t& SignalComplete,
+                get_patient                 (   const call_on_complete_t& CallOnComplete,
                                                 QWidget* Parent=0   );
+
+    void        reset                       (   const patient_retriever_t& Retriever   );
 
 private slots:
 
@@ -63,10 +65,10 @@ private:
 
 private:
     // Data Variables
-    shared_importer_t           Importer_;
-    shared_state_complete_t     SharedSignalComplete_;
-    state_complete_t&           SignalComplete_;
-    bool                        DateChanged_;
+    patient_retriever_t     Retriever_;
+    optional_patient_t      Patient_;
+    call_on_complete_t      CallOnComplete_;
+    bool                    DateChanged_;
 
     // Owned Widgets
     QLabel*             Title_Label_;
@@ -74,8 +76,7 @@ private:
     QLabel*             LastName_Label_;
     QLabel*             DOB_Label_;
     QLabel*             Postcode_Label_;
-    QLabel*             PatientRetrieved_Label_;
-    QLabel*             TryAgain_Label_;
+    QLabel*             Status_Label_;
     QLineEdit*          FirstName_Edit_;
     QLineEdit*          LastName_Edit_;
     QLineEdit*          PostCode_Edit_;

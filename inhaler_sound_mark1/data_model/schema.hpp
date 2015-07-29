@@ -87,12 +87,19 @@ class schema
 {
 public:
 
-    using database_t      = DatabaseT;
-    using users_t         = quince::serial_table<user>;
-    using userlogins_t    = quince::table<userlogin>;
-    using patients_t      = quince::serial_table<patient>;
-    using patientwaves_t  = quince::table<patientwave>;
-    using inhalersdata_t  = quince::table<inhalerdata>;
+    using database_t        = DatabaseT;
+
+    using user_t            = user;
+    using patient_t         = patient;
+    using userlogin_t       = userlogin;
+    using patientwave_t     = patientwave;
+    using unhalerdata_t     = inhalerdata;    // TODO: correct spelling error
+
+    using users_t           = quince::serial_table<user>;
+    using userlogins_t      = quince::table<userlogin>;
+    using patients_t        = quince::serial_table<patient>;
+    using patientwaves_t    = quince::table<patientwave>;
+    using inhalersdata_t    = quince::table<inhalerdata>;
 
 public:
 

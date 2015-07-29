@@ -8,15 +8,12 @@
 // Standard Library Includes
 #include <vector>
 #include <string>
-#include <stdexcept>
 #include <functional>
 #include <fstream>
 
 // Boost Includes
 #include <boost/filesystem.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
-#include <boost/optional.hpp>
-#include <boost/exception/all.hpp>
 
 // Inhaler Includes
 #include "inhaler/server.hpp"
@@ -27,13 +24,6 @@
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 namespace inhaler {
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
-
-
-namespace exception
-{
-    struct patient_not_found : virtual boost::exception, virtual std::exception {};
-    struct no_patient_set    : virtual boost::exception, virtual std::exception {};
-}
 
 
 enum class import_status
@@ -69,7 +59,6 @@ public:
     using date_t                = boost::posix_time::ptime;
     using timestamp_t           = boost::posix_time::ptime;
     using patient_t             = data_model::patient;
-    using optional_patient_t    = boost::optional<patient_t>;
     using wave_files_t          = std::vector<wave_details_t>;
     using data_t                = std::vector<uint8_t>;
 
@@ -82,8 +71,9 @@ public:
     wave_importer& operator=( const wave_importer& other ) = delete;
 
     // Construct with a shared Schema
-    explicit wave_importer( const shared_schema_t& Schema )
-    : Schema_( Schema )
+    explicit wave_importer( const patient_t& Patient, const shared_schema_t& Schema )
+    : Patient_( Patient )
+    , Schema_( Schema )
     {
     }
 
@@ -99,36 +89,12 @@ public:
         return WaveFiles_;
     }
 
-    const optional_patient_t& patient() const
+    const patient_t& patient() const
     {
         return Patient_;
     }
 
     // Operations ------------------------------------------------------------
-
-    void set_patient
-        (   const std::string&  Forename,
-            const std::string&  Surname,
-            const date_t&       DateOfBirth,
-            const std::string&  Postcode )
-    {
-        const auto& Patients = Schema_->patients();
-
-        const auto Query
-                    = Patients
-                        .where(     Patients->forename      == Forename
-                                &&  Patients->surname       == Surname
-                                &&  Patients->date_of_birth == DateOfBirth
-                                &&  Patients->postcode      == Postcode );
-
-        auto Patient = Query.begin();
-
-        if( Patient == Query.end())
-        {
-            BOOST_THROW_EXCEPTION( exception::patient_not_found() );
-        }
-        Patient_ = *Patient;
-    }
 
     void set_wave_files
         (   wave_files_t&& WaveFiles   )
@@ -144,11 +110,6 @@ public:
 
     void import_wave_files( const import_handler_t& Handler )
     {
-        if( !Patient_ )
-        {
-            BOOST_THROW_EXCEPTION( exception::no_patient_set() );
-        }
-
         auto ImportTime = boost::posix_time::microsec_clock::local_time();
 
         int Index = 0;
@@ -192,7 +153,7 @@ private:
     {
         Schema_->patientwaves()
             .insert
-                ( { Patient_->id,
+                ( { Patient_.id,
                     InhalerModel_,
                     WaveFile.path().filename().string(),
                     WaveFile.modified_time(),
@@ -208,8 +169,8 @@ private:
 
 private:
 
+    patient_t               Patient_;
     shared_schema_t         Schema_;
-    optional_patient_t      Patient_;
     std::string             InhalerModel_;
     wave_files_t            WaveFiles_;
 };

@@ -4,7 +4,6 @@
 
 // Boost Library Includes
 #include <boost/optional/optional_io.hpp>
-
 // Quince Includes
 // None
 
@@ -14,11 +13,8 @@
 #include <QPushButton>
 
 // Custom Includes
-#include "inhaler/server.hpp"
 #include "inhaler/wave_importer.hpp"
 #include "inhaler/data_retriever.hpp"
-#include "data_model/schema.hpp"
-#include "inhaler/patient_wave_details.hpp"
 
 // Header Include
 #include "qt_gui/play_wave.h"
@@ -60,23 +56,10 @@ play_wave::play_wave
 void play_wave::
 on_get_data_clicked()
 {
-//    auto PatientData = Importer_->patient();
+    auto PatientData = Importer_->patient();
+    //std::cout << PatientData->id << std::endl;
 
-//    // This all works
-//    std::cout << PatientData->id << std::endl;
-//    std::cout << PatientData->title << std::endl;
-//    std::cout << PatientData->forename << std::endl;
-//    std::cout << PatientData->middlename << std::endl;
-//    std::cout << PatientData->surname << std::endl;
-//    std::cout << PatientData->date_of_birth << std::endl;
-//    std::cout << PatientData->postcode << std::endl;
-
-//    //Patient_ = Importer_->patient()*;
-
-    const data_model::patient& Patient = *(Importer_->patient());
-    auto DataRetriever = std::make_shared<inhaler::data_retriever>( Patient, Schema_ );
-
-
+    //DataRetriever_ = std::make_shared<inhaler::data_retriever>( Importer_->patient(), Schema_ );
 }
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n

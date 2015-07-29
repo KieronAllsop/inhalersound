@@ -31,21 +31,20 @@ namespace prompt {
 login::
 login
 (   const shared_server_t& Server,
-    const shared_state_complete_t& SignalComplete,
+    const call_on_complete_t& CallOnComplete,
     QWidget* Parent )
 : QFrame( Parent )
 
-, Server_               ( Server )
-, SharedSignalComplete_ ( SignalComplete )
-, SignalComplete_       ( *SharedSignalComplete_ )
-, Connected_            ( false )
+, Server_           ( Server )
+, CallOnComplete_   ( CallOnComplete )
+, Connected_        ( false )
 
 // Create Widgets
 , Title_Label_      ( new QLabel( tr("<h1>Please Login</h1>"), this ) )
-, Status_Label_     ( new QLabel( "Cconnecting to server...", this ) )
+, Status_Label_     ( new QLabel( tr("Connecting to server..."), this ) )
 , Username_Edit_    ( new QLineEdit( this ) )
 , Password_Edit_    ( new QLineEdit( this ) )
-, Login_Button_     ( new QPushButton( "Login", this ) )
+, Login_Button_     ( new QPushButton( tr("Login"), this ) )
 
 {
     // Set up event handling
@@ -66,12 +65,12 @@ login
     // Master Layout is a Vertical Box Layout
     QVBoxLayout* MasterLayout = new QVBoxLayout();
 
-    MasterLayout->addWidget( Title_Label_, 0, Qt::AlignLeft );
+    MasterLayout->addWidget( Title_Label_, 0, Qt::AlignCenter );
 
     QFormLayout* CredentialsForm = new QFormLayout();
 
-    CredentialsForm->addRow( "&Username:", Username_Edit_ );
-    CredentialsForm->addRow( "&Password:", Password_Edit_ );
+    CredentialsForm->addRow( tr("&Username:"), Username_Edit_ );
+    CredentialsForm->addRow( tr("&Password:"), Password_Edit_ );
 
     MasterLayout->addLayout( CredentialsForm );
 
@@ -236,31 +235,15 @@ on_login_clicked()
 
     auto User = Server_->authenticate( Username, Password );
 
-    using state_t = application::state;
-
     if( User )
     {
-        if( User->user_role == "DataTechnician" )
-        {
-            SignalComplete_( state_t::login_as_data_technician );
-        }
-        else if( User->user_role == "DiagnosingDoctor" )
-        {
-            SignalComplete_( state_t::login_as_diagnosing_doctor );
-        }
-        else
-        {
-//            hide();
-//            Administration administration( Schema_, this );
-//            administration.setModal( true );
-//            administration.exec();
-        }
-   }
-   else
-   {
+        CallOnComplete_( *User, Schema_ );
+    }
+    else
+    {
         Status_Label_->setText("ERROR: Username or Password Incorrect. Try again.");
         Username_Edit_->setFocus();
-   }
+    }
 }
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n

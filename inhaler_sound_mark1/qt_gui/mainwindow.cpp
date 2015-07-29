@@ -15,17 +15,17 @@
 #include <QStyle>
 #include <QPalette>
 
-// Custom Includes
+// Inhaler Includes
 #include "inhaler/server.hpp"
+#include "inhaler/data_retriever.hpp"
+
+// qt_gui Includes
 #include "qt_gui/prompt/login.h"
 #include "qt_gui/prompt/get_patient.h"
-#include "qt_gui/play_wave.h"
-#include "qt_gui/import_wizard/wizard.h"
 #include "qt_gui/view/explore_patient.h"
 
 // Self Include
 #include "qt_gui/mainwindow.h"
-
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
@@ -36,17 +36,43 @@ namespace qt_gui {
 MainWindow::MainWindow
 (   const shared_server_t& Server,
     QWidget* parent  )
-  : QMainWindow(parent)
+: QMainWindow(parent)
 
-  , Server_             ( Server )
-  , WaveImporter_       ( new inhaler::wave_importer( Server_->connect_to_schema() ) )
-  , SignalComplete_     ( new application::signal_state_complete() )
-  , StackedLayout_      ( new QStackedLayout() )
-  , LoginPrompt_        ( new qt_gui::prompt::login( Server_, SignalComplete_, this ) )
-  , GetPatientPrompt_   ( new qt_gui::prompt::get_patient( WaveImporter_, SignalComplete_, this ) )
-  , ExplorePatientView_ ( new qt_gui::view::explore_patient( Server_, WaveImporter_, this ) )
-//  , ImportWizard_       ( new qt_gui::import_wizard::wizard( Server_->connect_to_schema(), this ) )
+, Server_
+    ( Server )
+
+, StackedLayout_
+    ( new QStackedLayout() )
+
+, LoginPrompt_
+    ( new qt_gui::prompt::login
+        (   Server_,
+            [this]( const user_t& User, const shared_schema_t& Schema )
+            {
+                on_login( User, Schema );
+            },
+            this   ) )
+
+, GetPatientPrompt_
+    ( new qt_gui::prompt::get_patient
+        (   [this]( const patient_t& Patient )
+            {
+                on_get_patient( Patient );
+            },
+            this   ) )
+
+, ExplorePatientView_
+    ( new qt_gui::view::explore_patient
+        (   [this]()
+            {
+                on_leave_patient();
+            },
+            this   ) )
+
+// left in for reference
+
 //  , PlayWave_           ( new qt_gui::play_wave( Server_->connect_to_schema(), WaveImporter_, DataRetriever_, this ) )
+
 {
     // Initialise main_window
 
@@ -71,13 +97,6 @@ MainWindow::MainWindow
             Qt::AlignCenter,
             size(),
             QApplication::desktop()->availableGeometry()  )  );
-
-    SignalComplete_->connect
-        (   [&]( const application::state& State )
-            {
-                on_state_complete( State );
-            }
-        );
 
     LoginPrompt_->initialise_connection();
 }
@@ -117,31 +136,31 @@ get_view_for( QFrame* View )
 
 
 void MainWindow::
-on_state_complete( const application::state& State )
+on_login( const data_model::user& User, const shared_schema_t& Schema )
 {
-    using state_t = application::state;
+    Schema_ = Schema;
+    GetPatientPrompt_->reset( std::make_shared<inhaler::patient_retriever>( Schema ) );
 
-    switch( State )
-    {
-        case state_t::login_as_data_technician :
-        case state_t::login_as_diagnosing_doctor :
-        {
-            StackedLayout_->setCurrentIndex( display_view::get_patient );
-            break;
-        }
-        case state_t::get_patient :
-        {
-            const data_model::patient& Patient = *(WaveImporter_->patient());
-            ExplorePatientView_->populate_patient_form( Patient );
-            StackedLayout_->setCurrentIndex( display_view::explore_patient );
-            break;
-        }
-        default :
-        {
-            // TODO
-            break;
-        }
-    }
+    StackedLayout_->setCurrentIndex( display_view::get_patient );
+}
+
+
+void MainWindow::
+on_get_patient( const data_model::patient& Patient )
+{
+    auto DataRetriever = std::make_shared<inhaler::data_retriever>( Patient, Schema_ );
+    ExplorePatientView_->reset( DataRetriever, Schema_ );
+
+    StackedLayout_->setCurrentIndex( display_view::explore_patient );
+}
+
+
+void MainWindow::
+on_leave_patient()
+{
+    // TODO:
+//    GetPatientPrompt_->reset( std::make_shared<inhaler::patient_retriever>( Schema ) );
+//    StackedLayout_->setCurrentIndex( display_view::get_patient );
 }
 
 
