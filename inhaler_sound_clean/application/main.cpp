@@ -10,10 +10,11 @@
 
 // Qt Includes
 #include <QApplication>
+#include <QMainWindow>
 
 // Custom Includes
-#include "qt_gui/login.h"
 #include "inhaler/server.hpp"
+#include "qt_gui/mainwindow.h"
 
 // Local Includes
 #include "version.hpp"
@@ -23,7 +24,7 @@
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
-void logger()
+void initialise_logger()
 {
     auto log_dir = boost::filesystem::initial_path() / "logfiles";
 
@@ -41,9 +42,9 @@ void logger()
 }
 
 
-
 int main( int argc, char *argv[] )
 {
+    // allows use of file names in a another language as C++ uses a char array for strings
     std::locale Utf8Locale( std::locale(), new boost::filesystem::detail::utf8_codecvt_facet );
     boost::filesystem::path::imbue( Utf8Locale );
 
@@ -60,24 +61,24 @@ int main( int argc, char *argv[] )
     if( vm.count( "help" ) )
     {
         std::cout << OptionsDescription << "\n";
-        return 1;
+        return 0; //was 1
     }
 
     if( vm.count( "version" ) )
     {
         std::cout << inhalersound::build::identity::report() << std::endl;
-        return 1;
+        return 0; // was 1
     }
 
-    logger();
+
+    initialise_logger();
 
     QApplication GuiApplication( argc, argv );
 
     auto Server = std::make_shared<inhaler::server>();
 
-    qt_gui::login_dialog LoginWindow( Server );
-    LoginWindow.show();
-    LoginWindow.initialise_connection();
+    qt_gui::MainWindow mainWindow( Server );
+    mainWindow.show();
 
     return GuiApplication.exec();
 }

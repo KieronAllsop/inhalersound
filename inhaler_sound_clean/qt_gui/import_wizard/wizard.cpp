@@ -20,7 +20,6 @@
 
 // Wizard Page Includes
 #include "qt_gui/import_wizard/intro_page.h"
-#include "qt_gui/import_wizard/get_patient_page.h"
 #include "qt_gui/import_wizard/select_files_page.h"
 #include "qt_gui/import_wizard/process_files_page.h"
 
@@ -35,16 +34,16 @@ namespace import_wizard {
 
 wizard::
 wizard
-(   const shared_schema_t& Schema,
+(   const patient_t& Patient,
+    const shared_schema_t& Schema,
     QWidget* Parent ):
     QWizard( Parent ),
     Schema_( Schema )
 {
-    auto WaveImporter = std::make_shared<inhaler::wave_importer>( Schema_ );
+    auto WaveImporter = std::make_shared<inhaler::wave_importer>( Patient, Schema_ );
 
     // Add Wizard pages
     addPage( new intro_page() );
-    addPage( new get_patient_page( WaveImporter ) );
     addPage( new select_files_page( WaveImporter ) );
     addPage( new process_files_page( WaveImporter ) );
     setWindowTitle( "Process Patient Data Wizard" );

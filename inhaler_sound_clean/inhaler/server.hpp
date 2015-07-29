@@ -65,7 +65,7 @@ public:
     {
         try
         {
-            Schema_->initialise();
+            Schema_->initialise_once();
             return Schema_;
         }
         catch( const quince::failed_connection_exception& Error )

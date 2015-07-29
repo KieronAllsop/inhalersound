@@ -87,12 +87,19 @@ class schema
 {
 public:
 
-    using database_t      = DatabaseT;
-    using users_t         = quince::serial_table<user>;
-    using userlogins_t    = quince::table<userlogin>;
-    using patients_t      = quince::serial_table<patient>;
-    using patientwaves_t  = quince::table<patientwave>;
-    using inhalersdata_t  = quince::table<inhalerdata>;
+    using database_t        = DatabaseT;
+
+    using user_t            = user;
+    using patient_t         = patient;
+    using userlogin_t       = userlogin;
+    using patientwave_t     = patientwave;
+    using unhalerdata_t     = inhalerdata;    // TODO: correct spelling error
+
+    using users_t           = quince::serial_table<user>;
+    using userlogins_t      = quince::table<userlogin>;
+    using patients_t        = quince::serial_table<patient>;
+    using patientwaves_t    = quince::table<patientwave>;
+    using inhalersdata_t    = quince::table<inhalerdata>;
 
 public:
 
@@ -100,6 +107,7 @@ public:
     template<class... ArgsT>
     explicit schema( ArgsT&&... Args )                     // parameter pack
         : Database_     ( std::forward<ArgsT>(Args)... )   // takes type list and parameter pack
+        , Initialised_  ( false )
         , Users_        ( Database_, "users",          &user::id  )
         , Userlogins_   ( Database_, "userlogins",     &userlogin::username )
         , Patients_     ( Database_, "patients",       &patient::id )
@@ -118,10 +126,14 @@ public:
     }
 
 
-    void initialise()
+    void initialise_once()
     {
-        open_all_tables();
-        initial_population();
+        if( !Initialised_ )
+        {
+            open_all_tables();
+            initial_population();
+            Initialised_ = true;
+        }
     }
 
 private:
@@ -287,7 +299,8 @@ public:
 
 private:
 
-    DatabaseT Database_;
+    DatabaseT   Database_;
+    bool        Initialised_;
 
     // Schema Objects
     quince::serial_table<user>      Users_;

@@ -25,12 +25,14 @@ class wizard : public QWizard
 
 public:
 
-    using shared_schema_t = inhaler::server::shared_schema_t;
+    using shared_schema_t    = inhaler::server::shared_schema_t;
+    using patient_t          = shared_schema_t::element_type::patient_t;
 
-    explicit    wizard          ( const shared_schema_t& Schema,
-                                  QWidget* parent = 0 );
+    explicit        wizard          (   const patient_t& Patient,
+                                        const shared_schema_t& Schema,
+                                        QWidget* parent = 0   );
 
-    void        accept          () Q_DECL_OVERRIDE;
+    void            accept          () Q_DECL_OVERRIDE;
 
 private:
 
