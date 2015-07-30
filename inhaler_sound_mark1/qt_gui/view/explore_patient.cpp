@@ -16,6 +16,7 @@
 #include <QSplitter>
 #include <QStandardItemModel>
 #include <QtMultimedia/QMediaPlayer>
+#include <QModelIndex>
 
 // Inhaler Includes
 #include "inhaler/wave_importer.hpp"
@@ -73,7 +74,9 @@ explore_patient
     // Set date layout
     DOBFacet_->format( "%d-%b-%Y" );
 
-    connect( ImportWaves_Button_, &QPushButton::released, [this](){ on_import_waves(); } );
+    connect( ImportWaves_Button_, &QPushButton::released,         [this](){ on_import_waves(); } );
+    connect( OpenWave_Button_,    &QPushButton::released,         [this](){ on_open_wave_file(); } );
+    connect( WaveFiles_View_,     SIGNAL( clicked(QModelIndex ) ), this, SLOT( wave_file_clicked( QModelIndex ) ) );
 
     // Master Layout is a Vertical Box Layout
     QVBoxLayout* MasterLayout = new QVBoxLayout();
@@ -124,6 +127,10 @@ explore_patient
 
     WaveFiles_View_->setSizePolicy( QSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding ) );
     WaveFiles_View_->setModel( WaveFiles_ );
+    WaveFiles_View_->setSelectionBehavior( QTreeView::SelectRows );
+    WaveFiles_View_->setEditTriggers( QTreeView::NoEditTriggers );
+    WaveFiles_View_->setSelectionMode( QTreeView::SingleSelection );
+    WaveFiles_View_->setAlternatingRowColors( true );
 
     WaveFiles_->setColumnCount(3);
     QStringList Headers;
@@ -199,6 +206,7 @@ reset
         ImportDate << Wave.import_time();
 
         QList<QStandardItem*> Items;
+
         Items.append( new QStandardItem( QString::fromUtf8( Wave.inhaler_model().c_str() ) ) );
         Items.append( new QStandardItem( QString::fromUtf8( ImportDate.str().c_str() ) ) );
         Items.append( new QStandardItem( QString::fromUtf8( Wave.name().c_str() ) ) );
@@ -219,10 +227,42 @@ on_import_waves()
     qt_gui::import_wizard::wizard Wizard( DataRetriever_->patient(), Schema_ );
     if( Wizard.exec() )
     {
-        // Refresh Wave Tree View
+        for( auto Wave = DataRetriever_->updated_wave_data() ;
+                  Wave != DataRetriever_->wave_files().end() ;
+                  ++Wave )
+        {
+            const auto& WaveDetails = *Wave;
+
+            std::stringstream ImportDate;
+            ImportDate.imbue( DateLocale_ );
+            ImportDate << WaveDetails.import_time();
+
+            QList<QStandardItem*> NewItems;
+
+            NewItems.append( new QStandardItem( QString::fromUtf8( WaveDetails.inhaler_model().c_str() ) ) );
+            NewItems.append( new QStandardItem( QString::fromUtf8( ImportDate.str().c_str() ) ) );
+            NewItems.append( new QStandardItem( QString::fromUtf8( WaveDetails.name().c_str() ) ) );
+
+            WaveFiles_->appendRow( NewItems );
+
+        }
+
     }
 }
 
+void explore_patient::
+on_open_wave_file()
+{
+
+
+}
+
+void explore_patient::
+wave_file_clicked(const QModelIndex &index)
+{
+     QStandardItem *item = WaveFiles_->itemFromIndex(index);
+
+}
 
 //void explore_patient::
 //play_wave_file()

@@ -30,6 +30,7 @@ class QPushButton;
 class QTreeView;
 class QSplitter;
 class QStandardItemModel;
+class QModelIndex;
 
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
@@ -58,14 +59,15 @@ public:
     void                    reset                       (   const shared_data_retriever_t& DataRetriever,
                                                             const shared_schema_t& Schema   );
 
-//private slots:
+private slots:
 
-//    void                   play_wave_file();
+    void                    wave_file_clicked           (   const QModelIndex &index   );
 
 
 private:
 
     void                    on_import_waves             ();
+    void                    on_open_wave_file           ();
 
     call_on_complete_t              CallOnComplete_;
     shared_data_retriever_t         DataRetriever_;
