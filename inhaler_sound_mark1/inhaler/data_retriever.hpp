@@ -122,6 +122,11 @@ public:
         return WaveFiles_;
     }
 
+    const data_t& retrieved_file() const
+    {
+        return RetrievedFile_;
+    }
+
     // Operations ------------------------------------------------------------
 
     waves_const_iterator_t updated_wave_data()
@@ -134,20 +139,24 @@ public:
         return WaveFiles_.begin() + Size;
     }
 
-    data_t retrieve_wave( const patient_wave_files_t& Selected )
+    void retrieve_wave( const patient_wave_details_t& Selected )
     {
-//        const auto& PatientWaves = Schema_->patientwaves();
-//        const quince::query< data_t >
-//                Query
-//                    = PatientWaves
-//                        .where
-//                            (       PatientWaves->patient_id         == Patient_.id
-//                                &&  PatientWaves->inhaler_type       == Selected.inhaler_model()
-//                                &&  PatientWaves->file_name          == Selected.name()
-//                                &&  PatientWaves->creation_timestamp == Selected.modified_time()    )
-//                        .select
-//                            (   PatientWaves->wave_file   );
-//        return Query;
+        const auto& PatientWaves = Schema_->patientwaves();
+        const quince::query< data_t >
+                Query
+                    = PatientWaves
+                        .where
+                            (       PatientWaves->patient_id         == Patient_.id
+                                &&  PatientWaves->inhaler_type       == Selected.inhaler_model()
+                                &&  PatientWaves->file_name          == Selected.name()
+                                &&  PatientWaves->creation_timestamp == Selected.modified_time()    )
+                        .select
+                            (   PatientWaves->wave_file   );
+
+        for( const auto& Wave: Query )
+        {
+            RetrievedFile_ = Wave;
+        }
     }
 
 private:
@@ -182,6 +191,7 @@ private:
     shared_schema_t             Schema_;
     patient_wave_files_t        WaveFiles_;
     boost::posix_time::ptime    LastImportTime_;
+    data_t                      RetrievedFile_;
 };
 
 
