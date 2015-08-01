@@ -5,20 +5,20 @@
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
-// Standard Library Includes
-#include <string>
-#include <stdexcept>
-
-// Boost Includes
-#include <boost/optional.hpp>
-#include <boost/exception/all.hpp>
+// Data Model Includes
+#include "data_model/schema.hpp"
 
 // Quince Includes
 #include <quince/quince.h>
 #include <quince_postgresql/database.h>
 
-// Data Model Includes
-#include "data_model/schema.hpp"
+// Boost Includes
+#include <boost/optional.hpp>
+#include <boost/exception/all.hpp>
+
+// Standard Library Includes
+#include <string>
+#include <stdexcept>
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 

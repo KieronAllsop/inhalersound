@@ -1,14 +1,11 @@
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
-// Standard Includes
-#include <vector>
-#include <fstream>
 
-// Boost Library Includes
-#include <boost/filesystem.hpp>
-#include <boost/filesystem/detail/utf8_codecvt_facet.hpp>
-#include <boost/date_time/posix_time/posix_time.hpp>
-#include <boost/optional.hpp>
-#include <boost/optional/optional_io.hpp>
+// Self Include
+#include "qt_gui/import_wizard/select_files_page.h"
+
+// Importer Includes
+#include "inhaler/wave_details.hpp"
+#include "inhaler/wave_importer.hpp"
 
 // Qt Includes
 #include <QFileDialog>
@@ -22,12 +19,17 @@
 #include <QAbstractButton>
 #include <QComboBox>
 
-// Importer Includes
-#include "inhaler/wave_details.hpp"
-#include "inhaler/wave_importer.hpp"
+// Boost Library Includes
+#include <boost/filesystem.hpp>
+#include <boost/filesystem/detail/utf8_codecvt_facet.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/optional.hpp>
+#include <boost/optional/optional_io.hpp>
 
-// Self Include
-#include "qt_gui/import_wizard/select_files_page.h"
+// Standard Library Includes
+#include <vector>
+#include <fstream>
+
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
@@ -44,6 +46,7 @@ select_files_page
 : QWizardPage( Parent )
 
 , Importer_( Importer )
+, Confirmed_( false )
 
 // Create Widgets
 , SelectFiles_Label_            ( new QLabel             ( "Step 1. Select Inhaler Audio Files", this ) )
@@ -117,7 +120,7 @@ select_files_page
 bool select_files_page::
 isComplete() const
 {
-    return( Confirmed_ );
+    return Confirmed_;
 }
 
 
@@ -146,7 +149,7 @@ on_select_files_clicked()
              (   this,
                  "Select one or more wave files to open",
                  QDir::homePath(),
-                 "Wave Files (*.wav)"   );
+                 "Wave Files (*.wav);; All files (*.*)"   );     // TODO: remove all files after testing
 
     if( FileNames.size() )
     {

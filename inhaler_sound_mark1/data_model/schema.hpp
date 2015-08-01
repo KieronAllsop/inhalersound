@@ -4,9 +4,9 @@
 // G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
-// Standard Library Includes
-#include <vector>
-#include <fstream>
+
+// Quince Includes
+#include <quince/quince.h>
 
 // Boost Includes
 #include <boost/date_time/posix_time/posix_time.hpp>
@@ -14,8 +14,10 @@
 #include <boost/optional.hpp>
 #include <boost/filesystem.hpp>
 
-// Quince Includes
-#include <quince/quince.h>
+// Standard Library Includes
+#include <vector>
+#include <fstream>
+
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n

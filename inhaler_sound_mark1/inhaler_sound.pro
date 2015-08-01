@@ -24,7 +24,6 @@ SOURCES +=  application/main.cpp \
             qt_gui/administration.cpp \
             qt_gui/login.cpp \
             qt_gui/mainwindow.cpp \
-            qt_gui/play_wave.cpp \
     wave/wave_file.cpp \
     wave/show_form.cpp \
     wave/utils.cpp \
@@ -46,7 +45,6 @@ HEADERS += \
             qt_gui/administration.h \
             qt_gui/login.h \
             qt_gui/mainwindow.h \
-            qt_gui/play_wave.h \
     inhaler/data_retriever.hpp \
     inhaler/patient_wave_details.hpp \
     wave/wave_file.h \

@@ -5,19 +5,18 @@
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
-// Standard Library Includes
-#include <memory>
-#include <functional>
-
-// Boost Library Includes
-#include <boost/optional.hpp>
+// Inhaler Includes
+#include "inhaler/patient_retriever.hpp"
 
 // Qt Includes
 #include <QFrame>
 
-// Inhaler Includes
-#include "inhaler/patient_retriever.hpp"
+// Boost Library Includes
+#include <boost/optional.hpp>
 
+// Standard Library Includes
+#include <memory>
+#include <functional>
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
@@ -52,7 +51,7 @@ public:
 
     void        reset                       (   const patient_retriever_t& Retriever   );
 
-private slots:
+private:
 
     void        on_retrieve_clicked         ();
     void        on_text_credentials_changed ( const QString& Text );
@@ -60,6 +59,14 @@ private slots:
     void        on_finished_clicked         ();
 
 private:
+
+    void        initialise_widgets          ();
+
+    void        initialise_layout           ();
+
+    void        connect_event_handlers      ();
+
+    void        reset_interface             ();
 
     void        update_retrieval_state      ();
 

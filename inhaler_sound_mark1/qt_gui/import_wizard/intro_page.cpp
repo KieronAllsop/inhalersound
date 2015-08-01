@@ -1,16 +1,18 @@
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
-// Standard Includes
-// None
 
-// Boost Library Includes
-// None
+// Header Include
+#include "qt_gui/import_wizard/intro_page.h"
 
 // Qt Includes
 #include <QVBoxLayout>
 #include <QLabel>
 
-// Header Include
-#include "qt_gui/import_wizard/intro_page.h"
+// Boost Library Includes
+// None
+
+// Standard Includes
+// None
+
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n

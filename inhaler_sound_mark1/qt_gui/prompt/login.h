@@ -4,22 +4,23 @@
 // G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
-// Standard Library Includes
-#include <memory>
-#include <chrono>
-#include <thread>
-#include <functional>
 
-// Asio Includes
-#include <asio.hpp>
-#include <asio/high_resolution_timer.hpp>
+// Inhaler Includes
+#include "inhaler/server.hpp"
 
 // Qt Includes
 #include <QFrame>
 #include <QEvent>
 
-// Inhaler Includes
-#include "inhaler/server.hpp"
+// Asio Includes
+#include <asio.hpp>
+#include <asio/high_resolution_timer.hpp>
+
+// Standard Library Includes
+#include <memory>
+#include <chrono>
+#include <thread>
+#include <functional>
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
@@ -141,7 +142,7 @@ private:
 
     void                    update_login_state          ();
 
-private slots:
+private:
 
     void                    on_login_clicked            ();
     void                    on_credentials_changed      (   const QString& Text   );

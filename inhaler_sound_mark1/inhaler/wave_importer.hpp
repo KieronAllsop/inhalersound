@@ -5,19 +5,19 @@
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
-// Standard Library Includes
-#include <vector>
-#include <string>
-#include <functional>
-#include <fstream>
+// Inhaler Includes
+#include "inhaler/server.hpp"
+#include "inhaler/wave_details.hpp"
 
 // Boost Includes
 #include <boost/filesystem.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 
-// Inhaler Includes
-#include "inhaler/server.hpp"
-#include "inhaler/wave_details.hpp"
+// Standard Library Includes
+#include <vector>
+#include <string>
+#include <functional>
+#include <fstream>
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 

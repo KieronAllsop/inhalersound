@@ -5,17 +5,17 @@
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
-// Standard Library Includes
-#include <atomic>
-#include <thread>
+// Inhaler Includes
+#include "inhaler/wave_details.hpp"
+#include "inhaler/wave_importer.hpp"
 
 // Qt Includes
 #include <QWizardPage>
 #include <QEvent>
 
-// Inhaler Includes
-#include "inhaler/wave_details.hpp"
-#include "inhaler/wave_importer.hpp"
+// Standard Library Includes
+#include <atomic>
+#include <thread>
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 

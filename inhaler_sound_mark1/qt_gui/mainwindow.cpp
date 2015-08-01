@@ -1,6 +1,16 @@
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
-// Standard Library Includes
-// none
+
+// Self Include
+#include "qt_gui/mainwindow.h"
+
+// Inhaler Includes
+#include "inhaler/server.hpp"
+#include "inhaler/data_retriever.hpp"
+
+// qt_gui Includes
+#include "qt_gui/prompt/login.h"
+#include "qt_gui/prompt/get_patient.h"
+#include "qt_gui/view/explore_patient.h"
 
 // Qt Includes
 #include <QVBoxLayout>
@@ -15,17 +25,9 @@
 #include <QStyle>
 #include <QPalette>
 
-// Inhaler Includes
-#include "inhaler/server.hpp"
-#include "inhaler/data_retriever.hpp"
+// Standard Library Includes
+// none
 
-// qt_gui Includes
-#include "qt_gui/prompt/login.h"
-#include "qt_gui/prompt/get_patient.h"
-#include "qt_gui/view/explore_patient.h"
-
-// Self Include
-#include "qt_gui/mainwindow.h"
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
@@ -68,11 +70,6 @@ MainWindow::MainWindow
                 on_leave_patient();
             },
             this   ) )
-
-// left in for reference
-
-//  , PlayWave_           ( new qt_gui::play_wave( Server_->connect_to_schema(), WaveImporter_, DataRetriever_, this ) )
-
 {
     // Initialise main_window
 
@@ -158,9 +155,19 @@ on_get_patient( const data_model::patient& Patient )
 void MainWindow::
 on_leave_patient()
 {
-    // TODO:
-//    GetPatientPrompt_->reset( std::make_shared<inhaler::patient_retriever>( Schema ) );
-//    StackedLayout_->setCurrentIndex( display_view::get_patient );
+    GetPatientPrompt_->reset( std::make_shared<inhaler::patient_retriever>( Schema_ ) );
+
+    StackedLayout_->setCurrentIndex( display_view::get_patient );
+}
+
+
+void MainWindow::
+on_logout()
+{
+//    Schema_.reset();
+//    LoginPrompt_->reset();
+//
+//    StackedLayout_->setCurrentIndex( display_view::login );
 }
 
 

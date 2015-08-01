@@ -1,11 +1,13 @@
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
-// Standard Library Includes
-// None
 
-// Boost Library Includes
-#include <boost/optional/optional_io.hpp>
-#include <boost/date_time/posix_time/posix_time.hpp>
-#include <boost/date_time/posix_time/posix_time_io.hpp>
+// Self Include
+#include "qt_gui/view/explore_patient.h"
+
+// qt_gui Includes
+#include "qt_gui/import_wizard/wizard.h"
+
+// Inhaler Includes
+#include "inhaler/wave_importer.hpp"
 
 // Qt Includes
 #include <QFormLayout>
@@ -14,20 +16,21 @@
 #include <QTreeView>
 #include <QSizePolicy>
 #include <QSplitter>
-#include <QStandardItemModel>
-#include <QtMultimedia/QMediaPlayer>
-#include <QModelIndex>
+#include <QMessageBox>
+#include <QDate>
+#include <QList>
+#include <QStandardItem>
+#include <QMetaType>
 
-// Inhaler Includes
-#include "inhaler/wave_importer.hpp"
-#include "inhaler/data_retriever.hpp"
+// Standard Library Includes
+// None
 
-// Qt_gui Includes
-#include "qt_gui/import_wizard/wizard.h"
-
-// Self Include
-#include "qt_gui/view/explore_patient.h"
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
+
+
+// Register our const patient_wave_details* type with QVariant
+Q_DECLARE_METATYPE( const inhaler::patient_wave_details* );
+
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 namespace qt_gui {
@@ -39,9 +42,10 @@ explore_patient
 (   const call_on_complete_t& CallOnComplete,
     QWidget* Parent )
 : QFrame( Parent )
+, CallOnComplete_( CallOnComplete )
 
-, DOBFacet_             ( new boost::posix_time::time_facet() )
-, DateLocale_           ( std::locale(), DOBFacet_ )
+, TimestampFacet_       ( new boost::posix_time::time_facet() )
+, TimestampLocale_      ( std::locale(), TimestampFacet_ )
 
 // Create Widgets
 , PageTitle_Label_( new QLabel( this ) )
@@ -58,6 +62,7 @@ explore_patient
 , OpenWave_Button_      ( new QPushButton( tr("View File"), this ) )
 , WaveFiles_View_       ( new QTreeView( this ) )
 , WaveFiles_            ( new QStandardItemModel ( this ) )
+, WaveFiles_Root_       ( WaveFiles_->invisibleRootItem() )
 , PlayPauseWave_Button_ ( new QPushButton( this ) )
 , StopWave_Button_      ( new QPushButton( this ) )
 
@@ -65,27 +70,67 @@ explore_patient
 
 , WaveName_Label_       ( new QLabel( tr("<h2>No Wave Selected</h2>"), this ) )
 , WaveView_Frame_       ( new QFrame( this ) )
-
-
-//, PlayWaveTest_         ( new QPushButton( "Test Play Wave", this ) )
-//, PlayWave_           ( new qt_gui::play_wave( Server_->connect_to_schema(), WaveImporter_, DataRetriever_, this ) )
 {
+    TimestampFacet_->format( "%Y-%m-%d %H:%M" );
 
-    // Set date layout
-    DOBFacet_->format( "%d-%b-%Y" );
+    initialise_widgets();
 
-    connect( ImportWaves_Button_, &QPushButton::released,         [this](){ on_import_waves(); } );
-    connect( OpenWave_Button_,    &QPushButton::released,         [this](){ on_open_wave_file(); } );
-    connect( WaveFiles_View_,     SIGNAL( clicked(QModelIndex ) ), this, SLOT( wave_file_clicked( QModelIndex ) ) );
+    initialise_layout();
 
-    // Master Layout is a Vertical Box Layout
+    connect_event_handlers();
+
+    reset_interface();
+}
+
+
+void explore_patient::connect_event_handlers()
+{
+    connect( ImportWaves_Button_, &QPushButton::released, [this](){ on_import_waves(); } );
+    connect( ChangePatient_Button_, &QPushButton::released, [this](){ on_change_patient(); } );
+
+    connect
+        (   WaveFiles_View_->selectionModel(),
+            &QItemSelectionModel::currentChanged,
+            [this]( const QModelIndex& Current, const QModelIndex& Previous )
+            {
+                on_wave_selection_changed( Current, Previous );
+            }
+        );
+}
+
+
+void explore_patient::initialise_widgets()
+{
+    WaveFiles_View_->setModel( WaveFiles_ );
+    WaveFiles_View_->setSelectionBehavior( QTreeView::SelectRows );
+    WaveFiles_View_->setEditTriggers( QTreeView::NoEditTriggers );
+    WaveFiles_View_->setSelectionMode( QTreeView::SingleSelection );
+    WaveFiles_View_->setAlternatingRowColors( true );
+    WaveFiles_View_->setUniformRowHeights( true );
+
+    WaveFiles_->setColumnCount(4);
+    QStringList Headers;
+    Headers
+        << "Filename"
+        << "Inhaler"
+        << "Size"
+        << "Date";
+    WaveFiles_->setHorizontalHeaderLabels( Headers );
+
+    ChangePatient_Button_->setDefault( false );
+    ImportWaves_Button_->setDefault( true );
+
+    disable_load_wave();
+}
+
+
+void explore_patient::initialise_layout()
+{
     QVBoxLayout* MasterLayout = new QVBoxLayout();
 
     QHBoxLayout* TitleLayout   = new QHBoxLayout();
     QVBoxLayout* DetailsLayout = new QVBoxLayout();
     QVBoxLayout* WaveLayout    = new QVBoxLayout();
-
-//  connect(PlayWaveTest_, SIGNAL( released() ), this, SLOT( play_wave_file() ) );
 
     TitleLayout->addWidget( PageTitle_Label_, 0, Qt::AlignLeft );
     TitleLayout->addWidget( ChangePatient_Button_, 0, Qt::AlignRight );
@@ -112,8 +157,6 @@ explore_patient
 
     DetailsLayout->addLayout( WaveButtonsLayout, 0 );
 
-    ImportWaves_Button_->setDefault( true );
-
     QWidget* DetailsWidget = new QWidget( this );
     auto DetailsSizePolicy = QSizePolicy();
     DetailsSizePolicy.setHorizontalStretch( 1 );
@@ -124,21 +167,6 @@ explore_patient
 
     WaveView_Frame_->setSizePolicy( QSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding ) );
     WaveView_Frame_->setFrameStyle( QFrame::StyledPanel | QFrame::Sunken );
-
-    WaveFiles_View_->setSizePolicy( QSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding ) );
-    WaveFiles_View_->setModel( WaveFiles_ );
-    WaveFiles_View_->setSelectionBehavior( QTreeView::SelectRows );
-    WaveFiles_View_->setEditTriggers( QTreeView::NoEditTriggers );
-    WaveFiles_View_->setSelectionMode( QTreeView::SingleSelection );
-    WaveFiles_View_->setAlternatingRowColors( true );
-
-    WaveFiles_->setColumnCount(3);
-    QStringList Headers;
-    Headers
-        << "Inhaler"
-        << "Date"
-        << "Filename";
-    WaveFiles_->setHorizontalHeaderLabels( Headers );
 
     WaveLayout->addWidget( WaveName_Label_, 0, Qt::AlignLeft );
     WaveLayout->addWidget( WaveView_Frame_ );
@@ -155,6 +183,22 @@ explore_patient
     MasterLayout->addWidget( Splitter_, 1 );
 
     setLayout( MasterLayout );
+}
+
+
+void explore_patient::reset_interface()
+{
+    // TODO
+}
+
+
+std::string explore_patient::
+to_string( const boost::posix_time::ptime& Timestamp ) const
+{
+    std::stringstream Stream;
+    Stream.imbue( TimestampLocale_ );
+    Stream << Timestamp;
+    return Stream.str();
 }
 
 
@@ -176,49 +220,42 @@ reset
 
     PageTitle_Label_->setText( Name );
 
-    // Correct Date of Birth
-
-    std::stringstream Date;
-    Date.imbue( DateLocale_ );
-    Date << Patient.date_of_birth;
-
-    // Middlename can be null so is dealt with differently
-
-    std::string MiddleName = Patient.middlename ? *Patient.middlename : "";
-
     // Load patient details view
 
-    Title_Label_      ->setText( QString::fromUtf8( Patient.title.c_str() ) );
-    Forename_Label_   ->setText( QString::fromUtf8( Patient.forename.c_str() ) );
-    MiddleName_Label_ ->setText( QString::fromUtf8( MiddleName.c_str() ) );
-    Surname_Label_    ->setText( QString::fromUtf8( Patient.surname.c_str() ) );
-    DateOfBirth_Label_->setText( QString::fromUtf8( Date.str().c_str() ) );
-    Postcode_Label_   ->setText( QString::fromUtf8( Patient.postcode.c_str() ) );
+    Title_Label_->setText( QString::fromUtf8( Patient.title.c_str() ) );
+    Forename_Label_->setText( QString::fromUtf8( Patient.forename.c_str() ) );
 
-    // Load waves perhaps also
+    std::string MiddleName = Patient.middlename ? *Patient.middlename : "";
+    MiddleName_Label_->setText( QString::fromUtf8( MiddleName.c_str() ) );
+
+    Surname_Label_->setText( QString::fromUtf8( Patient.surname.c_str() ) );
+
+    auto DateOfBirth
+        = QDate
+            ( Patient.date_of_birth.date().year(),
+              Patient.date_of_birth.date().month(),
+              Patient.date_of_birth.date().day() );
+
+    DateOfBirth_Label_->setText( DateOfBirth.toString( Qt::RFC2822Date ) );
+
+    Postcode_Label_->setText( QString::fromUtf8( Patient.postcode.c_str() ) );
+
+    // Clear current waves view
+    WaveFiles_View_->setSortingEnabled( false );
+    WaveFiles_->removeRows( 0, WaveFiles_->rowCount() );
+
+    WaveFiles_Root_ = WaveFiles_->invisibleRootItem();
 
     const auto& Waves = DataRetriever_->wave_files();
 
     for( const auto& Wave: Waves )
     {
-        std::stringstream ImportDate;
-        ImportDate.imbue( DateLocale_ );
-        ImportDate << Wave.import_time();
-
-        QList<QStandardItem*> Items;
-
-        Items.append( new QStandardItem( QString::fromUtf8( Wave.inhaler_model().c_str() ) ) );
-        Items.append( new QStandardItem( QString::fromUtf8( ImportDate.str().c_str() ) ) );
-        Items.append( new QStandardItem( QString::fromUtf8( Wave.name().c_str() ) ) );
-
-        WaveFiles_->appendRow( Items );
+        add_wave_to_waves_view( *Wave.get() );
     }
 
-
+    WaveFiles_View_->setSortingEnabled( true );
+    WaveFiles_View_->sortByColumn( 0, Qt::DescendingOrder );
 }
-
-
-
 
 
 void explore_patient::
@@ -227,42 +264,118 @@ on_import_waves()
     qt_gui::import_wizard::wizard Wizard( DataRetriever_->patient(), Schema_ );
     if( Wizard.exec() )
     {
-        for( auto Wave = DataRetriever_->updated_wave_data() ;
-                  Wave != DataRetriever_->wave_files().end() ;
-                  ++Wave )
+        for( auto Wave = DataRetriever_->updated_wave_data();
+             Wave != DataRetriever_->wave_files().end();
+             ++Wave )
         {
-            const auto& WaveDetails = *Wave;
-
-            std::stringstream ImportDate;
-            ImportDate.imbue( DateLocale_ );
-            ImportDate << WaveDetails.import_time();
-
-            QList<QStandardItem*> NewItems;
-
-            NewItems.append( new QStandardItem( QString::fromUtf8( WaveDetails.inhaler_model().c_str() ) ) );
-            NewItems.append( new QStandardItem( QString::fromUtf8( ImportDate.str().c_str() ) ) );
-            NewItems.append( new QStandardItem( QString::fromUtf8( WaveDetails.name().c_str() ) ) );
-
-            WaveFiles_->appendRow( NewItems );
-
+            add_wave_to_waves_view( *Wave->get() );
         }
-
     }
 }
 
-void explore_patient::
-on_open_wave_file()
-{
-
-
-}
 
 void explore_patient::
-wave_file_clicked(const QModelIndex &index)
+add_wave_to_waves_view
+( const patient_wave_details_t& Wave )
 {
-     QStandardItem *item = WaveFiles_->itemFromIndex(index);
+    auto ImportTime = to_string( Wave.import_time() );
 
+    QStandardItem* Parent;
+    if( WaveFiles_ImportParents_.count( ImportTime ) )
+    {
+        Parent = WaveFiles_ImportParents_[ ImportTime ];
+    }
+    else
+    {
+        Parent = new QStandardItem( QString::fromUtf8( ImportTime.c_str() ) );
+        WaveFiles_Root_->appendRow( Parent );
+        WaveFiles_ImportParents_[ImportTime] = Parent;
+    }
+
+    QVariant WaveData;
+    WaveData.setValue( &Wave );
+
+    auto ModifiedTime = to_string( Wave.modified_time() );
+
+    QList<QStandardItem*> Items;
+    Items.append( new QStandardItem( QString::fromUtf8( Wave.name().c_str() ) ) );
+    Items.append( new QStandardItem( QString::fromUtf8( Wave.inhaler_model().c_str() ) ) );
+    Items.append( new QStandardItem( QString::fromUtf8( boost::lexical_cast<std::string>( Wave.size() ).c_str() ) ) );
+    Items.append( new QStandardItem( QString::fromUtf8( ModifiedTime.c_str() ) ) );
+
+    for( auto& Item: Items )
+    {
+        Item->setData( WaveData );
+    }
+
+    Parent->appendRow( Items );
 }
+
+
+void explore_patient::
+on_wave_selection_changed
+(   const QModelIndex& Current,
+    const QModelIndex& Previous )
+{
+    if( auto Model = dynamic_cast<const QStandardItemModel*>( Current.model() ) )
+    {
+        auto Data = Model->itemFromIndex( Current )->data();
+        // We only add the patient_wave_details to items that list wave details
+        if( Data.canConvert<const patient_wave_details_t*>() )
+        {
+            auto WaveDetails = Data.value<const patient_wave_details_t*>();
+            Selected_Wave_ = *WaveDetails;
+            enable_load_wave( *Selected_Wave_ );
+        }
+        // so if we don't have the data we are something else like an import time group
+        else
+        {
+            disable_load_wave();
+        }
+    }
+}
+
+
+void explore_patient::
+on_change_patient()
+{
+    QMessageBox Confirm;
+    Confirm.setText("Change Patient");
+    Confirm.setInformativeText( "Are you sure you want to change patient?" );
+    Confirm.setStandardButtons( QMessageBox::Ok | QMessageBox::Cancel );
+    Confirm.setDefaultButton( QMessageBox::Ok );
+
+    if( Confirm.exec() == QMessageBox::Ok )
+    {
+        // Stop playing waves etc etc
+        CallOnComplete_();
+    }
+}
+
+
+void explore_patient::
+enable_load_wave( const patient_wave_details_t& Wave )
+{
+    std::cout
+        << "Selected wave is [" << Wave.name()
+        << "], inhaler [" << Wave.inhaler_model()
+        << "], size [" << Wave.size()
+        << "], modified_time [" << Wave.modified_time()
+        << "], import_time [" << Wave.import_time()
+        << "]" << std::endl;
+
+    OpenWave_Button_->setEnabled( true );
+}
+
+
+void explore_patient::
+disable_load_wave()
+{
+    OpenWave_Button_->setEnabled( false );
+}
+
+
+
 
 //void explore_patient::
 //play_wave_file()

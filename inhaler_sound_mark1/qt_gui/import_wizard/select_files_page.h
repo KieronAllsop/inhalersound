@@ -5,15 +5,15 @@
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
-// Standard Library Includes
-#include <memory>
+// Custom Includes
+#include "data_model/schema.hpp"
 
 // Qt Includes
 #include <QWizardPage>
 #include <QStringList>
 
-// Custom Includes
-#include "data_model/schema.hpp"
+// Standard Library Includes
+#include <memory>
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
@@ -55,8 +55,7 @@ private slots:
 private:
     // Data Variables
     shared_importer_t   Importer_;
-    QStringList         FileNames_;
-    bool                Confirmed_ = false;
+    bool                Confirmed_;
     bool            	isComplete                  () const;
 
     // Owned Widgets

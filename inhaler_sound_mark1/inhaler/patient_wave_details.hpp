@@ -5,13 +5,13 @@
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
-// Standard Library Includes
-#include <tuple>
-#include <string>
-
 // Boost Includes
 #include <boost/filesystem.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
+
+// Standard Library Includes
+#include <tuple>
+#include <string>
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
@@ -39,6 +39,9 @@ public:
     , ModifiedTime_ ( std::get<4>(Details) )
     {
     }
+
+    patient_wave_details( const patient_wave_details& other ) = default;
+    patient_wave_details& operator=( const patient_wave_details& other ) = default;
 
     const string_t& inhaler_model() const
     {

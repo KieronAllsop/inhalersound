@@ -1,13 +1,7 @@
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
-// Standard Library Includes
-#include <chrono>
 
-// Boost Library Includes
-#include <boost/format.hpp>
-
-// Asio Includes
-#include <asio.hpp>
-#include <asio/high_resolution_timer.hpp>
+// Self Include
+#include "qt_gui/prompt/login.h"
 
 // Qt Includes
 #include <QStyle>
@@ -19,8 +13,16 @@
 #include <QLabel>
 #include <QCoreApplication>
 
-// Self Include
-#include "qt_gui/prompt/login.h"
+// Asio Includes
+#include <asio.hpp>
+#include <asio/high_resolution_timer.hpp>
+
+// Boost Library Includes
+#include <boost/format.hpp>
+
+// Standard Library Includes
+#include <chrono>
+
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
@@ -48,9 +50,9 @@ login
 
 {
     // Set up event handling
-    connect( Login_Button_,  SIGNAL( released() ), this, SLOT( on_login_clicked() ) );
-    connect( Username_Edit_, SIGNAL( textChanged(const QString&) ), this, SLOT( on_credentials_changed(const QString&) ) );
-    connect( Password_Edit_, SIGNAL( textChanged(const QString&) ), this, SLOT( on_credentials_changed(const QString&) ) );
+    connect( Login_Button_,  &QPushButton::released,  [this](){ on_login_clicked(); } );
+    connect( Username_Edit_, &QLineEdit::textChanged, [this]( const QString& Text ){ on_credentials_changed( Text ); } );
+    connect( Password_Edit_, &QLineEdit::textChanged, [this]( const QString& Text ){ on_credentials_changed( Text ); } );
 
 
     // Initialise State
