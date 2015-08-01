@@ -69,11 +69,11 @@ private:
 
     void                    reset_interface             ();
 
-    void                    enable_load_wave            (   const patient_wave_details_t& Wave   );
+    void                    enable_load_wave            ();
 
     void                    disable_load_wave           ();
 
-    void                    play_wave_file              ();
+//    void                    save_file                   (   const std::string& WaveName   );
 
 private:
 
@@ -84,7 +84,7 @@ private:
     void                    on_wave_selection_changed   (   const QModelIndex& Current,
                                                             const QModelIndex& Previous );
 
-    void                    on_open_wave_file           ();
+    void                    on_open_wave                ();
 
 private:
 

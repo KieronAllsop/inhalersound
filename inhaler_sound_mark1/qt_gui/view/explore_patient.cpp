@@ -22,9 +22,14 @@
 #include <QStandardItem>
 #include <QMetaType>
 #include <QtMultimedia/QMediaPlayer>
+#include <QTemporaryFile>
+#include <QApplication>
+#include <QHeaderView>
 
 // Standard Library Includes
 #include <vector>
+#include <fstream>
+
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
@@ -88,6 +93,7 @@ void explore_patient::connect_event_handlers()
 {
     connect( ImportWaves_Button_, &QPushButton::released, [this](){ on_import_waves(); } );
     connect( ChangePatient_Button_, &QPushButton::released, [this](){ on_change_patient(); } );
+    connect( OpenWave_Button_, &QPushButton::released, [this](){ on_open_wave();} );
 
     connect
         (   WaveFiles_View_->selectionModel(),
@@ -108,6 +114,9 @@ void explore_patient::initialise_widgets()
     WaveFiles_View_->setSelectionMode( QTreeView::SingleSelection );
     WaveFiles_View_->setAlternatingRowColors( true );
     WaveFiles_View_->setUniformRowHeights( true );
+    WaveFiles_View_->setColumnWidth(0, 200);
+//    WaveFiles_View_->header()->setStretchLastSection( false );
+//    WaveFiles_View_->header()->setSectionResizeMode( QHeaderView::Stretch );
 
     WaveFiles_->setColumnCount(4);
     QStringList Headers;
@@ -326,7 +335,7 @@ on_wave_selection_changed
         {
             auto WaveDetails = Data.value<const patient_wave_details_t*>();
             Selected_Wave_ = *WaveDetails;
-            enable_load_wave( *Selected_Wave_ );
+            enable_load_wave();
         }
         // so if we don't have the data we are something else like an import time group
         else
@@ -355,18 +364,8 @@ on_change_patient()
 
 
 void explore_patient::
-enable_load_wave( const patient_wave_details_t& Wave )
+enable_load_wave()
 {
-    DataRetriever_->retrieve_wave ( Wave );
-
-    std::cout
-        << "Selected wave is [" << Wave.name()
-        << "], inhaler [" << Wave.inhaler_model()
-        << "], size [" << Wave.size()
-        << "], modified_time [" << Wave.modified_time()
-        << "], import_time [" << Wave.import_time()
-        << "]" << std::endl;
-
     OpenWave_Button_->setEnabled( true );
 }
 
@@ -379,21 +378,42 @@ disable_load_wave()
 
 
 void explore_patient::
-play_wave_file()
+on_open_wave()
 {
-    std::vector<uint8_t> RetrievedData = DataRetriever_->retrieved_file();
+    if( Selected_Wave_ )
+    {
+        QApplication::setOverrideCursor( Qt::WaitCursor );
 
+        auto Data = DataRetriever_->retrieve_wave( *Selected_Wave_ );
+
+        QApplication::restoreOverrideCursor();
+
+        QTemporaryFile AudioFile;
+        AudioFile.setAutoRemove( false );
+        if( AudioFile.open() )
+        {
+            AudioFile.write( static_cast<const char*>( static_cast<const void*>( &Data[0] ) ), Data.size() );
+        }
+        auto Path = AudioFile.fileName();
+        AudioFile.close();
+
+        auto ModifiedTime = to_string( Selected_Wave_->modified_time() );
+
+        WaveName_Label_->setText( "<h2>Now playing: <i>"
+                                  + QString::fromStdString( Selected_Wave_->name() )
+                                  + "</i>/tInhaler type: <i>"
+                                  + QString::fromStdString( Selected_Wave_->inhaler_model() )
+                                  + "</i>/tRecorded on: <i>"
+                                  + QString::fromStdString( ModifiedTime )
+                                  + "</i></h2>"  );
+
+        // Play WaveFile (basic approach) - assume we have a QMediaPlayer Player_;
+        QMediaPlayer* Player_ = new QMediaPlayer;
+        Player_->setMedia( QUrl::fromLocalFile( Path ) );
+        Player_->play();
+    }
 }
 
-
-//void explore_patient::
-//play_wave_file()
-//{
-//   QMediaPlayer* player = new QMediaPlayer;
-//    player->setMedia(QUrl::fromLocalFile("/home/kieron/coding/github/KieronAllsop/inhalersound/inhaler_sound_mark1/initial_data/test.wav"));
-//    player->setVolume(100);
-//    player->play();
-//}
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 } // end view

@@ -139,7 +139,7 @@ public:
         return WaveFiles_.begin() + Size;
     }
 
-    void retrieve_wave( const patient_wave_details_t& Selected )
+    data_t retrieve_wave( const patient_wave_details_t& Selected )
     {
         const auto& PatientWaves = Schema_->patientwaves();
         const quince::query< data_t >
@@ -153,10 +153,13 @@ public:
                         .select
                             (   PatientWaves->wave_file   );
 
-        for( const auto& Wave: Query )
+        auto Data = Query.begin();
+
+        if( Data != Query.end() )
         {
-            RetrievedFile_ = Wave;
+            return *Data;
         }
+        return data_t();
     }
 
 private:

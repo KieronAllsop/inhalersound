@@ -147,7 +147,7 @@ on_get_patient( const data_model::patient& Patient )
 {
     auto DataRetriever = std::make_shared<inhaler::data_retriever>( Patient, Schema_ );
     ExplorePatientView_->reset( DataRetriever, Schema_ );
-
+    resize_window( 0.9 );
     StackedLayout_->setCurrentIndex( display_view::explore_patient );
 }
 
@@ -170,6 +170,18 @@ on_logout()
 //    StackedLayout_->setCurrentIndex( display_view::login );
 }
 
+void MainWindow::
+resize_window( const double& Fraction )
+{
+    resize(QDesktopWidget().availableGeometry(this).size() * Fraction );
+
+    setGeometry
+    (   QStyle::alignedRect
+        (   Qt::LeftToRight,
+            Qt::AlignCenter,
+            size(),
+            QApplication::desktop()->availableGeometry()  )  );
+}
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 } // end qt_gui

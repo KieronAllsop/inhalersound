@@ -74,6 +74,8 @@ public:
     explicit            MainWindow                  (   const shared_server_t& Server,
                                                         QWidget *parent = 0   );
 
+    void                resize_window               (   const double& Fraction );
+
 private:
 
     QWidget*            get_prompt_for              (   QFrame* Prompt   );
