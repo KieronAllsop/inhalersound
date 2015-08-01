@@ -356,6 +356,10 @@ on_change_patient()
 void explore_patient::
 enable_load_wave( const patient_wave_details_t& Wave )
 {
+    DataRetriever_->retrieve_wave ( Wave );
+
+    auto Retrieved_Wave_ = DataRetriever_->retrieved_file();
+
     std::cout
         << "Selected wave is [" << Wave.name()
         << "], inhaler [" << Wave.inhaler_model()
