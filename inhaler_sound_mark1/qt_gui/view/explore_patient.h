@@ -73,6 +73,8 @@ private:
 
     void                    disable_load_wave           ();
 
+    void                    play_wave_file              ();
+
 private:
 
     void                    on_import_waves             ();

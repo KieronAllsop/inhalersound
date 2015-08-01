@@ -21,9 +21,10 @@
 #include <QList>
 #include <QStandardItem>
 #include <QMetaType>
+#include <QtMultimedia/QMediaPlayer>
 
 // Standard Library Includes
-// None
+#include <vector>
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
@@ -358,8 +359,6 @@ enable_load_wave( const patient_wave_details_t& Wave )
 {
     DataRetriever_->retrieve_wave ( Wave );
 
-    auto Retrieved_Wave_ = DataRetriever_->retrieved_file();
-
     std::cout
         << "Selected wave is [" << Wave.name()
         << "], inhaler [" << Wave.inhaler_model()
@@ -379,6 +378,12 @@ disable_load_wave()
 }
 
 
+void explore_patient::
+play_wave_file()
+{
+    std::vector<uint8_t> RetrievedData = DataRetriever_->retrieved_file();
+
+}
 
 
 //void explore_patient::
