@@ -30,6 +30,7 @@ class QTreeView;
 class QSplitter;
 class QStandardItemModel;
 class QStandardItem;
+class QMediaPlayer;
 
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
@@ -73,8 +74,6 @@ private:
 
     void                    disable_load_wave           ();
 
-//    void                    save_file                   (   const std::string& WaveName   );
-
 private:
 
     void                    on_import_waves             ();
@@ -85,6 +84,12 @@ private:
                                                             const QModelIndex& Previous );
 
     void                    on_open_wave                ();
+
+    void                    on_play_wave                ();
+
+    void                    on_pause_wave               ();
+
+    void                    on_stop_wave                ();
 
 private:
 
@@ -101,6 +106,10 @@ private:
 
     boost::posix_time::time_facet*  TimestampFacet_;
     std::locale                     TimestampLocale_;
+
+    QMediaPlayer*                   Player_;
+
+    bool                            Playing_;
 
     // Owned Widgets
     QLabel*             PageTitle_Label_;
@@ -128,12 +137,10 @@ private:
 
     QSplitter*          Splitter_;
 
-    QLabel*             WaveName_Label_;
-    QLabel*             WaveInhalerType_Label_;
-    QLabel*             WaveImportDate_Label_;
+    QLabel*             WaveStatus_Label_;
+    QLabel*             WaveSelected_Label_;
     QFrame*             WaveView_Frame_;
 
-//    QPushButton*        PlayWaveTest_;
 };
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n

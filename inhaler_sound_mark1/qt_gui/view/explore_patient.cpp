@@ -30,7 +30,6 @@
 #include <vector>
 #include <fstream>
 
-
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
 
@@ -52,10 +51,12 @@ explore_patient
 
 , TimestampFacet_       ( new boost::posix_time::time_facet() )
 , TimestampLocale_      ( std::locale(), TimestampFacet_ )
+, Player_               ( new QMediaPlayer( this ) )
+, Playing_              ( false )
 
 // Create Widgets
-, PageTitle_Label_( new QLabel( this ) )
-, ChangePatient_Button_( new QPushButton( tr("Change"), this ) )
+, PageTitle_Label_      ( new QLabel( this ) )
+, ChangePatient_Button_ ( new QPushButton( tr( "Change" ), this ) )
 
 , Title_Label_          ( new QLabel( this ) )
 , Forename_Label_       ( new QLabel( this ) )
@@ -64,19 +65,18 @@ explore_patient
 , DateOfBirth_Label_    ( new QLabel( this ) )
 , Postcode_Label_       ( new QLabel( this ) )
 
-, ImportWaves_Button_   ( new QPushButton( tr("Import Files"), this ) )
-, OpenWave_Button_      ( new QPushButton( tr("View File"), this ) )
+, ImportWaves_Button_   ( new QPushButton( tr( "Import Files" ), this ) )
+, OpenWave_Button_      ( new QPushButton( tr( "View File" ), this ) )
 , WaveFiles_View_       ( new QTreeView( this ) )
 , WaveFiles_            ( new QStandardItemModel ( this ) )
 , WaveFiles_Root_       ( WaveFiles_->invisibleRootItem() )
-, PlayPauseWave_Button_ ( new QPushButton( this ) )
-, StopWave_Button_      ( new QPushButton( this ) )
+, PlayPauseWave_Button_ ( new QPushButton( tr( "Play" ), this ) )
+, StopWave_Button_      ( new QPushButton( tr( "Stop" ), this ) )
 
 , Splitter_             ( new QSplitter( this ) )
 
-, WaveName_Label_       ( new QLabel( tr("<h2>No Wave Selected</h2>"), this ) )
-, WaveInhalerType_Label_( new QLabel( this ) )
-, WaveImportDate_Label_ ( new QLabel( this ) )
+, WaveStatus_Label_     ( new QLabel( tr( "<h2><b>No Wave Selected</b></h2>" ), this ) )
+, WaveSelected_Label_   ( new QLabel( this ) )
 , WaveView_Frame_       ( new QFrame( this ) )
 {
     TimestampFacet_->format( "%Y-%m-%d %H:%M" );
@@ -96,6 +96,8 @@ void explore_patient::connect_event_handlers()
     connect( ImportWaves_Button_, &QPushButton::released, [this](){ on_import_waves(); } );
     connect( ChangePatient_Button_, &QPushButton::released, [this](){ on_change_patient(); } );
     connect( OpenWave_Button_, &QPushButton::released, [this](){ on_open_wave();} );
+    connect( PlayPauseWave_Button_, &QPushButton::released, [this](){ on_play_wave();} );
+    connect( StopWave_Button_, &QPushButton::released, [this](){ on_stop_wave();} );
 
     connect
         (   WaveFiles_View_->selectionModel(),
@@ -128,6 +130,8 @@ void explore_patient::initialise_widgets()
 
     ChangePatient_Button_->setDefault( false );
     ImportWaves_Button_->setDefault( true );
+    PlayPauseWave_Button_->setEnabled( false );
+    StopWave_Button_->setEnabled( false );
 
     disable_load_wave();
 }
@@ -178,9 +182,8 @@ void explore_patient::initialise_layout()
     WaveView_Frame_->setFrameStyle( QFrame::StyledPanel | QFrame::Sunken );
 
     QHBoxLayout* WaveLayoutHeader = new QHBoxLayout;
-    WaveLayoutHeader->addWidget( WaveName_Label_ );
-    WaveLayoutHeader->addWidget( WaveInhalerType_Label_ );
-    WaveLayoutHeader->addWidget( WaveImportDate_Label_ );
+    WaveLayoutHeader->addWidget( WaveStatus_Label_ );
+    WaveLayoutHeader->addWidget( WaveSelected_Label_ );
 
     WaveLayout->addLayout( WaveLayoutHeader );
     WaveLayout->addWidget( WaveView_Frame_ );
@@ -403,29 +406,53 @@ on_open_wave()
 
         auto ModifiedTime = to_string( Selected_Wave_->modified_time() );
 
-        WaveName_Label_
+        WaveStatus_Label_->setText( "<h2><b>Loaded</b></h2>" );
+
+        WaveSelected_Label_
             ->setText
-                ( "<h2>Playing: <i>"
+                ( "<h2>File: <i>"
                   + QString::fromStdString( Selected_Wave_->name() )
-                  + "</i></h2>" );
-
-        WaveInhalerType_Label_
-            ->setText
-                ( "<h2>Inhaler: <i>"
+                  + "</i>, Inhaler: <i>"
                   + QString::fromStdString( Selected_Wave_->inhaler_model() )
-                  + "</i></h2>" );
-
-        WaveImportDate_Label_
-            ->setText
-                ( "<h2>Recorded: <i>"
+                  + "</i>, Recorded: <i>"
                   + QString::fromStdString( ModifiedTime )
                   + "</i></h2>" );
 
-        // Play WaveFile (basic approach) - assume we have a QMediaPlayer Player_;
-        QMediaPlayer* Player_ = new QMediaPlayer;
         Player_->setMedia( QUrl::fromLocalFile( Path ) );
-        Player_->play();
+        PlayPauseWave_Button_->setEnabled( true );
     }
+}
+
+
+void explore_patient::
+on_play_wave()
+{
+    if( Playing_ )
+    {
+        Player_->pause();
+        PlayPauseWave_Button_->setText( "Play" );
+        WaveStatus_Label_->setText( "<h2>Paused</h2>" );
+        Playing_ = false;
+    }
+    else
+    {
+        Player_->play();
+        Playing_ = true;
+        WaveStatus_Label_->setText( "<h2>Playing</h2>" );
+        StopWave_Button_->setEnabled( true );
+        PlayPauseWave_Button_->setText( "Pause" );
+    }
+}
+
+
+void explore_patient::
+on_stop_wave()
+{
+    Player_->stop();
+    Playing_ = false;
+    WaveStatus_Label_->setText( "<h2>Stopped</h2>" );
+    StopWave_Button_->setEnabled( false );
+    PlayPauseWave_Button_->setText( "Play" );
 }
 
 
