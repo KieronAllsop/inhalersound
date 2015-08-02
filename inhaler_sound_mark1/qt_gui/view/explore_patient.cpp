@@ -24,7 +24,8 @@
 #include <QtMultimedia/QMediaPlayer>
 #include <QTemporaryFile>
 #include <QApplication>
-#include <QHeaderView>
+#include <QUrl>
+
 
 // Standard Library Includes
 #include <vector>
@@ -51,7 +52,7 @@ explore_patient
 
 , TimestampFacet_       ( new boost::posix_time::time_facet() )
 , TimestampLocale_      ( std::locale(), TimestampFacet_ )
-, Player_               ( new QMediaPlayer( this ) )
+
 , Playing_              ( false )
 
 // Create Widgets
@@ -70,8 +71,12 @@ explore_patient
 , WaveFiles_View_       ( new QTreeView( this ) )
 , WaveFiles_            ( new QStandardItemModel ( this ) )
 , WaveFiles_Root_       ( WaveFiles_->invisibleRootItem() )
+
+, Player_               ( new QMediaPlayer( this ) )
 , PlayPauseWave_Button_ ( new QPushButton( tr( "Play" ), this ) )
 , StopWave_Button_      ( new QPushButton( tr( "Stop" ), this ) )
+
+, WaveFormView_         ( new qt_gui::view::wave_form( this ) )
 
 , Splitter_             ( new QSplitter( this ) )
 
@@ -193,6 +198,12 @@ void explore_patient::initialise_layout()
     WaveLayout->addLayout( WaveLayoutHeader );
     WaveLayout->addWidget( WaveView_Frame_ );
 
+    QVBoxLayout* WaveFrameLayout = new QVBoxLayout();
+
+    WaveFormView_->setSizePolicy( QSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding ) );
+    WaveFrameLayout->addWidget( WaveFormView_ );
+    WaveView_Frame_->setLayout( WaveFrameLayout );
+
     QWidget* WaveWidget = new QWidget( this );
     auto WaveSizePolicy = QSizePolicy();
     WaveSizePolicy.setHorizontalStretch( 3 );
@@ -208,7 +219,8 @@ void explore_patient::initialise_layout()
 }
 
 
-void explore_patient::reset_interface()
+void explore_patient::
+reset_interface()
 {
     // TODO
 }
@@ -277,7 +289,6 @@ reset
 
     WaveFiles_View_->setSortingEnabled( true );
     WaveFiles_View_->sortByColumn( 0, Qt::DescendingOrder );
-
 }
 
 
@@ -425,6 +436,20 @@ on_open_wave()
                   + "</i></h2>" );
 
         Player_->setMedia( QUrl::fromLocalFile( Path ) );
+
+        Decoder_
+            = std::make_shared<decoder_t>
+                (   Path.toStdString(),
+                    [this]( decoder_t::status_t Status, const decoder_t::buffer_t& Buffer )
+                    {
+                        handle_audio_decode( Status, Buffer );
+                    }
+                );
+
+        WaveData_ = std::make_shared<qt::audio::raw_data>();
+
+        Decoder_->start();
+
         PlayPauseWave_Button_->setEnabled( true );
     }
 }
@@ -459,6 +484,32 @@ on_stop_wave()
     PlayPauseWave_Button_->setText( "Play" );
     WaveStatus_Label_->setText( "<h2>Stopped</h2>" );
     StopWave_Button_->setEnabled( false );
+}
+
+
+void explore_patient::
+handle_audio_decode( decoder_t::status_t Status, const decoder_t::buffer_t& Buffer )
+{
+    if( Status == decoder_t::status_t::buffer_ready )
+    {
+        WaveData_->add_buffer( Buffer );
+
+        std::cout
+            << "Buffer received size [" << Buffer.size()
+            << "] bytes, samples " << Buffer.samples_per_channel()
+            << " @ " << Buffer.sample_rate()
+            << " Hz in " << Buffer.channel_count()
+            << " channels (" << c_str( Buffer.sample_type() )
+            << " " << Buffer.sample_bit_size()
+            << " bits per sample, codec: " << Buffer.codec()
+            << ")" << std::endl;
+    }
+    else if( Status == decoder_t::status_t::finished )
+    {
+        std::cout << "Finished" << std::endl;
+
+        WaveFormView_->reset( WaveData_ );
+    }
 }
 
 

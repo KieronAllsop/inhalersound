@@ -223,6 +223,19 @@ private:
                     (   boost::gregorian::from_string( "1972-Oct-14" ),
                         boost::posix_time::time_duration( 0, 0, 0 )    ),
                 "BT191YX" } );
+
+            Patients_.insert(
+            {
+                quince::serial(),
+                "Mrs",
+                "Helen",
+                boost::optional<std::string>(),
+                "Allsop",
+                boost::posix_time::ptime
+                    (   boost::gregorian::from_string( "1974-Feb-01" ),
+                        boost::posix_time::time_duration( 0, 0, 0 )    ),
+                "BT191YX" } );
+
         }
 
         if( Inhalersdata_.empty() )

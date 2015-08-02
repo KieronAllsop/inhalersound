@@ -9,6 +9,12 @@
 #include "inhaler/server.hpp"
 #include "inhaler/data_retriever.hpp"
 
+// Application Includes
+#include "qt_gui/view/wave_form.h"
+
+#include "qt/audio/audio_decoder.hpp"
+#include "qt/audio/raw_data.hpp"
+
 // Qt Includes
 #include <QFrame>
 
@@ -51,6 +57,7 @@ public:
     using shared_data_retriever_t   = std::shared_ptr<inhaler::data_retriever>;
     using patient_wave_details_t    = data_retriever_t::patient_wave_details_t;
     using call_on_complete_t        = std::function< void() >;
+    using decoder_t                 = qt::audio::audio_decoder;
 
 public:
 
@@ -81,7 +88,7 @@ private:
     void                    on_change_patient           ();
 
     void                    on_wave_selection_changed   (   const QModelIndex& Current,
-                                                            const QModelIndex& Previous );
+                                                            const QModelIndex& Previous   );
 
     void                    on_open_wave                ();
 
@@ -90,6 +97,8 @@ private:
     void                    on_pause_wave               ();
 
     void                    on_stop_wave                ();
+
+    void                    handle_audio_decode         (   decoder_t::status_t Status, const decoder_t::buffer_t& Buffer   );
 
 private:
 
@@ -106,8 +115,6 @@ private:
 
     boost::posix_time::time_facet*  TimestampFacet_;
     std::locale                     TimestampLocale_;
-
-    QMediaPlayer*                   Player_;
 
     bool                            Playing_;
 
@@ -132,15 +139,19 @@ private:
     std::map<std::string, QStandardItem*>   WaveFiles_ImportParents_;
     boost::optional<patient_wave_details_t> Selected_Wave_;
 
+    QMediaPlayer*       Player_;
     QPushButton*        PlayPauseWave_Button_;
     QPushButton*        StopWave_Button_;
+
+    std::shared_ptr<decoder_t>              Decoder_;
+    std::shared_ptr<qt::audio::raw_data>    WaveData_;
+    qt_gui::view::wave_form*                WaveFormView_;
 
     QSplitter*          Splitter_;
 
     QLabel*             WaveStatus_Label_;
     QLabel*             WaveSelected_Label_;
     QFrame*             WaveView_Frame_;
-
 };
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
