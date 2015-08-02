@@ -75,6 +75,8 @@ explore_patient
 , Splitter_             ( new QSplitter( this ) )
 
 , WaveName_Label_       ( new QLabel( tr("<h2>No Wave Selected</h2>"), this ) )
+, WaveInhalerType_Label_( new QLabel( this ) )
+, WaveImportDate_Label_ ( new QLabel( this ) )
 , WaveView_Frame_       ( new QFrame( this ) )
 {
     TimestampFacet_->format( "%Y-%m-%d %H:%M" );
@@ -114,9 +116,6 @@ void explore_patient::initialise_widgets()
     WaveFiles_View_->setSelectionMode( QTreeView::SingleSelection );
     WaveFiles_View_->setAlternatingRowColors( true );
     WaveFiles_View_->setUniformRowHeights( true );
-    WaveFiles_View_->setColumnWidth(0, 200);
-//    WaveFiles_View_->header()->setStretchLastSection( false );
-//    WaveFiles_View_->header()->setSectionResizeMode( QHeaderView::Stretch );
 
     WaveFiles_->setColumnCount(4);
     QStringList Headers;
@@ -178,7 +177,12 @@ void explore_patient::initialise_layout()
     WaveView_Frame_->setSizePolicy( QSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding ) );
     WaveView_Frame_->setFrameStyle( QFrame::StyledPanel | QFrame::Sunken );
 
-    WaveLayout->addWidget( WaveName_Label_, 0, Qt::AlignLeft );
+    QHBoxLayout* WaveLayoutHeader = new QHBoxLayout;
+    WaveLayoutHeader->addWidget( WaveName_Label_ );
+    WaveLayoutHeader->addWidget( WaveInhalerType_Label_ );
+    WaveLayoutHeader->addWidget( WaveImportDate_Label_ );
+
+    WaveLayout->addLayout( WaveLayoutHeader );
     WaveLayout->addWidget( WaveView_Frame_ );
 
     QWidget* WaveWidget = new QWidget( this );
@@ -399,13 +403,23 @@ on_open_wave()
 
         auto ModifiedTime = to_string( Selected_Wave_->modified_time() );
 
-        WaveName_Label_->setText( "<h2>Now playing: <i>"
-                                  + QString::fromStdString( Selected_Wave_->name() )
-                                  + "</i>/tInhaler type: <i>"
-                                  + QString::fromStdString( Selected_Wave_->inhaler_model() )
-                                  + "</i>/tRecorded on: <i>"
-                                  + QString::fromStdString( ModifiedTime )
-                                  + "</i></h2>"  );
+        WaveName_Label_
+            ->setText
+                ( "<h2>Playing: <i>"
+                  + QString::fromStdString( Selected_Wave_->name() )
+                  + "</i></h2>" );
+
+        WaveInhalerType_Label_
+            ->setText
+                ( "<h2>Inhaler: <i>"
+                  + QString::fromStdString( Selected_Wave_->inhaler_model() )
+                  + "</i></h2>" );
+
+        WaveImportDate_Label_
+            ->setText
+                ( "<h2>Recorded: <i>"
+                  + QString::fromStdString( ModifiedTime )
+                  + "</i></h2>" );
 
         // Play WaveFile (basic approach) - assume we have a QMediaPlayer Player_;
         QMediaPlayer* Player_ = new QMediaPlayer;

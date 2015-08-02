@@ -129,6 +129,8 @@ private:
     QSplitter*          Splitter_;
 
     QLabel*             WaveName_Label_;
+    QLabel*             WaveInhalerType_Label_;
+    QLabel*             WaveImportDate_Label_;
     QFrame*             WaveView_Frame_;
 
 //    QPushButton*        PlayWaveTest_;

@@ -74,9 +74,9 @@ void get_patient::connect_event_handlers()
 
     connect( FirstName_Edit_, &QLineEdit::textChanged, [this]( const QString& Text ){ on_text_credentials_changed( Text ); } );
     connect( LastName_Edit_,  &QLineEdit::textChanged, [this]( const QString& Text ){ on_text_credentials_changed( Text ); } );
+    connect( DOB_DateEdit_,   &QDateEdit::dateChanged, [this]( const QDate& Date )  { on_date_credentials_changed( Date ); } );
     connect( PostCode_Edit_,  &QLineEdit::textChanged, [this]( const QString& Text ){ on_text_credentials_changed( Text ); } );
 
-    connect( DOB_DateEdit_, &QDateEdit::dateChanged, [this]( const QDate& Date ){ on_date_credentials_changed( Date ); } );
 }
 
 
@@ -100,10 +100,14 @@ void get_patient::initialise_layout()
     StatusLayout->addWidget( Status_Label_, 0, Qt::AlignCenter );
 
     QFormLayout* CredentialsForm = new QFormLayout;
+    setTabOrder( FirstName_Edit_, LastName_Edit_ );
+    setTabOrder( LastName_Edit_, Calendar_Widget_ );
+    setTabOrder( Calendar_Widget_, PostCode_Edit_ );
     CredentialsForm->addRow( FirstName_Label_, FirstName_Edit_ );
     CredentialsForm->addRow( LastName_Label_, LastName_Edit_ );
     CredentialsForm->addRow( DOB_Label_, DOB_DateEdit_ );
     CredentialsForm->addRow( Postcode_Label_, PostCode_Edit_ );
+
 
     QHBoxLayout* ButtonsLayout = new QHBoxLayout;
     ButtonsLayout->addWidget( RetrievePatient_Button_ );

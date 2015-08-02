@@ -62,6 +62,8 @@ login
     Status_Label_->setFrameStyle( QFrame::StyledPanel | QFrame::Sunken );
     Status_Label_->setAlignment( Qt::AlignCenter );
 
+    Password_Edit_->setEchoMode( QLineEdit::Password );
+
     // Initialise Layout
 
     // Master Layout is a Vertical Box Layout
