@@ -128,6 +128,11 @@ void explore_patient::initialise_widgets()
         << "Date";
     WaveFiles_->setHorizontalHeaderLabels( Headers );
 
+    WaveFiles_View_->setColumnWidth( 0, 200 );
+    WaveFiles_View_->setColumnWidth( 1, 80 );
+    WaveFiles_View_->setColumnWidth( 2, 60 );
+    WaveFiles_View_->setColumnWidth( 3, 120 );
+
     ChangePatient_Button_->setDefault( false );
     ImportWaves_Button_->setDefault( true );
     PlayPauseWave_Button_->setEnabled( false );
@@ -272,6 +277,7 @@ reset
 
     WaveFiles_View_->setSortingEnabled( true );
     WaveFiles_View_->sortByColumn( 0, Qt::DescendingOrder );
+
 }
 
 
@@ -406,7 +412,7 @@ on_open_wave()
 
         auto ModifiedTime = to_string( Selected_Wave_->modified_time() );
 
-        WaveStatus_Label_->setText( "<h2><b>Loaded</b></h2>" );
+        WaveStatus_Label_->setText( "<h2>Loaded</h2>" );
 
         WaveSelected_Label_
             ->setText
@@ -430,17 +436,17 @@ on_play_wave()
     if( Playing_ )
     {
         Player_->pause();
+        Playing_ = false;
         PlayPauseWave_Button_->setText( "Play" );
         WaveStatus_Label_->setText( "<h2>Paused</h2>" );
-        Playing_ = false;
     }
     else
     {
         Player_->play();
         Playing_ = true;
-        WaveStatus_Label_->setText( "<h2>Playing</h2>" );
-        StopWave_Button_->setEnabled( true );
         PlayPauseWave_Button_->setText( "Pause" );
+        WaveStatus_Label_->setText( "<h2>Playing/h2>" );
+        StopWave_Button_->setEnabled( true );
     }
 }
 
@@ -450,9 +456,9 @@ on_stop_wave()
 {
     Player_->stop();
     Playing_ = false;
+    PlayPauseWave_Button_->setText( "Play" );
     WaveStatus_Label_->setText( "<h2>Stopped</h2>" );
     StopWave_Button_->setEnabled( false );
-    PlayPauseWave_Button_->setText( "Play" );
 }
 
 
