@@ -42,6 +42,7 @@ public:
 
 public:
 
+    // Make this class non-copyable
     audio_decoder( const audio_decoder& other ) = delete;
     audio_decoder& operator=( const audio_decoder& other ) = delete;
 

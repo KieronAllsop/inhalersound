@@ -470,7 +470,7 @@ on_play_wave()
         Player_->play();
         Playing_ = true;
         PlayPauseWave_Button_->setText( "Pause" );
-        WaveStatus_Label_->setText( "<h2>Playing/h2>" );
+        WaveStatus_Label_->setText( "<h2>Playing</h2>" );
         StopWave_Button_->setEnabled( true );
     }
 }
