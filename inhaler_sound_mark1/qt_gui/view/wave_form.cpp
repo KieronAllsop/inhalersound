@@ -5,6 +5,9 @@
 // QT Includes
 #include "QPainter"
 
+// Standard Library Includes
+#include <stdio.h>
+
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
 
@@ -35,7 +38,9 @@ paintEvent( QPaintEvent* Event )
 {
     QPainter painter(this);
 
+
     painter.fillRect(rect(), Qt::black);
+
 
 }
 

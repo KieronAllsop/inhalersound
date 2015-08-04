@@ -301,7 +301,7 @@ private:
 
         // Calculate an appropriate buffer length based on the sample-rate
         // and how much time we want to hold in the buffer
-        int BufferSizeMilliseconds = 25;
+        int BufferSizeMilliseconds = 100;
         std::size_t BufferSize = ( SampleRate / 1000 ) * BufferSizeMilliseconds * ChannelCount * BytesPerSample;
 
         int SamplesPerChannel = BufferSize / ChannelCount / BytesPerSample;

@@ -1,4 +1,4 @@
-// I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
+﻿// I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
 // Self Include
 #include "qt_gui/view/explore_patient.h"
@@ -8,6 +8,9 @@
 
 // Inhaler Includes
 #include "inhaler/wave_importer.hpp"
+
+// qt/audio Includes
+#include "qt/audio/decode_buffer.hpp"
 
 // Qt Includes
 #include <QFormLayout>
@@ -503,9 +506,31 @@ handle_audio_decode( decoder_t::status_t Status, const decoder_t::buffer_t& Buff
             << " " << Buffer.sample_bit_size()
             << " bits per sample, codec: " << Buffer.codec()
             << ")" << std::endl;
+
     }
     else if( Status == decoder_t::status_t::finished )
     {
+
+        // used for debugging
+//        auto Sample = static_cast<const u_int8_t*>(WaveData_->data());
+//        for( int i=1; i<501 ; ++Sample, ++i )
+//        {
+//            if ( i == 1)
+//            {
+//                std::cout << "First 500 samples of the wave DATA in HEX =  ";
+//            }
+//                std::cout << std::hex << std::setfill('0') << std::setw(2) << static_cast<unsigned>( *Sample );
+//                std::cout << " ";
+//            if( i%4 == 0 )
+//            {
+//                std::cout << "   ";
+//            }
+//            if( i == 4 || (i-4)%16 == 0 )
+//            {
+//                std::cout << std::endl;
+//            }
+//        }
+
         std::cout << "Finished" << std::endl;
 
         WaveFormView_->reset( WaveData_ );
