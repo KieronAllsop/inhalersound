@@ -5,17 +5,14 @@
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
-// C++ Standard Library Includes
-// None
+// Inhaler Includes
+#include "inhaler/server.hpp"
 
 // Qt Includes
 #include <QMainWindow>
 
-// Inhaler Includes
-#include "inhaler/server.hpp"
-//#include "inhaler/wave_importer.hpp"
-//#include "inhaler/patient_retriever.hpp"
-
+// Standard Library Includes
+// None
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
@@ -77,6 +74,8 @@ public:
     explicit            MainWindow                  (   const shared_server_t& Server,
                                                         QWidget *parent = 0   );
 
+    void                resize_window               (   const double& Fraction );
+
 private:
 
     QWidget*            get_prompt_for              (   QFrame* Prompt   );
@@ -86,6 +85,8 @@ private:
 
     void                on_login                    (   const user_t& User,
                                                         const shared_schema_t& Schema   );
+
+    void                on_logout                   ();
 
     void                on_get_patient              (   const patient_t& Patient   );
 

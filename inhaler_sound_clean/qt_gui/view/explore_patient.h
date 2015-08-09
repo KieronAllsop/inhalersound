@@ -4,18 +4,23 @@
 // G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
-// Standard Library Includes
-#include <functional>
-
-// Qt Includes
-#include <QFrame>
-
-// Application Includes
-//#include "application/state.hpp"
 
 // Inhaler Includes
 #include "inhaler/server.hpp"
 #include "inhaler/data_retriever.hpp"
+
+#include "qt/audio/audio_decoder.hpp"
+#include "qt/audio/raw_data.hpp"
+
+// Qt Includes
+#include <QFrame>
+
+// Boost Library Includes
+#include <boost/optional.hpp>
+
+// Standard Library Includes
+#include <functional>
+#include <locale>
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
@@ -26,6 +31,18 @@ class QLineEdit;
 class QPushButton;
 class QTreeView;
 class QSplitter;
+class QStandardItemModel;
+class QStandardItem;
+class QMediaPlayer;
+
+
+namespace qt_gui {
+namespace view {
+
+    class explore_wave;
+
+}
+}
 
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
@@ -42,8 +59,11 @@ public:
 
     using shared_server_t           = std::shared_ptr<inhaler::server>;
     using shared_schema_t           = inhaler::server::shared_schema_t;
+    using data_retriever_t          = inhaler::data_retriever;
     using shared_data_retriever_t   = std::shared_ptr<inhaler::data_retriever>;
+    using patient_wave_details_t    = data_retriever_t::patient_wave_details_t;
     using call_on_complete_t        = std::function< void() >;
+    using decoder_t                 = qt::audio::audio_decoder;
 
 public:
 
@@ -53,19 +73,49 @@ public:
 
     void                    reset                       (   const shared_data_retriever_t& DataRetriever,
                                                             const shared_schema_t& Schema   );
+private:
 
-//private slots:
+    void                    initialise_widgets          ();
 
-//    void                   play_wave_file();
+    void                    initialise_layout           ();
 
+    void                    connect_event_handlers      ();
+
+    void                    reset_interface             ();
+
+    // TODO: remove parameter once debugging complete
+    void                    enable_load_wave            (   const patient_wave_details_t& Wave   );
+
+    void                    disable_load_wave           ();
 
 private:
 
     void                    on_import_waves             ();
 
-    call_on_complete_t          CallOnComplete_;
-    shared_data_retriever_t     DataRetriever_;
-    shared_schema_t             Schema_;
+    void                    on_change_patient           ();
+
+    void                    on_wave_selection_changed   (   const QModelIndex& Current,
+                                                            const QModelIndex& Previous   );
+
+    void                    on_open_wave                ();
+
+    void                    handle_audio_decode         (   decoder_t::status_t Status, const decoder_t::buffer_t& Buffer   );
+
+private:
+
+    std::string             to_string                   (   const boost::posix_time::ptime& Timestamp   )
+                                                        const;
+
+    void                    add_wave_to_waves_view      (   const patient_wave_details_t& Wave  );
+
+private:
+
+    call_on_complete_t              CallOnComplete_;
+    shared_data_retriever_t         DataRetriever_;
+    shared_schema_t                 Schema_;
+
+    boost::posix_time::time_facet*  TimestampFacet_;
+    std::locale                     TimestampLocale_;
 
     // Owned Widgets
     QLabel*             PageTitle_Label_;
@@ -81,22 +131,25 @@ private:
 
     QPushButton*        ImportWaves_Button_;
     QPushButton*        OpenWave_Button_;
-    QTreeView*          WaveFiles_View_;
-    QPushButton*        PlayPauseWave_Button_;
-    QPushButton*        StopWave_Button_;
+
+    QTreeView*                              WaveFiles_View_;
+    QStandardItemModel*                     WaveFiles_;
+    QStandardItem*                          WaveFiles_Root_;
+    std::map<std::string, QStandardItem*>   WaveFiles_ImportParents_;
+    boost::optional<patient_wave_details_t> Selected_Wave_;
+
+    std::shared_ptr<decoder_t>              Decoder_;
+    std::shared_ptr<qt::audio::raw_data>    WaveData_;
+    qt_gui::view::explore_wave*             ExploreWaveView_;
 
     QSplitter*          Splitter_;
-
-    QLabel*             WaveName_Label_;
-    QFrame*             WaveView_Frame_;
-
-//    QPushButton*        PlayWaveTest_;
 };
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 } // end view
 } // end qt_gui
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
+
 
 // G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G
 #endif // QT_GUI_VIEW_EXPLORE_PATIENT_HPP_INCLUDED

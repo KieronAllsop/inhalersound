@@ -4,9 +4,9 @@
 // G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
-// Standard Library Includes
-#include <vector>
-#include <fstream>
+
+// Quince Includes
+#include <quince/quince.h>
 
 // Boost Includes
 #include <boost/date_time/posix_time/posix_time.hpp>
@@ -14,8 +14,10 @@
 #include <boost/optional.hpp>
 #include <boost/filesystem.hpp>
 
-// Quince Includes
-#include <quince/quince.h>
+// Standard Library Includes
+#include <vector>
+#include <fstream>
+
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
@@ -26,6 +28,9 @@ namespace data_model{
 // will use and then later the schema that defines the nature of the tables
 // and how they are related to each other, for example foreign key constraints
 
+
+using timestamp_t   = boost::posix_time::ptime;
+using data_t        = std::vector<uint8_t>;
 
 struct user
 {
@@ -93,7 +98,7 @@ public:
     using patient_t         = patient;
     using userlogin_t       = userlogin;
     using patientwave_t     = patientwave;
-    using unhalerdata_t     = inhalerdata;    // TODO: correct spelling error
+    using inhalerdata_t     = inhalerdata;
 
     using users_t           = quince::serial_table<user>;
     using userlogins_t      = quince::table<userlogin>;
@@ -221,6 +226,19 @@ private:
                     (   boost::gregorian::from_string( "1972-Oct-14" ),
                         boost::posix_time::time_duration( 0, 0, 0 )    ),
                 "BT191YX" } );
+
+            Patients_.insert(
+            {
+                quince::serial(),
+                "Mrs",
+                "Helen",
+                boost::optional<std::string>(),
+                "Allsop",
+                boost::posix_time::ptime
+                    (   boost::gregorian::from_string( "1974-Feb-01" ),
+                        boost::posix_time::time_duration( 0, 0, 0 )    ),
+                "BT191YX" } );
+
         }
 
         if( Inhalersdata_.empty() )

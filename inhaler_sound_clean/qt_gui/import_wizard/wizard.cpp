@@ -1,9 +1,15 @@
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
-// Standard Includes
-#include <memory>
 
-// Boost Library Includes
-// None
+// Self Include
+#include "qt_gui/import_wizard/wizard.h"
+
+// Wizard Page Includes
+#include "qt_gui/import_wizard/intro_page.h"
+#include "qt_gui/import_wizard/select_files_page.h"
+#include "qt_gui/import_wizard/process_files_page.h"
+
+// Inhaler Includes
+#include "inhaler/wave_importer.hpp"
 
 // Quince Includes
 #include <quince/quince.h>
@@ -15,16 +21,9 @@
 #include <QGridLayout>
 #include <QSizePolicy>
 
-// Inhaler Includes
-#include "inhaler/wave_importer.hpp"
+// Standard Library Includes
+#include <memory>
 
-// Wizard Page Includes
-#include "qt_gui/import_wizard/intro_page.h"
-#include "qt_gui/import_wizard/select_files_page.h"
-#include "qt_gui/import_wizard/process_files_page.h"
-
-// Self Include
-#include "qt_gui/import_wizard/wizard.h"
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n

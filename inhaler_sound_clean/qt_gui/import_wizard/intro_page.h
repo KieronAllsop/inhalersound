@@ -5,16 +5,16 @@
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
-// Standard Library Includes
-// none
-
 // Qt Includes
 #include <QWizardPage>
 
-// Forward Declarations
-class QLabel;
+// Standard Library Includes
+// non
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
+
+// Forward Declarations
+class QLabel;
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 namespace qt_gui {

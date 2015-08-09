@@ -1,10 +1,10 @@
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
-// Standard Includes
-// None
 
-// Boost Includes
-#include <boost/date_time/posix_time/posix_time.hpp>
-#include <boost/date_time/gregorian/gregorian.hpp>
+// Self Include
+#include "qt_gui/prompt/get_patient.h"
+
+// Importer Includes
+#include "inhaler/patient_retriever.hpp"
 
 // Qt Includes
 #include <QVBoxLayout>
@@ -17,11 +17,13 @@
 #include <QLineEdit>
 #include <QDate>
 
-// Importer Includes
-#include "inhaler/patient_retriever.hpp"
+// Boost Includes
+#include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/date_time/gregorian/gregorian.hpp>
 
-// Self Include
-#include "qt_gui/prompt/get_patient.h"
+// Standard Includes
+// None
+
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
@@ -47,37 +49,51 @@ get_patient
 , Status_Label_                 ( new QLabel( "", this ) )
 , FirstName_Edit_               ( new QLineEdit( this ) )
 , LastName_Edit_                ( new QLineEdit( this ) )
-, PostCode_Edit_                ( new QLineEdit( this ) )
 , Calendar_Widget_              ( new QCalendarWidget( this ) )
 , DOB_DateEdit_                 ( new QDateEdit( QDate::currentDate() ) )
+, PostCode_Edit_                ( new QLineEdit( this ) )
 , RetrievePatient_Button_       ( new QPushButton( tr("Retrieve"), this ) )
 , Finish_Button_                ( new QPushButton( tr("Done"), this ) )
 {
-//    setTitle( "Select Patient to associate files with" );
+    initialise_widgets();
 
-    // Set up event handling
-    connect( RetrievePatient_Button_,   SIGNAL( released() ),                   this, SLOT( on_retrieve_clicked() ) );
-    connect( Finish_Button_,            SIGNAL( released() ),                   this, SLOT( on_finished_clicked() ) );
-    connect( FirstName_Edit_,           SIGNAL( textChanged(const QString&) ),  this, SLOT( on_text_credentials_changed(const QString&) ) );
-    connect( LastName_Edit_,            SIGNAL( textChanged(const QString&) ),  this, SLOT( on_text_credentials_changed(const QString&) ) );
-    connect( DOB_DateEdit_,             SIGNAL( dateChanged(const QDate&) ),    this, SLOT( on_date_credentials_changed(const QDate&) ) );
-    connect( PostCode_Edit_,            SIGNAL( textChanged(const QString&) ),  this, SLOT( on_text_credentials_changed(const QString&) ) );
+    initialise_layout();
 
-    // Initialise State
-    RetrievePatient_Button_->setDefault( true );   // Handle keyboard enter
-    RetrievePatient_Button_->setEnabled( false );  // Disabled by default
+    adjustSize();
 
-    Finish_Button_->setEnabled( false );     // Disabled by default
+    connect_event_handlers();
 
+    reset_interface();
+}
+
+
+void get_patient::connect_event_handlers()
+{
+    connect( RetrievePatient_Button_, &QPushButton::released,  [this](){ on_retrieve_clicked(); } );
+    connect( Finish_Button_,          &QPushButton::released,  [this](){ on_finished_clicked(); } );
+
+    connect( FirstName_Edit_, &QLineEdit::textChanged, [this]( const QString& Text ){ on_text_credentials_changed( Text ); } );
+    connect( LastName_Edit_,  &QLineEdit::textChanged, [this]( const QString& Text ){ on_text_credentials_changed( Text ); } );
+    connect( PostCode_Edit_,  &QLineEdit::textChanged, [this]( const QString& Text ){ on_text_credentials_changed( Text ); } );
+
+    connect( DOB_DateEdit_, &QDateEdit::dateChanged, [this]( const QDate& Date ){ on_date_credentials_changed( Date ); } );
+}
+
+
+void get_patient::initialise_widgets()
+{
     Calendar_Widget_->setVisible( false );
     DOB_DateEdit_->setCalendarPopup( Calendar_Widget_ );
     DOB_DateEdit_->setMinimumDate( QDate::currentDate().addYears(-120) );
     DOB_DateEdit_->setMaximumDate( QDate::currentDate().addYears(1) );
     DOB_DateEdit_->setDisplayFormat( "dd-MMM-yyyy" );
 
-    // Initialise Layout
+    RetrievePatient_Button_->setDefault( true );
+}
 
-    // Master Layout is a Vertical Box Layout
+
+void get_patient::initialise_layout()
+{
     QVBoxLayout* MasterLayout = new QVBoxLayout;
 
     QHBoxLayout* StatusLayout = new QHBoxLayout;
@@ -99,14 +115,27 @@ get_patient
     MasterLayout->addLayout( ButtonsLayout );
 
     setLayout( MasterLayout );
+}
 
-    adjustSize();
+
+void get_patient::reset_interface()
+{
+    FirstName_Edit_->setText( "" );
+    LastName_Edit_ ->setText( "" );
+    DOB_DateEdit_  ->setDate( QDate::currentDate() );
+    PostCode_Edit_ ->setText( "" );
+
+    Status_Label_->setText( "" );
+
+    RetrievePatient_Button_->setEnabled( false );
+    Finish_Button_->setEnabled( false );
 }
 
 
 void get_patient::reset( const patient_retriever_t& Retriever )
 {
     Retriever_ = Retriever;
+    reset_interface();
 }
 
 

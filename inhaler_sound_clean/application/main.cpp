@@ -1,26 +1,26 @@
-
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
-// Standard Library Includes
-#include <iostream>
+
+// Local Includes
+#include "version.hpp"
+
+// Custom Includes
+#include "inhaler/server.hpp"
+#include "qt_gui/mainwindow.h"
+
+// spdlog includes
+#include "spdlog/spdlog.h"
+
+// Qt Includes
+#include <QApplication>
+#include <QMainWindow>
 
 // Boost Includes
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/detail/utf8_codecvt_facet.hpp>
 
-// Qt Includes
-#include <QApplication>
-#include <QMainWindow>
-
-// Custom Includes
-#include "inhaler/server.hpp"
-#include "qt_gui/mainwindow.h"
-
-// Local Includes
-#include "version.hpp"
-
-// spdlog includes
-#include "spdlog/spdlog.h"
+// Standard Library Includes
+#include <iostream>
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 

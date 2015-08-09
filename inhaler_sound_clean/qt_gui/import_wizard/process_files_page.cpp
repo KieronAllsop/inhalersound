@@ -1,9 +1,10 @@
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
-// Standard Includes
-// None
 
-// Boost Library Includes
-// None
+// qt_gui Includes
+#include "qt_gui/import_wizard/process_files_page.h"
+
+// inhaler Includes
+#include "inhaler/wave_importer.hpp"
 
 // Qt Includes
 #include <QLabel>
@@ -11,11 +12,9 @@
 #include <QVBoxLayout>
 #include <QCoreApplication>
 
-// Importer Includes
-#include "inhaler/wave_importer.hpp"
+// Standard Library Includes
+// None
 
-// Header Include
-#include "qt_gui/import_wizard/process_files_page.h"
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n

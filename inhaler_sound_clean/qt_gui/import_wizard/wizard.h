@@ -4,14 +4,16 @@
 // G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
-// Standard Library Includes
-// none
+
+// Custom Includes
+#include "inhaler/server.hpp"
 
 // Qt Includes
 #include <QWizard>
 
-// Custom Includes
-#include "inhaler/server.hpp"
+// Standard Library Includes
+// none
+
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n

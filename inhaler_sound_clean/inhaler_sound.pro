@@ -24,20 +24,20 @@ SOURCES +=  application/main.cpp \
             qt_gui/administration.cpp \
             qt_gui/login.cpp \
             qt_gui/mainwindow.cpp \
-            qt_gui/play_wave.cpp \
-    wave/wave_file.cpp \
-    wave/show_form.cpp \
-    wave/utils.cpp \
-    qt_gui/view/explore_patient.cpp \
-    qt_gui/prompt/get_patient.cpp \
-    qt_gui/prompt/login.cpp
-
+            qt_gui/view/explore_patient.cpp \
+            qt_gui/prompt/get_patient.cpp \
+            qt_gui/prompt/login.cpp \
+    qt_gui/view/wave_form.cpp \
+    qt_gui/view/explore_wave.cpp
 
 HEADERS += \
             data_model/schema.hpp \
             inhaler/server.hpp \
             inhaler/wave_importer.hpp \
             inhaler/wave_details.hpp \
+            inhaler/data_retriever.hpp \
+            inhaler/patient_wave_details.hpp \
+            inhaler/patient_retriever.hpp \
             qt_gui/import_wizard/get_patient_page.h \
             qt_gui/import_wizard/intro_page.h \
             qt_gui/import_wizard/process_files_page.h \
@@ -46,17 +46,21 @@ HEADERS += \
             qt_gui/administration.h \
             qt_gui/login.h \
             qt_gui/mainwindow.h \
-            qt_gui/play_wave.h \
-    inhaler/data_retriever.hpp \
-    inhaler/patient_wave_details.hpp \
-    wave/wave_file.h \
-    wave/show_form.h \
-    wave/utils.h \
-    qt_gui/view/explore_patient.h \
-    qt_gui/prompt/get_patient.h \
-    qt_gui/prompt/login.h \
-    application/state.hpp \
-    inhaler/patient_retriever.hpp
+            qt_gui/view/explore_patient.h \
+            qt_gui/prompt/get_patient.h \
+            qt_gui/prompt/login.h \
+    qt/audio/audio_decoder.hpp \
+    qt/audio/decode_buffer.hpp \
+    qt/audio/decode_status.hpp \
+    qt/audio/format.hpp \
+    qt/audio/raw_data.hpp \
+    qt/audio/wave_decoder.hpp \
+    qt_gui/view/wave_form.h \
+    qt_gui/view/explore_wave.h \
+    qt/audio/audio_buffer.hpp \
+    qt/audio/audio_player.hpp \
+    qt/audio/play_status.hpp \
+    qt/audio/probe_status.hpp
 
 FORMS   += \
             qt_gui/administration.ui
@@ -65,6 +69,4 @@ OTHER_FILES += \
             initial_data/accuhaler.voc \
             sconscript \
             sconstruct \
-    initial_data/test.wav \
-    qt_gui/view/test.wav
-
+            initial_data/test.wav
