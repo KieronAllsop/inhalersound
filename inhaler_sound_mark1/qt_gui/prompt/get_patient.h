@@ -86,9 +86,9 @@ private:
     QLabel*             Status_Label_;
     QLineEdit*          FirstName_Edit_;
     QLineEdit*          LastName_Edit_;
-    QLineEdit*          PostCode_Edit_;
     QCalendarWidget*    Calendar_Widget_;
     QDateEdit*          DOB_DateEdit_;
+    QLineEdit*          PostCode_Edit_;
     QPushButton*        RetrievePatient_Button_;
     QPushButton*        Finish_Button_;
 

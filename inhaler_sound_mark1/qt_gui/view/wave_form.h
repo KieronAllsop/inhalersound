@@ -10,10 +10,13 @@
 
 // QT Includes
 #include <QWidget>
+#include <QPixmap>
 
 // C++ Standard Library Includes
 #include <vector>
 #include <memory>
+#include <cstdint>
+#include <chrono>
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
@@ -39,16 +42,45 @@ public:
 
     void                    reset                       (   const shared_data_t& Data   );
 
+    void                    set_play_position           (   std::chrono::nanoseconds Position   );
+
+    void                    resizeEvent                 (   QResizeEvent* Event   );
+
     void                    paintEvent                  (   QPaintEvent* Event   );
 
 private:
 
-
-
+    void                    paint_static_preview        (   int Width, int Height   );
 
 private:
 
-    shared_data_t Data_;
+    struct preview_sample_t
+    {
+        double Min;
+        double Max;
+        double Mean;
+        double StdDev;
+    };
+
+private:
+
+    void                    reset_play_position         ();
+    void                    create_preview_wave         ();
+
+    std::size_t             preview_index               (   std::size_t Sample, std::size_t Channel   ) const;
+    preview_sample_t&       preview_sample              (   std::size_t Sample, std::size_t Channel   );
+    const preview_sample_t& preview_sample              (   std::size_t Sample, std::size_t Channel   ) const;
+    std::size_t             preview_size                () const;
+
+private:
+
+    shared_data_t                   Data_;
+    std::vector<preview_sample_t>   Preview_;
+    std::chrono::nanoseconds        PlayPosition_;
+    double                          PlayPercent_;
+
+    QPixmap                         StaticPreview_;
+    std::vector<QRectF>             PreviewChannelRect_;
 
 };
 

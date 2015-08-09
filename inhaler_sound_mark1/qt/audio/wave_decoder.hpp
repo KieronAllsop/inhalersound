@@ -7,7 +7,7 @@
 
 // qt::audio Includes
 #include "qt/audio/decode_status.hpp"
-#include "qt/audio/decode_buffer.hpp"
+#include "qt/audio/audio_buffer.hpp"
 
 // Qt Includes
 #include <QEvent>
@@ -39,7 +39,7 @@ class buffer_event : public QEvent
 public:
 
     using status_t = decode_status_t;
-    using buffer_t = decode_buffer;
+    using buffer_t = audio_buffer;
 
 public:
 
@@ -83,7 +83,7 @@ class event_sink : public QObject
 public:
 
     using status_t          = decode_status_t;
-    using buffer_t          = decode_buffer;
+    using buffer_t          = audio_buffer;
     using buffer_handler_t  = std::function< void( status_t Status, const buffer_t& Buffer ) >;
 
 public:
@@ -118,7 +118,8 @@ class wave_decoder
 public:
 
     using status_t          = decode_status_t;
-    using buffer_t          = decode_buffer;
+    using buffer_t          = audio_buffer;
+    using format_t          = buffer_t::format_t;
     using path_t            = boost::filesystem::path;
     using buffer_handler_t  = std::function< void( status_t Status, const buffer_t& Buffer ) >;
 
@@ -131,7 +132,6 @@ public:
     : Path_( Path )
     , EventSink_( Handler )
     , Finished_( false )
-    , Codec_( "audio/pcm" )
     {
     }
 
@@ -178,7 +178,7 @@ private:
 
     static constexpr const char* fmt()
     {
-        return "fmt";
+        return "fmt ";
     }
 
     static constexpr const char* data()
@@ -222,122 +222,165 @@ private:
     };
 
 
-    void read_wav_file( const path_t& Path )
+    static format_t format_from( const format_chunk& Format )
     {
-        std::cout << "wave_decoder: open file " << Path.c_str() << std::endl;
+        int             SampleSize      = Format.bits_per_sample;
+        sample_type_t   SampleType      = sample_type_t::unknown;
+        int             SampleRate      = Format.sample_rate;
+        int             ChannelCount    = Format.channel_count;
 
-        std::ifstream WavFile( Path.c_str(), std::ios::binary );
-        if( !WavFile )
+        if( SampleSize == 8 )
         {
-            QCoreApplication::postEvent( &EventSink_, new buffer_event( std::vector<char>(), status_t::error, buffer_t() ) );
+            SampleType = sample_type_t::unsigned_int8;
+        }
+        else if( SampleSize == 16 )
+        {
+            SampleType = sample_type_t::signed_int16;
+        }
+        else if( SampleSize == 32 )
+        {
+            SampleType = sample_type_t::signed_int32;
+        }
+        else
+        {
+            SampleType = sample_type_t::unknown;
         }
 
+        return format_t( SampleType, SampleRate, ChannelCount, "audio/pcm" );
+    }
+
+
+    format_t read_wav_header( std::ifstream& Stream )
+    {
         riff_header Riff;
-        WavFile.read( reinterpret_cast<char*>( &Riff ), sizeof(Riff) );
+        Stream.read( reinterpret_cast<char*>( &Riff ), sizeof(Riff) );
         if( std::strncmp( Riff.id, riff(), sizeof(Riff.id) ) != 0 )
         {
-            QCoreApplication::postEvent( &EventSink_, new buffer_event( std::vector<char>(), status_t::format_not_supported, buffer_t() ) );
+            QCoreApplication::postEvent( &EventSink_, new buffer_event( std::vector<char>(), status_t::wrong_decoder_for_stream, buffer_t() ) );
+            return format_t();
         }
 
         wave_header Wave;
-        WavFile.read( reinterpret_cast<char*>( &Wave ), sizeof(Wave) );
+        Stream.read( reinterpret_cast<char*>( &Wave ), sizeof(Wave) );
         if( std::strncmp( Wave.id, wave(), sizeof(Wave.id) ) != 0 )
         {
-            QCoreApplication::postEvent( &EventSink_, new buffer_event( std::vector<char>(), status_t::format_not_supported, buffer_t() ) );
+            QCoreApplication::postEvent( &EventSink_, new buffer_event( std::vector<char>(), status_t::wrong_decoder_for_stream, buffer_t() ) );
+            return format_t();
         }
 
         chunk_header FmtChunk;
-        WavFile.read( reinterpret_cast<char*>( &FmtChunk ), sizeof(FmtChunk) );
-        if( std::strcmp( FmtChunk.id, fmt() ) != 0 )
+        Stream.read( reinterpret_cast<char*>( &FmtChunk ), sizeof(FmtChunk) );
+        if( std::strncmp( FmtChunk.id, fmt(), sizeof(FmtChunk.id) ) != 0 )
         {
             QCoreApplication::postEvent( &EventSink_, new buffer_event( std::vector<char>(), status_t::format_not_supported, buffer_t() ) );
+            return format_t();
         }
 
         format_chunk FormatChunk;
-        WavFile.read( reinterpret_cast<char*>( &FormatChunk ), sizeof(FormatChunk) );
+        Stream.read( reinterpret_cast<char*>( &FormatChunk ), sizeof(FormatChunk) );
         if( FormatChunk.format_tag != format_tag::pcm )
         {
             QCoreApplication::postEvent( &EventSink_, new buffer_event( std::vector<char>(), status_t::format_not_supported, buffer_t() ) );
+            return format_t();
         }
 
         // Skip any remaning bytes for this chunk
         FmtChunk.length -= sizeof(format_chunk);
         if( FmtChunk.length )
         {
-            WavFile.seekg( FmtChunk.length, std::ios::cur );
+            Stream.seekg( FmtChunk.length, std::ios::cur );
         }
 
-        std::cout << "wave_decoder: successfully read header" << std::endl;
+        return format_from( FormatChunk );
+    }
 
-        int             SampleSize          = FormatChunk.bits_per_sample;
-        sample_type_t   SampleType          = sample_type_t::unknown;
-        int             SampleRate          = FormatChunk.sample_rate;
-        int             ChannelCount        = FormatChunk.channel_count;
-        int             BytesPerSample      = FormatChunk.bytes_per_sample;
 
-        if( SampleSize == 8 )
-        {
-            SampleType = sample_type_t::unsigned_int;
-        }
-        else
-        {
-            SampleType = sample_type_t::signed_int;
-        }
-
-        std::cout
-            << "Wav Format " << SampleRate << " Hz in "
-            << ChannelCount << " channels ("
-            << c_str( SampleType ) << " " << SampleSize
-            << " bits per sample, codec: " << Codec_
-            << ")" << std::endl;
-
+    std::size_t read_wav_data_length( std::ifstream& Stream )
+    {
         chunk_header DataHeader;
-        WavFile.read( reinterpret_cast<char*>( &DataHeader ), sizeof(DataHeader) );
+        Stream.read( reinterpret_cast<char*>( &DataHeader ), sizeof(DataHeader) );
 
         while( std::strncmp( DataHeader.id, data(), sizeof(DataHeader.id) ) != 0 )
         {
-            WavFile.read( reinterpret_cast<char*>( &DataHeader ), sizeof(DataHeader) );
+            Stream.read( reinterpret_cast<char*>( &DataHeader ), sizeof(DataHeader) );
         }
+        return DataHeader.length;
+    }
 
+
+    void read_wav_data( std::ifstream& Stream, std::size_t Length, const format& Format )
+    {
         // Calculate an appropriate buffer length based on the sample-rate
         // and how much time we want to hold in the buffer
-        int BufferSizeMilliseconds = 100;
+
+        auto BytesPerSample = Format.sample_byte_size();
+        auto ChannelCount   = Format.channel_count();
+        auto SampleRate     = Format.sample_rate();
+
+        int BufferSizeMilliseconds = 25;
+
         std::size_t BufferSize = ( SampleRate / 1000 ) * BufferSizeMilliseconds * ChannelCount * BytesPerSample;
 
-        int SamplesPerChannel = BufferSize / ChannelCount / BytesPerSample;
-
-        std::size_t DataLength = DataHeader.length;
-
-        std::cout << "wave_decoder: BufferSize = " << BufferSize << std::endl;
-        std::cout << "wave_decoder: DataLength = " << DataLength << std::endl;
+        std::size_t DataLength = Length;
 
         while( !Finished_ && DataLength )
         {
             std::size_t Size = BufferSize < DataLength ? BufferSize : DataLength;
 
-            std::vector<char> Data;
-            Data.reserve( Size );
-            Data.assign
-                (   std::istreambuf_iterator<char>( WavFile ),
-                    std::istreambuf_iterator<char>()   );
+            std::vector<char> Data( Size );
+            Stream.read( &Data[0], Size );
+
+            auto SamplesPerChannel = Size / ChannelCount / BytesPerSample;
+            auto Duration = std::chrono::nanoseconds( SamplesPerChannel ) * 1'000'000'000 / SampleRate;
 
             buffer_t
                 Buffer
-                    ( SampleSize,
-                        SampleType,
-                        SampleRate,
-                        ChannelCount,
-                        Size == BufferSize ? SamplesPerChannel : Size/ChannelCount/BytesPerSample,
-                        Codec_,
+                    (   Format,
+                        SamplesPerChannel,
+                        Duration,
                         static_cast<const void*>( &Data[0] ),
-                        Size );
+                        Size   );
 
             QCoreApplication::postEvent( &EventSink_, new buffer_event( std::move( Data ), status_t::buffer_ready, Buffer ) );
 
             DataLength -= Size;
         }
+        if( DataLength == 0 )
+        {
+            QCoreApplication::postEvent( &EventSink_, new buffer_event( std::vector<char>(), status_t::finished, buffer_t() ) );
+        }
+        else
+        {
+            QCoreApplication::postEvent( &EventSink_, new buffer_event( std::vector<char>(), status_t::operation_aborted, buffer_t() ) );
+        }
+    }
 
-        QCoreApplication::postEvent( &EventSink_, new buffer_event( std::vector<char>(), status_t::finished, buffer_t() ) );
+
+    void read_wav_file( const path_t& Path )
+    {
+        std::ifstream WavFile( Path.c_str(), std::ios::binary );
+        if( !WavFile )
+        {
+            QCoreApplication::postEvent( &EventSink_, new buffer_event( std::vector<char>(), status_t::resource_error, buffer_t() ) );
+            return;
+        }
+
+        if( auto Format = read_wav_header( WavFile ) )
+        {
+            auto Length = read_wav_data_length( WavFile );
+
+            auto SampleLength = Length / Format.channel_count() / Format.sample_byte_size();
+            auto Duration = std::chrono::nanoseconds( SampleLength ) * 1'000'000'000 / Format.sample_rate();
+
+            QCoreApplication::postEvent
+                (   &EventSink_,
+                    new buffer_event
+                        (   std::vector<char>(),
+                            status_t::started,
+                            buffer_t( Format, SampleLength, Duration, nullptr, 0 )   )   );
+
+            read_wav_data( WavFile, Length, Format );
+        }
     }
 
 private:
@@ -346,7 +389,6 @@ private:
     event_sink          EventSink_;
     std::atomic<bool>   Finished_;
     std::thread         Thread_;
-    std::string         Codec_;
 };
 
 

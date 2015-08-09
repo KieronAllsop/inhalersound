@@ -204,7 +204,7 @@ void explore_wave::
 on_stop_wave()
 {
     Player_->stop();
-    set_play_position( std::chrono::milliseconds( 0 ) );
+//    set_play_position( std::chrono::milliseconds( 0 ) );
 }
 
 
@@ -252,7 +252,18 @@ handle_player_buffer
 (   player_t::probe_status_t Status,
     const player_t::buffer_t& Buffer   )
 {
-    /// TODO - display dB value? live spectrum?
+    if( Status == player_t::probe_status_t::buffer_ready )
+    {
+//        for( unsigned s = 0; s<Buffer.samples_per_channel(); ++s )
+//        {
+//            for( unsigned c = 0; c<Buffer.channel_count(); ++c )
+//            {
+//                std::cout << Buffer.normalised_sample( s, c ) << std::endl;
+//            }
+//        }
+        // get the data while it is playing
+        /// TODO - display dB value? live spectrum?
+    }
 }
 
 

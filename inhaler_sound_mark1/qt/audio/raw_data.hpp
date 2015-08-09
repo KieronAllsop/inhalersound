@@ -6,16 +6,19 @@
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
 // qt::audio Includes
-#include "qt/audio/format.hpp"
-#include "qt/audio/decode_buffer.hpp"
+#include "qt/audio/audio_buffer.hpp"
 
 // Boost Includes
 #include <boost/exception/all.hpp>
+#include <boost/filesystem.hpp>
 
 // Standard Library Includes
-#include <string>
 #include <stdexcept>
+#include <vector>
+#include <string>
 #include <cstring>
+#include <chrono>
+#include <iostream>
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
@@ -33,123 +36,127 @@ class raw_data
 {
 public:
 
+    using path_t        = boost::filesystem::path;
+    using format_t      = qt::audio::format;
+    using duration_t    = std::chrono::nanoseconds;
+    using buffer_t      = audio_buffer;
+
+public:
+
     raw_data( const raw_data& other ) = delete;
     raw_data& operator=( const raw_data& other ) = delete;
 
+    // adds data from
     raw_data
-    (   int SampleBitSize,
-        sample_type_t SampleType,
-        int SampleRate,
-        int ChannelCount,
-        const std::string& Codec,
+    (   const path_t& LinkedFile,
+        bool RemoveOnDestruct   )
+    : LinkedFile_       ( LinkedFile )
+    , RemoveLinkedFile_ ( RemoveOnDestruct )
+    {
+    }
+
+    raw_data
+    (   const format& Format,
         std::vector<char>&& Data   )
-    : SampleBitSize_( SampleBitSize )
-    , SampleByteSize_( SampleBitSize / 8 )
-    , SampleType_( SampleType )
-    , SampleRate_( SampleRate )
-    , ChannelCount_( ChannelCount )
-    , SamplesPerChannel_( Data.size() / SampleByteSize_ / ChannelCount )
-    , Codec_( Codec )
-    , Data_( Data )
+    : Data_
+        ( Data )
+    , Buffer_
+        (   Format,
+            Data.size() / Format.sample_byte_size() / Format.channel_count(),
+            std::chrono::nanoseconds( Data.size() / Format.sample_byte_size() / Format.channel_count() ) * 1'000'000'000 / Format.sample_rate(),
+            static_cast<const void*>( &Data_[0] ),
+            Data_.size()   )
+    , RemoveLinkedFile_
+        ( false )
     {
     }
 
     raw_data()
-    : SampleBitSize_( 0 )
-    , SampleByteSize_( 0 )
-    , SampleType_( sample_type_t::unknown )
-    , SampleRate_( 0 )
-    , ChannelCount_( 0 )
-    , SamplesPerChannel_( 0 )
+    : RemoveLinkedFile_             ( false )
     {
     }
 
-    // Modifiers
-    void add_buffer( const decode_buffer& Buffer )
+    ~raw_data()
     {
-        if( SampleType_ == sample_type_t::unknown )
+        if( !LinkedFile_.empty() && RemoveLinkedFile_ )
         {
-            // Initialise the format
-            SampleBitSize_      = Buffer.sample_bit_size();
-            SampleByteSize_     = Buffer.sample_byte_size();
-            SampleType_         = Buffer.sample_type();
-            SampleRate_         = Buffer.sample_rate();
-            ChannelCount_       = Buffer.channel_count();
-            Codec_              = Buffer.codec();
+            if( exists( LinkedFile_ ) )
+            {
+                remove( LinkedFile_ );
+            }
         }
-        else if(    SampleBitSize_  != Buffer.sample_bit_size()
-                ||  SampleType_     != Buffer.sample_type()
-                ||  SampleRate_     != Buffer.sample_rate()
-                ||  ChannelCount_   != Buffer.channel_count()
-                ||  Codec_          != Buffer.codec()   )
+    }
+
+    // Modifiers
+    void add_buffer( const buffer_t& Buffer )
+    {
+        if(     Buffer_.format().sample_type() != sample_type_t::unknown
+            &&  Buffer_.format() != Buffer.format() )
         {
             BOOST_THROW_EXCEPTION( exception::incorrect_format() );
         }
 
-        SamplesPerChannel_ += Buffer.samples_per_channel();
+        auto SamplesPerChannel = Buffer_.samples_per_channel() + Buffer.samples_per_channel();
+        auto Duration = Buffer_.duration() + std::chrono::nanoseconds( Buffer.samples_per_channel() ) * 1'000'000'000 / Buffer.format().sample_rate();
 
         std::size_t Size = Data_.size();
         Data_.resize( Data_.size() + Buffer.size() );
         std::memcpy( static_cast<void*>( &Data_[Size] ), Buffer.data(), Buffer.size() );
+
+        std::cout << "Assign new buffer" << std::endl;
+        Buffer_ = buffer_t( Buffer.format(), SamplesPerChannel, Duration, static_cast<const void*>( &Data_[0] ), Data_.size() );
     }
 
     // Observers
 
-    int sample_bit_size() const
+    const format_t& format() const
     {
-        return SampleBitSize_;
+        return Buffer_.format();
     }
 
-    int sample_byte_size() const
+    std::size_t samples_per_channel() const
     {
-        return SampleByteSize_;
+        return Buffer_.samples_per_channel();
     }
 
-    sample_type_t sample_type() const
+    duration_t duration() const
     {
-        return SampleType_;
+        return Buffer_.duration();
     }
 
-    int sample_rate() const
+    const path_t& linked_file() const
     {
-        return SampleRate_;
-    }
-
-    int channel_count() const
-    {
-        return ChannelCount_;
-    }
-
-    int samples_per_channel() const
-    {
-        return SamplesPerChannel_;
-    }
-
-    const std::string& codec() const
-    {
-        return Codec_;
+        return LinkedFile_;
     }
 
     const void* data() const
     {
-        return static_cast<const void*>( &Data_[0] );
+        return Buffer_.data();
     }
 
     std::size_t size() const
     {
-        return Data_.size();
+        return Buffer_.size();
+    }
+
+    template<class T>
+    const T& sample( std::size_t Index, std::size_t Channel ) const
+    {
+        return Buffer_.sample<T>( Index, Channel );
+    }
+
+    double normalised_sample( std::size_t Index, std::size_t Channel ) const
+    {
+        return Buffer_.normalised_sample( Index, Channel );
     }
 
 private:
 
-    int                 SampleBitSize_;
-    int                 SampleByteSize_;
-    sample_type_t       SampleType_;
-    int                 SampleRate_;
-    int                 ChannelCount_;
-    int                 SamplesPerChannel_;
-    std::string         Codec_;
-    std::vector<char>   Data_;
+    // vector of chars to represent the bytes of the file - raw data basically
+    std::vector<char>           Data_;
+    buffer_t                    Buffer_;  // stores format and access to data
+    path_t                      LinkedFile_;
+    bool                        RemoveLinkedFile_;
 };
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n

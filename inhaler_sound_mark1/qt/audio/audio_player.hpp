@@ -11,9 +11,9 @@
 #include "qt/audio/audio_buffer.hpp"
 
 // Qt Includes
-#include <QMediaPlayer>
-#include <QAudioProbe>
-#include <QAudioBuffer>
+#include <QtMultimedia/QMediaPlayer>
+#include <QtMultimedia/QAudioProbe>
+#include <QtMultimedia/QAudioBuffer>
 
 // Boost Includes
 #include <boost/filesystem.hpp>
@@ -247,7 +247,6 @@ private:
     play_handler_t          PlayHandler_;
     buffer_handler_t        ProbeHandler_;
 };
-
 
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n

@@ -29,6 +29,9 @@ namespace data_model{
 // and how they are related to each other, for example foreign key constraints
 
 
+using timestamp_t   = boost::posix_time::ptime;
+using data_t        = std::vector<uint8_t>;
+
 struct user
 {
     quince::serial                  id;                     // primary key
@@ -95,7 +98,7 @@ public:
     using patient_t         = patient;
     using userlogin_t       = userlogin;
     using patientwave_t     = patientwave;
-    using unhalerdata_t     = inhalerdata;    // TODO: correct spelling error
+    using inhalerdata_t     = inhalerdata;
 
     using users_t           = quince::serial_table<user>;
     using userlogins_t      = quince::table<userlogin>;

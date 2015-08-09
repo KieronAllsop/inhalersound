@@ -9,9 +9,6 @@
 #include "inhaler/server.hpp"
 #include "inhaler/data_retriever.hpp"
 
-// Application Includes
-#include "qt_gui/view/wave_form.h"
-
 #include "qt/audio/audio_decoder.hpp"
 #include "qt/audio/raw_data.hpp"
 
@@ -37,6 +34,15 @@ class QSplitter;
 class QStandardItemModel;
 class QStandardItem;
 class QMediaPlayer;
+
+
+namespace qt_gui {
+namespace view {
+
+    class explore_wave;
+
+}
+}
 
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
@@ -77,7 +83,8 @@ private:
 
     void                    reset_interface             ();
 
-    void                    enable_load_wave            ();
+    // TODO: remove parameter once debugging complete
+    void                    enable_load_wave            (   const patient_wave_details_t& Wave   );
 
     void                    disable_load_wave           ();
 
@@ -91,12 +98,6 @@ private:
                                                             const QModelIndex& Previous   );
 
     void                    on_open_wave                ();
-
-    void                    on_play_wave                ();
-
-    void                    on_pause_wave               ();
-
-    void                    on_stop_wave                ();
 
     void                    handle_audio_decode         (   decoder_t::status_t Status, const decoder_t::buffer_t& Buffer   );
 
@@ -115,8 +116,6 @@ private:
 
     boost::posix_time::time_facet*  TimestampFacet_;
     std::locale                     TimestampLocale_;
-
-    bool                            Playing_;
 
     // Owned Widgets
     QLabel*             PageTitle_Label_;
@@ -139,19 +138,11 @@ private:
     std::map<std::string, QStandardItem*>   WaveFiles_ImportParents_;
     boost::optional<patient_wave_details_t> Selected_Wave_;
 
-    QMediaPlayer*       Player_;
-    QPushButton*        PlayPauseWave_Button_;
-    QPushButton*        StopWave_Button_;
-
     std::shared_ptr<decoder_t>              Decoder_;
     std::shared_ptr<qt::audio::raw_data>    WaveData_;
-    qt_gui::view::wave_form*                WaveFormView_;
+    qt_gui::view::explore_wave*             ExploreWaveView_;
 
     QSplitter*          Splitter_;
-
-    QLabel*             WaveStatus_Label_;
-    QLabel*             WaveSelected_Label_;
-    QFrame*             WaveView_Frame_;
 };
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n

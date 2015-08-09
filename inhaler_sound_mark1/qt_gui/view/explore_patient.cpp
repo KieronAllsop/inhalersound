@@ -3,14 +3,13 @@
 // Self Include
 #include "qt_gui/view/explore_patient.h"
 
-// qt_gui Includes
-#include "qt_gui/import_wizard/wizard.h"
-
 // Inhaler Includes
 #include "inhaler/wave_importer.hpp"
+#include "qt/audio/format.hpp"
 
-// qt/audio Includes
-#include "qt/audio/decode_buffer.hpp"
+// qt_gui Includes
+#include "qt_gui/import_wizard/wizard.h"
+#include "qt_gui/view/explore_wave.h"
 
 // Qt Includes
 #include <QFormLayout>
@@ -24,15 +23,13 @@
 #include <QList>
 #include <QStandardItem>
 #include <QMetaType>
-#include <QtMultimedia/QMediaPlayer>
 #include <QTemporaryFile>
-#include <QApplication>
+#include <QMediaPlayer>
 #include <QUrl>
-
+#include <QApplication>
 
 // Standard Library Includes
-#include <vector>
-#include <fstream>
+// None
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
@@ -56,11 +53,9 @@ explore_patient
 , TimestampFacet_       ( new boost::posix_time::time_facet() )
 , TimestampLocale_      ( std::locale(), TimestampFacet_ )
 
-, Playing_              ( false )
-
 // Create Widgets
 , PageTitle_Label_      ( new QLabel( this ) )
-, ChangePatient_Button_ ( new QPushButton( tr( "Change" ), this ) )
+, ChangePatient_Button_ ( new QPushButton( tr("Change"), this ) )
 
 , Title_Label_          ( new QLabel( this ) )
 , Forename_Label_       ( new QLabel( this ) )
@@ -69,23 +64,16 @@ explore_patient
 , DateOfBirth_Label_    ( new QLabel( this ) )
 , Postcode_Label_       ( new QLabel( this ) )
 
-, ImportWaves_Button_   ( new QPushButton( tr( "Import Files" ), this ) )
-, OpenWave_Button_      ( new QPushButton( tr( "View File" ), this ) )
+, ImportWaves_Button_   ( new QPushButton( tr("Import Files"), this ) )
+, OpenWave_Button_      ( new QPushButton( tr("View File"), this ) )
 , WaveFiles_View_       ( new QTreeView( this ) )
 , WaveFiles_            ( new QStandardItemModel ( this ) )
 , WaveFiles_Root_       ( WaveFiles_->invisibleRootItem() )
 
-, Player_               ( new QMediaPlayer( this ) )
-, PlayPauseWave_Button_ ( new QPushButton( tr( "Play" ), this ) )
-, StopWave_Button_      ( new QPushButton( tr( "Stop" ), this ) )
-
-, WaveFormView_         ( new qt_gui::view::wave_form( this ) )
+, ExploreWaveView_      ( new qt_gui::view::explore_wave( this ) )
 
 , Splitter_             ( new QSplitter( this ) )
 
-, WaveStatus_Label_     ( new QLabel( tr( "<h2><b>No Wave Selected</b></h2>" ), this ) )
-, WaveSelected_Label_   ( new QLabel( this ) )
-, WaveView_Frame_       ( new QFrame( this ) )
 {
     TimestampFacet_->format( "%Y-%m-%d %H:%M" );
 
@@ -99,13 +87,12 @@ explore_patient
 }
 
 
-void explore_patient::connect_event_handlers()
+void explore_patient::
+connect_event_handlers()
 {
     connect( ImportWaves_Button_, &QPushButton::released, [this](){ on_import_waves(); } );
     connect( ChangePatient_Button_, &QPushButton::released, [this](){ on_change_patient(); } );
     connect( OpenWave_Button_, &QPushButton::released, [this](){ on_open_wave();} );
-    connect( PlayPauseWave_Button_, &QPushButton::released, [this](){ on_play_wave();} );
-    connect( StopWave_Button_, &QPushButton::released, [this](){ on_stop_wave();} );
 
     connect
         (   WaveFiles_View_->selectionModel(),
@@ -118,7 +105,8 @@ void explore_patient::connect_event_handlers()
 }
 
 
-void explore_patient::initialise_widgets()
+void explore_patient::
+initialise_widgets()
 {
     WaveFiles_View_->setModel( WaveFiles_ );
     WaveFiles_View_->setSelectionBehavior( QTreeView::SelectRows );
@@ -143,20 +131,18 @@ void explore_patient::initialise_widgets()
 
     ChangePatient_Button_->setDefault( false );
     ImportWaves_Button_->setDefault( true );
-    PlayPauseWave_Button_->setEnabled( false );
-    StopWave_Button_->setEnabled( false );
 
     disable_load_wave();
 }
 
 
-void explore_patient::initialise_layout()
+void explore_patient::
+initialise_layout()
 {
     QVBoxLayout* MasterLayout = new QVBoxLayout();
 
     QHBoxLayout* TitleLayout   = new QHBoxLayout();
     QVBoxLayout* DetailsLayout = new QVBoxLayout();
-    QVBoxLayout* WaveLayout    = new QVBoxLayout();
 
     TitleLayout->addWidget( PageTitle_Label_, 0, Qt::AlignLeft );
     TitleLayout->addWidget( ChangePatient_Button_, 0, Qt::AlignRight );
@@ -176,9 +162,6 @@ void explore_patient::initialise_layout()
 
     QHBoxLayout* WaveButtonsLayout = new QHBoxLayout();
 
-    WaveButtonsLayout->addWidget( PlayPauseWave_Button_, 0, Qt::AlignLeft );
-    WaveButtonsLayout->addWidget( StopWave_Button_, 0, Qt::AlignLeft );
-    WaveButtonsLayout->addStretch();
     WaveButtonsLayout->addWidget( OpenWave_Button_, 0, Qt::AlignRight );
 
     DetailsLayout->addLayout( WaveButtonsLayout, 0 );
@@ -191,29 +174,11 @@ void explore_patient::initialise_layout()
 
     Splitter_->addWidget( DetailsWidget );
 
-    WaveView_Frame_->setSizePolicy( QSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding ) );
-    WaveView_Frame_->setFrameStyle( QFrame::StyledPanel | QFrame::Sunken );
-
-    QHBoxLayout* WaveLayoutHeader = new QHBoxLayout;
-    WaveLayoutHeader->addWidget( WaveStatus_Label_ );
-    WaveLayoutHeader->addWidget( WaveSelected_Label_ );
-
-    WaveLayout->addLayout( WaveLayoutHeader );
-    WaveLayout->addWidget( WaveView_Frame_ );
-
-    QVBoxLayout* WaveFrameLayout = new QVBoxLayout();
-
-    WaveFormView_->setSizePolicy( QSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding ) );
-    WaveFrameLayout->addWidget( WaveFormView_ );
-    WaveView_Frame_->setLayout( WaveFrameLayout );
-
-    QWidget* WaveWidget = new QWidget( this );
     auto WaveSizePolicy = QSizePolicy();
     WaveSizePolicy.setHorizontalStretch( 3 );
-    WaveWidget->setSizePolicy( WaveSizePolicy );
-    WaveWidget->setLayout( WaveLayout );
+    ExploreWaveView_->setSizePolicy( WaveSizePolicy );
 
-    Splitter_->addWidget( WaveWidget );
+    Splitter_->addWidget( ExploreWaveView_ );
 
     MasterLayout->addLayout( TitleLayout );
     MasterLayout->addWidget( Splitter_, 1 );
@@ -283,8 +248,10 @@ reset
 
     WaveFiles_Root_ = WaveFiles_->invisibleRootItem();
 
+    // retrieve all data from database
     const auto& Waves = DataRetriever_->wave_files();
 
+    // populate view with retrieved data
     for( const auto& Wave: Waves )
     {
         add_wave_to_waves_view( *Wave.get() );
@@ -298,6 +265,7 @@ reset
 void explore_patient::
 on_import_waves()
 {
+    // run import files wizard
     qt_gui::import_wizard::wizard Wizard( DataRetriever_->patient(), Schema_ );
     if( Wizard.exec() )
     {
@@ -305,6 +273,7 @@ on_import_waves()
              Wave != DataRetriever_->wave_files().end();
              ++Wave )
         {
+            // update list with new data
             add_wave_to_waves_view( *Wave->get() );
         }
     }
@@ -346,6 +315,7 @@ add_wave_to_waves_view
     }
 
     Parent->appendRow( Items );
+
 }
 
 
@@ -362,7 +332,7 @@ on_wave_selection_changed
         {
             auto WaveDetails = Data.value<const patient_wave_details_t*>();
             Selected_Wave_ = *WaveDetails;
-            enable_load_wave();
+            enable_load_wave( *Selected_Wave_ );
         }
         // so if we don't have the data we are something else like an import time group
         else
@@ -391,17 +361,26 @@ on_change_patient()
 
 
 void explore_patient::
-enable_load_wave()
+enable_load_wave( const patient_wave_details_t& Wave )
 {
+    std::cout
+        << "Selected wave is [" << Wave.name()
+        << "], inhaler [" << Wave.inhaler_model()
+        << "], size [" << Wave.size()
+        << "], modified_time [" << Wave.modified_time()
+        << "], import_time [" << Wave.import_time()
+        << "]" << std::endl;
+
     OpenWave_Button_->setEnabled( true );
 }
 
 
-void explore_patient::
-disable_load_wave()
-{
-    OpenWave_Button_->setEnabled( false );
-}
+// TODO: amend above function to this when cout no longer needed for debugging
+//void explore_patient::
+//enable_load_wave()
+//{
+//    OpenWave_Button_->setEnabled( true );
+//}
 
 
 void explore_patient::
@@ -411,10 +390,10 @@ on_open_wave()
     {
         QApplication::setOverrideCursor( Qt::WaitCursor );
 
+        // retrieve selected wav file
         auto Data = DataRetriever_->retrieve_wave( *Selected_Wave_ );
 
-        QApplication::restoreOverrideCursor();
-
+        // make temp file from retrieved data
         QTemporaryFile AudioFile;
         AudioFile.setAutoRemove( false );
         if( AudioFile.open() )
@@ -424,22 +403,7 @@ on_open_wave()
         auto Path = AudioFile.fileName();
         AudioFile.close();
 
-        auto ModifiedTime = to_string( Selected_Wave_->modified_time() );
-
-        WaveStatus_Label_->setText( "<h2>Loaded</h2>" );
-
-        WaveSelected_Label_
-            ->setText
-                ( "<h2>File: <i>"
-                  + QString::fromStdString( Selected_Wave_->name() )
-                  + "</i>, Inhaler: <i>"
-                  + QString::fromStdString( Selected_Wave_->inhaler_model() )
-                  + "</i>, Recorded: <i>"
-                  + QString::fromStdString( ModifiedTime )
-                  + "</i></h2>" );
-
-        Player_->setMedia( QUrl::fromLocalFile( Path ) );
-
+        // sets up a new decoder
         Decoder_
             = std::make_shared<decoder_t>
                 (   Path.toStdString(),
@@ -449,92 +413,74 @@ on_open_wave()
                     }
                 );
 
-        WaveData_ = std::make_shared<qt::audio::raw_data>();
+        // add raw data to WaveData
+        WaveData_ = std::make_shared<qt::audio::raw_data>( Decoder_->path(), true );
 
+        // start decoder
         Decoder_->start();
-
-        PlayPauseWave_Button_->setEnabled( true );
     }
-}
-
-
-void explore_patient::
-on_play_wave()
-{
-    if( Playing_ )
-    {
-        Player_->pause();
-        Playing_ = false;
-        PlayPauseWave_Button_->setText( "Play" );
-        WaveStatus_Label_->setText( "<h2>Paused</h2>" );
-    }
-    else
-    {
-        Player_->play();
-        Playing_ = true;
-        PlayPauseWave_Button_->setText( "Pause" );
-        WaveStatus_Label_->setText( "<h2>Playing</h2>" );
-        StopWave_Button_->setEnabled( true );
-    }
-}
-
-
-void explore_patient::
-on_stop_wave()
-{
-    Player_->stop();
-    Playing_ = false;
-    PlayPauseWave_Button_->setText( "Play" );
-    WaveStatus_Label_->setText( "<h2>Stopped</h2>" );
-    StopWave_Button_->setEnabled( false );
 }
 
 
 void explore_patient::
 handle_audio_decode( decoder_t::status_t Status, const decoder_t::buffer_t& Buffer )
 {
-    if( Status == decoder_t::status_t::buffer_ready )
+    if( Status != decoder_t::status_t::buffer_ready )
     {
-        WaveData_->add_buffer( Buffer );
-
-        std::cout
-            << "Buffer received size [" << Buffer.size()
-            << "] bytes, samples " << Buffer.samples_per_channel()
-            << " @ " << Buffer.sample_rate()
-            << " Hz in " << Buffer.channel_count()
-            << " channels (" << c_str( Buffer.sample_type() )
-            << " " << Buffer.sample_bit_size()
-            << " bits per sample, codec: " << Buffer.codec()
-            << ")" << std::endl;
-
+        std::cout << "Status = " << c_str( Status ) << std::endl;
     }
-    else if( Status == decoder_t::status_t::finished )
+
+    if( !is_error( Status ) )
     {
+        if( Status == decoder_t::status_t::buffer_ready )
+        {
+            // create buffers for the data
+            WaveData_->add_buffer( Buffer );
+        }
+        else if( Status == decoder_t::status_t::finished )
+        {
 
-        // used for debugging
-//        auto Sample = static_cast<const u_int8_t*>(WaveData_->data());
-//        for( int i=1; i<501 ; ++Sample, ++i )
-//        {
-//            if ( i == 1)
+            // Print out whole WAV file for debugging
+//            auto Sample = static_cast<const u_int8_t*>(WaveData_->data());
+//            for( int i=1; i<WaveData_->samples_per_channel() ; ++Sample, ++i )
 //            {
-//                std::cout << "First 500 samples of the wave DATA in HEX =  ";
-//            }
-//                std::cout << std::hex << std::setfill('0') << std::setw(2) << static_cast<unsigned>( *Sample );
-//                std::cout << " ";
-//            if( i%4 == 0 )
-//            {
-//                std::cout << "   ";
-//            }
-//            if( i == 4 || (i-4)%16 == 0 )
-//            {
-//                std::cout << std::endl;
-//            }
-//        }
+//                if ( i == 1)
+//                {
+//                    std::cout << "Print all samples from the WAV as signed integers" << std::endl;
+//                }
 
-        std::cout << "Finished" << std::endl;
+//                std::cout
+//                    << std::setw(4)
+//                    << ( static_cast<short>( *Sample ) - 128 )
+//                    << " ";
 
-        WaveFormView_->reset( WaveData_ );
+//                if( i%16 == 0 )
+//                {
+//                    std::cout << std::endl;
+//                }
+//            }
+
+            ExploreWaveView_->reset( *Selected_Wave_, DataRetriever_, WaveData_ );
+
+            QApplication::restoreOverrideCursor();
+        }
     }
+    else
+    {
+        if( Status != decoder_t::status_t::operation_aborted )
+        {
+            /// TODO Report Error
+        }
+        QApplication::restoreOverrideCursor();
+    }
+
+}
+
+
+void explore_patient::
+disable_load_wave()
+{
+    OpenWave_Button_->setEnabled( false );
 }
 
 

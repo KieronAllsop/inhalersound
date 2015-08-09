@@ -63,7 +63,6 @@ public:
     // Type Interface
     using shared_schema_t           = inhaler::server::shared_schema_t;
     using patient_wave_details_t    = inhaler::patient_wave_details;
-    using wave_details_t            = inhaler::wave_details;
     using patient_wave_files_t      = std::vector< std::unique_ptr<patient_wave_details_t> >;
     using waves_iterator_t          = patient_wave_files_t::iterator;
     using waves_const_iterator_t    = patient_wave_files_t::const_iterator;
@@ -71,9 +70,7 @@ public:
     using timestamp_t               = boost::posix_time::ptime;
     using patient_t                 = shared_schema_t::element_type::patient_t;
     using result_t                  = std::tuple<string_t, string_t, int, timestamp_t, timestamp_t>;
-    using wave_files_t              = std::vector<wave_details_t>;
-    using data_t                    = std::vector<uint8_t>;
-
+    using data_t                    = data_model::data_t;
 
 public:
 
@@ -122,11 +119,6 @@ public:
         return WaveFiles_;
     }
 
-    const data_t& retrieved_file() const
-    {
-        return RetrievedFile_;
-    }
-
     // Operations ------------------------------------------------------------
 
     waves_const_iterator_t updated_wave_data()
@@ -138,6 +130,7 @@ public:
         // Return an iterator to the start of the new files, if any
         return WaveFiles_.begin() + Size;
     }
+
 
     data_t retrieve_wave( const patient_wave_details_t& Selected )
     {
@@ -161,6 +154,7 @@ public:
         }
         return data_t();
     }
+
 
 private:
 
@@ -194,7 +188,6 @@ private:
     shared_schema_t             Schema_;
     patient_wave_files_t        WaveFiles_;
     boost::posix_time::ptime    LastImportTime_;
-    data_t                      RetrievedFile_;
 };
 
 

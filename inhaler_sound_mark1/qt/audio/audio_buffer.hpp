@@ -136,9 +136,10 @@ private:
         return Index * Format_.sample_byte_size() * Format_.channel_count() + Channel * Format_.sample_byte_size();
     }
 
+    // return a double value between 1.0 and -1.0 to enable drawing of the WAV
     double normalised_unsigned_int8( std::size_t Index, std::size_t Channel ) const
     {
-        double Value = (1 << 24) * ( static_cast<std::int32_t>( sample<std::uint8_t>( Index, Channel ) ) - 128 );
+        double Value = (1 << 24) * ( static_cast<std::int32_t>( sample<std::uint8_t>( Index, Channel ) ^ 0x80 ) );
         return Value / 0x7F'FF'FF'FF;
     }
 
@@ -195,12 +196,12 @@ private:
 
     typedef double ( audio_buffer::*normalised_sample_func_t )( std::size_t, std::size_t ) const;
 
-    format_t                    Format_;
+    format_t                    Format_;            // audio format
     std::size_t                 SamplesPerChannel_;
     duration_t                  Duration_;
     normalised_sample_func_t    NormalisedSample_;
-    const void*                 Data_;
-    std::size_t                 Size_;
+    const void*                 Data_;              // pointer to Data
+    std::size_t                 Size_;              // total size
 };
 
 

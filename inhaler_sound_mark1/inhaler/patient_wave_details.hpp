@@ -31,6 +31,15 @@ public:
 
 public:
 
+    patient_wave_details()
+    : InhalerModel_ ( "" )
+    , ImportTime_   ( timestamp_t() )
+    , Name_         ( "" )
+    , Size_         ( 0 )
+    , ModifiedTime_ ( timestamp_t() )
+    {
+    }
+
     explicit patient_wave_details( const result_t& Details )
     : InhalerModel_ ( std::get<0>(Details) )
     , ImportTime_   ( std::get<1>(Details) )

@@ -27,7 +27,8 @@ SOURCES +=  application/main.cpp \
             qt_gui/view/explore_patient.cpp \
             qt_gui/prompt/get_patient.cpp \
             qt_gui/prompt/login.cpp \
-    qt_gui/view/wave_form.cpp
+    qt_gui/view/wave_form.cpp \
+    qt_gui/view/explore_wave.cpp
 
 HEADERS += \
             data_model/schema.hpp \
@@ -54,7 +55,12 @@ HEADERS += \
     qt/audio/format.hpp \
     qt/audio/raw_data.hpp \
     qt/audio/wave_decoder.hpp \
-    qt_gui/view/wave_form.h
+    qt_gui/view/wave_form.h \
+    qt_gui/view/explore_wave.h \
+    qt/audio/audio_buffer.hpp \
+    qt/audio/audio_player.hpp \
+    qt/audio/play_status.hpp \
+    qt/audio/probe_status.hpp
 
 FORMS   += \
             qt_gui/administration.ui
