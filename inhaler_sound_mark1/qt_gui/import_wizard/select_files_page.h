@@ -12,7 +12,7 @@
 #include <QWizardPage>
 #include <QStringList>
 
-// Standard Library Includes
+// C++ Standard Library Includes
 #include <memory>
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
@@ -48,15 +48,17 @@ public:
 
 private slots:
 
-    void            on_select_files_clicked      ();
-    void            on_confirm_button_clicked    ();
-    void            on_inhaler_selected        	 (QString);
+    void            on_select_files_clicked     ();
+
+    void            on_confirm_button_clicked   ();
+
+    void            on_inhaler_selected        	(   QString   );
 
 private:
     // Data Variables
     shared_importer_t   Importer_;
     bool                Confirmed_;
-    bool            	isComplete                  () const;
+    bool            	isComplete              () const;
 
     // Owned Widgets
     QLabel*             SelectFiles_Label_;

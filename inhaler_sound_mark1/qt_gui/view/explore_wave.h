@@ -14,7 +14,7 @@
 
 // QT Includes
 #include <QFrame>
-#include <QMediaPlayer>
+#include <QtMultimedia/QMediaPlayer>
 
 // Boost Library Includes
 #include <boost/date_time/posix_time/posix_time.hpp>
@@ -112,6 +112,7 @@ private:
     QLabel*                         WaveName_Label_;
     QFrame*                         WaveView_Frame_;
     wave_form*                      WaveFormView_;
+
 
     QPushButton*                    PlayPauseWave_Button_;
     QPushButton*                    StopWave_Button_;

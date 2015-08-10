@@ -12,7 +12,7 @@
 #include <boost/exception/all.hpp>
 #include <boost/filesystem.hpp>
 
-// Standard Library Includes
+// C++ Standard Library Includes
 #include <stdexcept>
 #include <vector>
 #include <string>

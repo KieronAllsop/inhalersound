@@ -21,7 +21,7 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/date_time/gregorian/gregorian.hpp>
 
-// Standard Includes
+// C++ Standard Includes
 // None
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
@@ -160,9 +160,9 @@ void get_patient::update_retrieval_state()
     RetrievePatient_Button_
         ->setEnabled
             (       FirstName_Edit_->text().size()
-                &&  LastName_Edit_->text().size()
-                &&  PostCode_Edit_->text().size()
-                &&  DateChanged_ );
+                &&  LastName_Edit_ ->text().size()
+                &&  PostCode_Edit_ ->text().size()
+                &&  DateChanged_   );
 }
 
 

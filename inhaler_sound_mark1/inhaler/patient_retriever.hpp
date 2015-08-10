@@ -13,7 +13,7 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/optional.hpp>
 
-// Standard Library Includes
+// C++ Standard Library Includes
 #include <vector>
 #include <string>
 #include <functional>

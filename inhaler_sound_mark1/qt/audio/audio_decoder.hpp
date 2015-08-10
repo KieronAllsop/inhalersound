@@ -11,14 +11,14 @@
 #include "qt/audio/wave_decoder.hpp"
 
 // Qt Includes
-#include <QAudioDecoder>
-#include <QAudioBuffer>
+#include <QtMultimedia/QAudioDecoder>
+#include <QtMultimedia/QAudioBuffer>
 #include <QString>
 
 // Boost Includes
 #include <boost/filesystem.hpp>
 
-// Standard Library Includes
+// C++ Standard Library Includes
 #include <functional>
 #include <memory>
 #include <fstream>

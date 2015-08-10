@@ -12,7 +12,7 @@
 #include <QVBoxLayout>
 #include <QCoreApplication>
 
-// Standard Library Includes
+// C++ Standard Library Includes
 // None
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I

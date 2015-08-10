@@ -65,11 +65,15 @@ private:
 private:
 
     void                    reset_play_position         ();
+
     void                    create_preview_wave         ();
 
     std::size_t             preview_index               (   std::size_t Sample, std::size_t Channel   ) const;
+
     preview_sample_t&       preview_sample              (   std::size_t Sample, std::size_t Channel   );
+
     const preview_sample_t& preview_sample              (   std::size_t Sample, std::size_t Channel   ) const;
+
     std::size_t             preview_size                () const;
 
 private:

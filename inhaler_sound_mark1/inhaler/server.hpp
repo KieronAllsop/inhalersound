@@ -16,7 +16,7 @@
 #include <boost/optional.hpp>
 #include <boost/exception/all.hpp>
 
-// Standard Library Includes
+// C++ Standard Library Includes
 #include <string>
 #include <stdexcept>
 
@@ -51,11 +51,11 @@ public:
     server()
     : Schema_
         ( std::make_shared< data_model::schema<quince_postgresql::database> >
-            (   "localhost",         // host
-                "inhaler",           // user
-                "inhaler",           // password
-                "inhalersound",      // database
-                "inhalersound"  ) )  // schema
+            (   "localhost",            // host
+                "inhaler",              // user
+                "inhaler",              // password
+                "inhalersound",         // database
+                "inhalersound"  ) )     // schema
     {
     }
 

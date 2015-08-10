@@ -1,4 +1,5 @@
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
+
 // Self Include
 #include "qt_gui/view/explore_wave.h"
 

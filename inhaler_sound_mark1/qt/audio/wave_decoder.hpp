@@ -17,7 +17,7 @@
 // Boost Includes
 #include <boost/filesystem.hpp>
 
-// Standard Library Includes
+// C++ Standard Library Includes
 #include <functional>
 #include <string>
 #include <cstring>

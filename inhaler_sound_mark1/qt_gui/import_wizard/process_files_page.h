@@ -13,7 +13,7 @@
 #include <QWizardPage>
 #include <QEvent>
 
-// Standard Library Includes
+// C++ Standard Library Includes
 #include <atomic>
 #include <thread>
 
@@ -102,12 +102,15 @@ public:
                             ~process_files_page         ();
 
     virtual void            initializePage              ();
+
     virtual bool            isComplete                  () const;
+
     virtual bool            event                       (   QEvent* Event   );
 
 private:
 
     void                    start_processing_files      ();
+
     void                    process_files               ();
 
     void                    on_import_status            (   const wave_details_t& WaveFile,

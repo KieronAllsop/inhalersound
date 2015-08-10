@@ -14,7 +14,7 @@
 // Boost Library Includes
 #include <boost/optional.hpp>
 
-// Standard Library Includes
+// C++ Standard Library Includes
 #include <memory>
 #include <functional>
 
@@ -54,8 +54,8 @@ public:
 private:
 
     void        on_retrieve_clicked         ();
-    void        on_text_credentials_changed ( const QString& Text );
-    void        on_date_credentials_changed ( const QDate& Date );
+    void        on_text_credentials_changed (   const QString& Text   );
+    void        on_date_credentials_changed (   const QDate& Date   );
     void        on_finished_clicked         ();
 
 private:

@@ -18,7 +18,7 @@
 // Boost Library Includes
 #include <boost/optional.hpp>
 
-// Standard Library Includes
+// C++ Standard Library Includes
 #include <functional>
 #include <locale>
 
@@ -33,7 +33,6 @@ class QTreeView;
 class QSplitter;
 class QStandardItemModel;
 class QStandardItem;
-class QMediaPlayer;
 
 
 namespace qt_gui {

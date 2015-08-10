@@ -11,7 +11,7 @@
 // Qt Includes
 #include <QMainWindow>
 
-// Standard Library Includes
+// C++ Standard Library Includes
 // None
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I

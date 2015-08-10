@@ -20,7 +20,7 @@
 #include <boost/optional.hpp>
 #include <boost/exception/all.hpp>
 
-// Standard Library Includes
+// C++ Standard Library Includes
 #include <vector>
 #include <string>
 #include <stdexcept>

@@ -8,7 +8,7 @@
 // qt::audio Includes
 #include "qt/audio/format.hpp"
 
-// Standard Library Includes
+// C++ Standard Library Includes
 #include <string>
 #include <cassert>
 #include <chrono>
@@ -132,6 +132,7 @@ public:
         return *static_cast<const T*>( static_cast<const void*>( static_cast<const char*>( Data_ ) + offset( Index, Channel ) ) );
     }
 
+    // Ensure that when dealing with wav files of different formats the values are scaled correctly
     template<class T>
     typename std::enable_if_t< std::is_integral<T>{} && std::is_signed<T>{}, T >
     scaled_sample( std::size_t Index, std::size_t Channel ) const
@@ -199,7 +200,7 @@ private:
         return Index * Format_.sample_byte_size() * Format_.channel_count() + Channel * Format_.sample_byte_size();
     }
 
-    // return a double value between 1.0 and -1.0 to enable drawing of the WAV
+    // The below functions normalise the wav data in order to return a double value between 1.0 and -1.0
     double normalised_unsigned_int8( std::size_t Index, std::size_t Channel ) const
     {
         double Value = (1 << 24) * ( static_cast<std::int32_t>( sample_cast<std::int8_t>( Index, Channel ) ^ 0x80 ) );
@@ -263,8 +264,8 @@ private:
     std::size_t                 SamplesPerChannel_;
     duration_t                  Duration_;
     normalised_sample_func_t    NormalisedSample_;
-    const void*                 Data_;              // pointer to Data
-    std::size_t                 Size_;              // total size
+    const void*                 Data_;                      // pointer to Data
+    std::size_t                 Size_;                      // total size
 };
 
 

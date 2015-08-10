@@ -11,14 +11,14 @@
 #include "qt/audio/audio_buffer.hpp"
 
 // Qt Includes
-#include <QMediaPlayer>
-#include <QAudioProbe>
-#include <QAudioBuffer>
+#include <QtMultimedia/QMediaPlayer>
+#include <QtMultimedia/QAudioProbe>
+#include <QtMultimedia/QAudioBuffer>
 
 // Boost Includes
 #include <boost/filesystem.hpp>
 
-// Standard Library Includes
+// C++ Standard Library Includes
 #include <functional>
 #include <memory>
 

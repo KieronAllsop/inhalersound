@@ -21,7 +21,7 @@
 #include <QGridLayout>
 #include <QSizePolicy>
 
-// Standard Library Includes
+// C++ Standard Library Includes
 #include <memory>
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I

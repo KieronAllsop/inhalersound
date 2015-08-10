@@ -13,7 +13,7 @@
 #include <boost/accumulators/statistics/mean.hpp>
 #include <boost/accumulators/statistics/variance.hpp>
 
-// C++ Standard Includes
+// C++ Standard Library Includes
 #include <iostream>
 #include <cmath>
 

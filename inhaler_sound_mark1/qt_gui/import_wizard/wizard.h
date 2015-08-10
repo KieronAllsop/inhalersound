@@ -11,7 +11,7 @@
 // Qt Includes
 #include <QWizard>
 
-// Standard Library Includes
+// C++ Standard Library Includes
 // none
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I

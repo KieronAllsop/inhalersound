@@ -16,7 +16,7 @@
 #include <asio.hpp>
 #include <asio/high_resolution_timer.hpp>
 
-// Standard Library Includes
+// C++ Standard Library Includes
 #include <memory>
 #include <chrono>
 #include <thread>

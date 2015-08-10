@@ -25,7 +25,7 @@
 #include <QStyle>
 #include <QPalette>
 
-// Standard Library Includes
+// C++ Standard Library Includes
 // none
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
@@ -161,6 +161,7 @@ on_leave_patient()
 }
 
 
+// TODO: facilitate logout
 void MainWindow::
 on_logout()
 {
