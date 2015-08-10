@@ -17,7 +17,8 @@ env.EnableQt5Modules( [
         'QtMultimedia'
 ] )
 
-sources = env.RecursiveGlob( "*.cpp" )
+import re
+sources = env.RecursiveGlob( re.compile( r'.*(?<!_test)[.]cpp$' ) )
 
 env.AppendUnique( STATICLIBS =
         env.BoostStaticLibs( [
@@ -42,4 +43,10 @@ version_file = env.CreateVersion(
 )
 
 env.Build( 'inhalersound', [ objects, version_file ] )
+
+tests = env.RecursiveGlob( "*_test.cpp" )
+
+for test in tests:
+    env.BuildTest( env.TargetFrom( test ), test )
+
 

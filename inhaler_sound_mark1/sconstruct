@@ -28,5 +28,6 @@ cuppa.run(
         'quince-postgresql',
         'qt5',
         'spdlog'
-    ]
+    ],
+    default_runner = 'boost'
 )

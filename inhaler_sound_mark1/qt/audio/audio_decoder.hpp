@@ -11,8 +11,8 @@
 #include "qt/audio/wave_decoder.hpp"
 
 // Qt Includes
-#include <QtMultimedia/QAudioDecoder>
-#include <QtMultimedia/QAudioBuffer>
+#include <QAudioDecoder>
+#include <QAudioBuffer>
 #include <QString>
 
 // Boost Includes
@@ -43,7 +43,6 @@ public:
 
 public:
 
-    // Make this class non-copyable
     audio_decoder( const audio_decoder& other ) = delete;
     audio_decoder& operator=( const audio_decoder& other ) = delete;
 
@@ -176,8 +175,6 @@ private:
 
             buffer_t Buffer
                     (   Format,
-                        AudioBuffer.frameCount(),
-                        std::chrono::milliseconds( AudioBuffer.duration() ),
                         AudioBuffer.constData(),
                         AudioBuffer.byteCount()  );
 
@@ -199,7 +196,7 @@ private:
         Decoding_ = State == QAudioDecoder::DecodingState;
         if( Decoding_ )
         {
-            Handler_( status_t::started, buffer_t( format_t(), 0, std::chrono::milliseconds(0), nullptr, 0 ) );
+            Handler_( status_t::started, buffer_t() );
         }
 //         else
 //         {
@@ -210,7 +207,7 @@ private:
     void on_audio_decoder_format_changed( const QAudioFormat& Format )
     {
         auto DecodeFormat = format_from( Decoder_.audioFormat() );
-        Handler_( status_t::status, buffer_t( DecodeFormat, 0, std::chrono::milliseconds(0), nullptr, 0 ) );
+        Handler_( status_t::status, buffer_t( DecodeFormat, nullptr, 0 ) );
     }
 
     void on_audio_decoder_error( QAudioDecoder::Error Error )

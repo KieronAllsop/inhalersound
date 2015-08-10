@@ -18,7 +18,6 @@
 #include <string>
 #include <cstring>
 #include <chrono>
-#include <iostream>
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
@@ -46,7 +45,6 @@ public:
     raw_data( const raw_data& other ) = delete;
     raw_data& operator=( const raw_data& other ) = delete;
 
-    // adds data from
     raw_data
     (   const path_t& LinkedFile,
         bool RemoveOnDestruct   )
@@ -62,8 +60,6 @@ public:
         ( Data )
     , Buffer_
         (   Format,
-            Data.size() / Format.sample_byte_size() / Format.channel_count(),
-            std::chrono::nanoseconds( Data.size() / Format.sample_byte_size() / Format.channel_count() ) * 1'000'000'000 / Format.sample_rate(),
             static_cast<const void*>( &Data_[0] ),
             Data_.size()   )
     , RemoveLinkedFile_
@@ -72,7 +68,7 @@ public:
     }
 
     raw_data()
-    : RemoveLinkedFile_             ( false )
+    : RemoveLinkedFile_( false )
     {
     }
 
@@ -96,15 +92,11 @@ public:
             BOOST_THROW_EXCEPTION( exception::incorrect_format() );
         }
 
-        auto SamplesPerChannel = Buffer_.samples_per_channel() + Buffer.samples_per_channel();
-        auto Duration = Buffer_.duration() + std::chrono::nanoseconds( Buffer.samples_per_channel() ) * 1'000'000'000 / Buffer.format().sample_rate();
-
         std::size_t Size = Data_.size();
         Data_.resize( Data_.size() + Buffer.size() );
         std::memcpy( static_cast<void*>( &Data_[Size] ), Buffer.data(), Buffer.size() );
 
-        std::cout << "Assign new buffer" << std::endl;
-        Buffer_ = buffer_t( Buffer.format(), SamplesPerChannel, Duration, static_cast<const void*>( &Data_[0] ), Data_.size() );
+        Buffer_ = buffer_t( Buffer.format(), static_cast<const void*>( &Data_[0] ), Data_.size() );
     }
 
     // Observers
@@ -152,9 +144,8 @@ public:
 
 private:
 
-    // vector of chars to represent the bytes of the file - raw data basically
     std::vector<char>           Data_;
-    buffer_t                    Buffer_;  // stores format and access to data
+    buffer_t                    Buffer_;
     path_t                      LinkedFile_;
     bool                        RemoveLinkedFile_;
 };

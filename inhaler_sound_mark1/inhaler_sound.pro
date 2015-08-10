@@ -28,7 +28,8 @@ SOURCES +=  application/main.cpp \
             qt_gui/prompt/get_patient.cpp \
             qt_gui/prompt/login.cpp \
     qt_gui/view/wave_form.cpp \
-    qt_gui/view/explore_wave.cpp
+    qt_gui/view/explore_wave.cpp \
+    qt/audio/audio_buffer_test.cpp
 
 HEADERS += \
             data_model/schema.hpp \
@@ -69,4 +70,5 @@ OTHER_FILES += \
             initial_data/accuhaler.voc \
             sconscript \
             sconstruct \
-            initial_data/test.wav
+            initial_data/test.wav \
+    qt/audio/audio_buffer_test

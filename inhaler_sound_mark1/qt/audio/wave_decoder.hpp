@@ -24,7 +24,6 @@
 #include <atomic>
 #include <thread>
 #include <fstream>
-#include <iostream>
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
@@ -138,7 +137,6 @@ public:
     void start()
     {
         stop();
-        std::cout << "Start wave_decoder" << std::endl;
         Thread_ = std::thread
             (   [this]()
                 {
@@ -330,16 +328,7 @@ private:
             std::vector<char> Data( Size );
             Stream.read( &Data[0], Size );
 
-            auto SamplesPerChannel = Size / ChannelCount / BytesPerSample;
-            auto Duration = std::chrono::nanoseconds( SamplesPerChannel ) * 1'000'000'000 / SampleRate;
-
-            buffer_t
-                Buffer
-                    (   Format,
-                        SamplesPerChannel,
-                        Duration,
-                        static_cast<const void*>( &Data[0] ),
-                        Size   );
+            buffer_t Buffer( Format, static_cast<const void*>( &Data[0] ), Size );
 
             QCoreApplication::postEvent( &EventSink_, new buffer_event( std::move( Data ), status_t::buffer_ready, Buffer ) );
 
@@ -370,14 +359,13 @@ private:
             auto Length = read_wav_data_length( WavFile );
 
             auto SampleLength = Length / Format.channel_count() / Format.sample_byte_size();
-            auto Duration = std::chrono::nanoseconds( SampleLength ) * 1'000'000'000 / Format.sample_rate();
 
             QCoreApplication::postEvent
                 (   &EventSink_,
                     new buffer_event
                         (   std::vector<char>(),
                             status_t::started,
-                            buffer_t( Format, SampleLength, Duration, nullptr, 0 )   )   );
+                            buffer_t( Format, SampleLength )   )   );
 
             read_wav_data( WavFile, Length, Format );
         }

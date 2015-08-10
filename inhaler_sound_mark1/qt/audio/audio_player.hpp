@@ -11,9 +11,9 @@
 #include "qt/audio/audio_buffer.hpp"
 
 // Qt Includes
-#include <QtMultimedia/QMediaPlayer>
-#include <QtMultimedia/QAudioProbe>
-#include <QtMultimedia/QAudioBuffer>
+#include <QMediaPlayer>
+#include <QAudioProbe>
+#include <QAudioBuffer>
 
 // Boost Includes
 #include <boost/filesystem.hpp>
@@ -199,12 +199,7 @@ private:
         {
             auto Format = format_from( AudioBuffer.format() );
 
-            buffer_t Buffer
-                    (   Format,
-                        AudioBuffer.frameCount(),
-                        milliseconds_t( AudioBuffer.duration() ),
-                        AudioBuffer.constData(),
-                        AudioBuffer.byteCount()  );
+            buffer_t Buffer( Format, AudioBuffer.constData(), AudioBuffer.byteCount()  );
 
             ProbeHandler_( probe_status_t::buffer_ready, Buffer );
         }
@@ -247,6 +242,7 @@ private:
     play_handler_t          PlayHandler_;
     buffer_handler_t        ProbeHandler_;
 };
+
 
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
