@@ -21,7 +21,6 @@ SOURCES +=  application/main.cpp \
             qt_gui/import_wizard/process_files_page.cpp \
             qt_gui/import_wizard/select_files_page.cpp \
             qt_gui/import_wizard/wizard.cpp \
-            qt_gui/administration.cpp \
             qt_gui/login.cpp \
             qt_gui/mainwindow.cpp \
             qt_gui/view/explore_patient.cpp \
@@ -44,7 +43,6 @@ HEADERS += \
             qt_gui/import_wizard/process_files_page.h \
             qt_gui/import_wizard/select_files_page.h \
             qt_gui/import_wizard/wizard.h \
-            qt_gui/administration.h \
             qt_gui/login.h \
             qt_gui/mainwindow.h \
             qt_gui/view/explore_patient.h \
@@ -63,12 +61,10 @@ HEADERS += \
             qt/audio/play_status.hpp \
             qt/audio/probe_status.hpp
 
-FORMS   += \
-            qt_gui/administration.ui
+FORMS   +=
 
 OTHER_FILES += \
             initial_data/accuhaler.voc \
             sconscript \
             sconstruct \
-            initial_data/test.wav \
             qt/audio/audio_buffer_test

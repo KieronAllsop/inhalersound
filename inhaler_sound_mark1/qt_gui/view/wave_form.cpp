@@ -4,6 +4,7 @@
 
 // QT Includes
 #include <QPainter>
+#include <QMouseEvent>
 
 // Boost Includes
 #include <boost/accumulators/accumulators.hpp>
@@ -29,9 +30,15 @@ wave_form::
 wave_form
 (   QWidget* Parent   )
 : QWidget( Parent )
-, PlayPosition_ ( std::chrono::nanoseconds( 0 ) )
-, PlayPercent_  ( 0 )
+, PlayPosition_             ( std::chrono::nanoseconds( 0 ) )
+, PlayPercent_              ( 0 )
+, MouseReleased_            ( false )
+, SelectionStartPosition_   ( 0 )
+, SelectionEndPosition_     ( 0 )
+, SelectionCurrentPosition_ ( 0 )
+
 {
+//    setMouseTracking( true );
 }
 
 
@@ -183,6 +190,38 @@ paintEvent( QPaintEvent* Event )
         const double XStart = ChannelRect.left() + 1;
         const double Width = ChannelRect.width() - 2;
 
+        // Draw selected start line
+        if( SelectionStartPosition_ > 0 )
+        {
+            auto StartLeft  = SelectionStartPosition_;
+            auto StartRight = StartLeft;
+            Painter.setPen( QColor( 83, 140, 214, 127 ) );
+            Painter.drawLine( QLineF( StartLeft, ChannelRect.top(), StartRight, ChannelRect.bottom() ) );
+        }
+
+        // Draw rectangle to show selected area
+        if( SelectionCurrentPosition_ > 0 )
+        {
+            auto StartLeft       = SelectionStartPosition_;
+            auto CurrentLeft     = SelectionCurrentPosition_;
+            auto SelectionWidth  = CurrentLeft - StartLeft;
+            auto SelectionHeight = ChannelRect.bottom() - ChannelRect.top();
+
+            Painter.setPen( QColor( 83, 140, 214, 127 ) );
+            Painter.drawRect( StartLeft, ChannelRect.top(), SelectionWidth, SelectionHeight );
+            auto SelectedArea = QRectF( StartLeft, ChannelRect.top(), SelectionWidth, SelectionHeight );
+            Painter.fillRect( SelectedArea, QColor( 83, 160, 214, 45 ) );
+        }
+
+        // Draw selected end line
+        if( SelectionEndPosition_ > 0 )
+        {
+            auto EndLeft  = SelectionEndPosition_;
+            auto EndRight = EndLeft;
+            Painter.setPen( QColor( 83, 140, 214, 127 ) );
+            Painter.drawLine( QLineF( EndLeft, ChannelRect.top(), EndRight, ChannelRect.bottom() ) );
+        }
+
         // Overlay play PlayPosition
         if( PlayPosition_.count() )
         {
@@ -322,8 +361,84 @@ paint_static_preview( int Width, int Height )
         Painter.setPen( QColor( 255, 255, 255, 127 ) );
         Painter.drawLine( XAxisLine );
 
+
         // Overlay Named Regions
         /// TODO
+    }
+}
+
+
+bool wave_form::
+position_in_channel_rect( int x, int y ) const
+{
+    for( const auto& Rect: PreviewChannelRect_ )
+    {
+        if( Rect.contains( x, y ) )
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+
+void wave_form::
+mousePressEvent(QMouseEvent* MousePress)
+{
+    auto PointClicked = MousePress->localPos();
+
+    if( !position_in_channel_rect( PointClicked.x(), PointClicked.y() )
+        ||  MousePress->button() != Qt::LeftButton )
+    {
+        return;
+    }
+    else
+    {
+        SelectionStartPosition_ = PointClicked.x();
+        SelectionCurrentPosition_ = 0;
+        SelectionEndPosition_ = 0;
+        MouseReleased_ = false;
+        update();
+    }
+}
+
+
+void wave_form::
+mouseMoveEvent(QMouseEvent* MouseMove)
+{
+    auto PointClicked = MouseMove->localPos();
+
+    if( !position_in_channel_rect( PointClicked.x(), PointClicked.y() ) )
+    {
+        return;
+    }
+    else
+    {
+        SelectionCurrentPosition_ = PointClicked.x();
+
+        if( !MouseReleased_ )
+        {
+           update();
+        }
+    }
+}
+
+
+void wave_form::
+mouseReleaseEvent(QMouseEvent* MouseRelease)
+{
+    auto PointClicked = MouseRelease->localPos();
+
+    if( !position_in_channel_rect( PointClicked.x(), PointClicked.y() )
+        ||  MouseRelease->button() != Qt::LeftButton )
+    {
+        return;
+    }
+    else
+    {
+        SelectionEndPosition_ = PointClicked.x();
+        MouseReleased_ = true;
+        update();
     }
 }
 

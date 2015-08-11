@@ -48,9 +48,17 @@ public:
 
     void                    paintEvent                  (   QPaintEvent* Event   );
 
+    void                    mousePressEvent             (   QMouseEvent* MousePress   );
+
+    void                    mouseMoveEvent              (   QMouseEvent* MousePress   );
+
+    void                    mouseReleaseEvent           (   QMouseEvent* MousePress   );
+
 private:
 
     void                    paint_static_preview        (   int Width, int Height   );
+
+    bool                    position_in_channel_rect    (   int x, int y   ) const;
 
 private:
 
@@ -82,6 +90,11 @@ private:
     std::vector<preview_sample_t>   Preview_;
     std::chrono::nanoseconds        PlayPosition_;
     double                          PlayPercent_;
+    bool                            MouseReleased_;
+
+    qreal                           SelectionStartPosition_;
+    qreal                           SelectionEndPosition_;
+    qreal                           SelectionCurrentPosition_;
 
     QPixmap                         StaticPreview_;
     std::vector<QRectF>             PreviewChannelRect_;
