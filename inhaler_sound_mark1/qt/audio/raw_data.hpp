@@ -116,6 +116,11 @@ public:
         return Buffer_.duration();
     }
 
+    duration_t duration_from( std::size_t Samples ) const
+    {
+        return Buffer_.duration_from( Samples );
+    }
+
     const path_t& linked_file() const
     {
         return LinkedFile_;
