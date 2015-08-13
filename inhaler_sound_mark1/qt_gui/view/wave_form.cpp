@@ -291,7 +291,8 @@ paint_static_preview( int Width, int Height )
 
         for( int t=0; t<NumberOfTicks; ++t )
         {
-            auto YTick = QLineF( YTickStart, ( YTickMax * t/10 ) + ChannelRect.top(), ChannelRect.left(), ( YTickMax * t/10 ) + ChannelRect.top() );
+            auto VerticalPosition = ( YTickMax * t/10 ) + ChannelRect.top();
+            auto YTick = QLineF( YTickStart, VerticalPosition, ChannelRect.left(), VerticalPosition );
             Painter.drawLine( YTick );
         }
 
@@ -300,7 +301,7 @@ paint_static_preview( int Width, int Height )
 
         for( unsigned y=0; y<YLabels.size(); ++y )
         {
-            auto VerticalPosition = ( YTickMax * y/5 ) + ChannelRect.top() - LabelHeight /2;
+            auto VerticalPosition = ( YTickMax * y/5 ) + ChannelRect.top() - LabelHeight / 2;
             auto YLabelPosition = QRectF( LabelStartPoint, VerticalPosition, LabelWidth, LabelHeight );
             Painter.drawText( YLabelPosition, Qt::AlignRight, YLabels[y] );
         }
