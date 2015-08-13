@@ -107,9 +107,14 @@ public:
         return SamplesPerChannel_;
     }
 
-    const duration_t duration() const
+    const duration_t& duration() const
     {
         return Duration_;
+    }
+
+    duration_t duration_from( std::size_t Samples ) const
+    {
+        return duration_t( Samples ) * 1'000'000'000 / Format_.sample_rate();
     }
 
     const void* data() const

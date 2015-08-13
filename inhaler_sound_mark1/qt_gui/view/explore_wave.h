@@ -29,6 +29,7 @@
 // Forward Delcarations
 class QLabel;
 class QPushButton;
+class QRadioButton;
 
 namespace qt_gui {
 namespace view {
@@ -88,11 +89,18 @@ private:
 
     void                    set_play_position           (   const std::chrono::milliseconds& Position   );
 
+    void                    handler_selection_update    (   const std::chrono::nanoseconds& Start,
+                                                            const std::chrono::nanoseconds& End   );
+
 private:
 
     void                    on_play_pause_wave          ();
 
     void                    on_stop_wave                ();
+
+    void                    on_selected_wave            (   const bool& Checked   );
+
+    void                    on_clear_selection          ();
 
     void                    handle_player_status        (   player_t::play_status_t Status,
                                                             const player_t::milliseconds_t& Position   );
@@ -105,6 +113,8 @@ private:
     patient_wave_details_t          WaveDetails_;
     shared_data_retriever_t         DataRetriever_;
     std::shared_ptr<player_t>       Player_;
+    std::chrono::nanoseconds        SelectionStart_;
+    std::chrono::nanoseconds        SelectionEnd_;
 
     boost::posix_time::time_facet*  TimestampFacet_;
     std::locale                     TimestampLocale_;
@@ -113,10 +123,14 @@ private:
     QFrame*                         WaveView_Frame_;
     wave_form*                      WaveFormView_;
 
-
     QPushButton*                    PlayPauseWave_Button_;
     QPushButton*                    StopWave_Button_;
     QLabel*                         Position_Label_;
+
+    QRadioButton*                   PlaySelection_;
+    QPushButton*                    ClearSelection_;
+
+    bool                            SelectionMade_;
 
 };
 

@@ -17,6 +17,7 @@
 #include <memory>
 #include <cstdint>
 #include <chrono>
+#include <functional>
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
@@ -33,32 +34,33 @@ class wave_form : public QWidget
 
 public:
 
-    using data_t        = qt::audio::raw_data;
-    using shared_data_t = std::shared_ptr<data_t>;
+    using data_t                = qt::audio::raw_data;
+    using shared_data_t         = std::shared_ptr<data_t>;
+    using nanoseconds_t         = std::chrono::nanoseconds;
+    using selection_handler_t   = std::function<void( const nanoseconds_t& Start, const nanoseconds_t& End )>;
 
 public:
 
-    explicit                wave_form                   (   QWidget* Parent = 0   );
+    explicit                wave_form                   (   const selection_handler_t& SelectionHandler,
+                                                            QWidget* Parent = 0   );
 
     void                    reset                       (   const shared_data_t& Data   );
 
-    void                    set_play_position           (   std::chrono::nanoseconds Position   );
+    void                    set_play_position           (   nanoseconds_t Position   );
+
+    void                    reset_play_position         ();
+
+protected:
 
     void                    resizeEvent                 (   QResizeEvent* Event   );
 
     void                    paintEvent                  (   QPaintEvent* Event   );
 
-    void                    mousePressEvent             (   QMouseEvent* MousePress   );
+    void                    mousePressEvent             (   QMouseEvent* Event   );
 
-    void                    mouseMoveEvent              (   QMouseEvent* MousePress   );
+    void                    mouseMoveEvent              (   QMouseEvent* Event   );
 
-    void                    mouseReleaseEvent           (   QMouseEvent* MousePress   );
-
-private:
-
-    void                    paint_static_preview        (   int Width, int Height   );
-
-    bool                    position_in_channel_rect    (   int x, int y   ) const;
+    void                    mouseReleaseEvent           (   QMouseEvent* Event   );
 
 private:
 
@@ -70,35 +72,52 @@ private:
         double StdDev;
     };
 
-private:
-
-    void                    reset_play_position         ();
-
-    void                    create_preview_wave         ();
-
-    std::size_t             preview_index               (   std::size_t Sample, std::size_t Channel   ) const;
-
-    preview_sample_t&       preview_sample              (   std::size_t Sample, std::size_t Channel   );
-
-    const preview_sample_t& preview_sample              (   std::size_t Sample, std::size_t Channel   ) const;
-
-    std::size_t             preview_size                () const;
+    enum class selection_mode
+    {
+        disabled,
+        start,
+        adjusting_start,
+        adjusting_end,
+        grab_start,
+        grab_end
+    };
 
 private:
 
+    void                    create_preview_wave         	();
+
+    bool                    position_in_channel_rect    	(   int x, int y   ) const;
+
+    void                    limit_selection_to_boundaries	(   int Position, const selection_mode& Mode   );
+
+    void                    update_start_and_end        	();
+
+    void                    paint_static_preview        	(   int Width, int Height   );
+
+    std::size_t             preview_index               	(   std::size_t Sample, std::size_t Channel   ) const;
+
+    preview_sample_t&       preview_sample              	(   std::size_t Sample, std::size_t Channel   );
+
+    const preview_sample_t& preview_sample              	(   std::size_t Sample, std::size_t Channel   ) const;
+
+    std::size_t             preview_size                	() const;
+
+private:
+
+    selection_handler_t             SelectionHandler_;
     shared_data_t                   Data_;
     std::vector<preview_sample_t>   Preview_;
-    std::chrono::nanoseconds        PlayPosition_;
-    double                          PlayPercent_;
-    bool                            MouseReleased_;
+    nanoseconds_t                   PlayPosition_;
 
-    qreal                           SelectionStartPosition_;
-    qreal                           SelectionEndPosition_;
-    qreal                           SelectionCurrentPosition_;
+    double                          PlayPercent_;
 
     QPixmap                         StaticPreview_;
     std::vector<QRectF>             PreviewChannelRect_;
 
+    selection_mode                  SelectionMode_;
+
+    double                          SelectionStart_;
+    double                          SelectionEnd_;
 };
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n

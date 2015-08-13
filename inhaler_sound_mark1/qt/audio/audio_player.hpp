@@ -58,6 +58,8 @@ public:
     , Duration_( Duration )
     , PlayHandler_( PlayHandler )
     , ProbeHandler_( ProbeHandler )
+    , Start_( nanoseconds_t( 0 ) )
+    , End_( Duration )
     {
         QObject::connect
             (   &Player_, &QMediaPlayer::positionChanged,
@@ -85,6 +87,10 @@ public:
 
     virtual ~audio_player()
     {
+        if( Player_.state() == QMediaPlayer::PlayingState )
+        {
+            Probe_.setSource( static_cast<QMediaObject*>( nullptr ) );
+        }
         stop();
     }
 
@@ -118,10 +124,62 @@ public:
     {
         if( Player_.state() == QMediaPlayer::PlayingState )
         {
-            Probe_.setSource( static_cast<QMediaObject*>( nullptr ) );
             ProbeHandler_( probe_status_t::operation_aborted, buffer_t() );
         }
         Player_.stop();
+    }
+
+    void mute_on()
+    {
+        Player_.setMuted( true );
+    }
+
+    void mute_off()
+    {
+        Player_.setMuted( false );
+    }
+
+    void reset_player()
+    {
+        mute_on();
+        play_pause();
+        stop();
+        mute_off();
+    }
+
+    bool set_play_selection( const nanoseconds_t& Start, const nanoseconds_t& End )
+    {
+        if( Start >= End || Start >= Duration_ )
+        {
+            return false;
+        }
+
+        if( Start < nanoseconds_t(0) )
+        {
+            Start_ = nanoseconds_t(0);
+        }
+        else
+        {
+            Start_ = std::chrono::duration_cast<milliseconds_t>( Start );
+        }
+
+        if( End > Duration_ )
+        {
+            End_ = Duration_;
+        }
+        else
+        {
+            End_ = std::chrono::duration_cast<milliseconds_t>( End );
+        }
+
+        Player_.stop();
+        return true;
+    }
+
+    void clear_play_selection()
+    {
+        Start_ = nanoseconds_t( 0 );
+        End_ = nanoseconds_t( Duration_ );
     }
 
 private:
@@ -215,13 +273,22 @@ private:
         {
             PlayHandler_( play_status_t::position_changed, milliseconds_t( Milliseconds ) );
         }
+        if( milliseconds_t( Milliseconds ) > End_ )
+        {
+            Player_.stop();
+        }
     }
 
     void handle_player_state_changed( QMediaPlayer::State State )
     {
         if( State == QMediaPlayer::StoppedState )
         {
-            PlayHandler_( play_status_t::stopped, milliseconds_t(0) );
+            auto StartPosition = std::chrono::duration_cast<milliseconds_t>( Start_ );
+            if( StartPosition > milliseconds_t(0) )
+            {
+                Player_.setPosition( StartPosition.count() );
+            }
+            PlayHandler_( play_status_t::stopped, StartPosition );
         }
         else if( State == QMediaPlayer::PlayingState )
         {
@@ -241,6 +308,8 @@ private:
     nanoseconds_t           Duration_;
     play_handler_t          PlayHandler_;
     buffer_handler_t        ProbeHandler_;
+    nanoseconds_t           Start_;
+    nanoseconds_t           End_;
 };
 
 
