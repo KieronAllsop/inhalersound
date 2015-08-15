@@ -56,12 +56,17 @@ explore_wave
 , WaveZoomEndView_
     (   new qt_gui::view::wave_zoom_end( this ) )
 
-, PlayPauseWave_Button_ ( new QPushButton( this ) )
-, StopWave_Button_      ( new QPushButton( this ) )
-, Position_Label_       ( new QLabel( this ) )
-, PlaySelection_        ( new QRadioButton( this ) )
-, ClearSelection_       ( new QPushButton( this ) )
-, SelectionMade_        ( false )
+, PlayPauseWave_Button_     ( new QPushButton( this ) )
+, StopWave_Button_          ( new QPushButton( this ) )
+, Position_Label_           ( new QLabel( this ) )
+, PlaySelection_            ( new QRadioButton( this ) )
+, ClearSelection_           ( new QPushButton( this ) )
+, StartZoomPosition_Label_  ( new QLabel( this ) )
+, EndZoomPosition_Label_    ( new QLabel( this ) )
+//, LabelWave_LineEdit_       ( new QLineEdit( this ) )
+, SaveWaveLabel_Button_     ( new QPushButton( this ) )
+, ClearWaveLabel_Button_    ( new QPushButton( this ) )
+, SelectionMade_            ( false )
 {
     TimestampFacet_->format( "%Y-%m-%d %H:%M" );
 
@@ -128,6 +133,14 @@ void explore_wave::initialise_layout()
     WaveButtonsLayout->addStretch();
     WaveButtonsLayout->addWidget( Position_Label_, 0, Qt::AlignRight );
 
+    QHBoxLayout* WaveZoomButtonsLayout = new QHBoxLayout();
+
+    WaveZoomButtonsLayout->addWidget( StartZoomPosition_Label_ );
+    WaveZoomButtonsLayout->addWidget( SaveWaveLabel_Button_ );
+//    WaveZoomButtonsLayout->addWidget( LabelWave_LineEdit_ );
+    WaveZoomButtonsLayout->addWidget( ClearWaveLabel_Button_ );
+    WaveZoomButtonsLayout->addWidget( EndZoomPosition_Label_ );
+
     QHBoxLayout* WaveZoomLayout = new QHBoxLayout();
 
     WaveZoomStartView_->setSizePolicy( QSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding ) );
@@ -135,7 +148,6 @@ void explore_wave::initialise_layout()
 
     WaveZoomLayout->addWidget( WaveZoomStartView_ );
     WaveZoomLayout->addWidget( WaveZoomEndView_ );
-    WaveZoom_Frame_->setLayout( WaveZoomLayout );
 
     QVBoxLayout* WaveFrameLayout = new QVBoxLayout();
 
@@ -143,6 +155,12 @@ void explore_wave::initialise_layout()
     WaveFrameLayout->addLayout( WaveButtonsLayout );
     WaveFrameLayout->addWidget( WaveFormView_ );
     WaveView_Frame_->setLayout( WaveFrameLayout );
+
+    QVBoxLayout* WaveZoomFrameLayout = new QVBoxLayout();
+
+    WaveZoomFrameLayout->addLayout( WaveZoomButtonsLayout );
+    WaveZoomFrameLayout->addLayout( WaveZoomLayout );
+    WaveZoom_Frame_->setLayout( WaveZoomFrameLayout );
 
     MasterLayout->addWidget( WaveName_Label_, 0, Qt::AlignLeft );
     MasterLayout->addWidget( WaveView_Frame_, 1, 0 );
@@ -250,7 +268,6 @@ handler_selection_update
 (   const std::chrono::nanoseconds& Start,
     const std::chrono::nanoseconds& End   )
 {
-    WaveZoomEndView_->set_play_position( Start );
 
     if( PlaySelection_->isEnabled()
             && SelectionMade_ == true
@@ -262,6 +279,10 @@ handler_selection_update
 
     SelectionStart_ = Start;
     SelectionEnd_ = End;
+
+    WaveZoomStartView_->set_play_position( Start );
+    WaveZoomEndView_->set_play_position( Start );
+
     SelectionMade_ = true;
 
     PlaySelection_->setEnabled( true );

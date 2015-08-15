@@ -30,6 +30,7 @@
 class QLabel;
 class QPushButton;
 class QRadioButton;
+// class QLineEdit;
 
 namespace qt_gui {
 namespace view {
@@ -134,6 +135,12 @@ private:
 
     QRadioButton*                   PlaySelection_;
     QPushButton*                    ClearSelection_;
+
+    QLabel*                         StartZoomPosition_Label_;
+    QLabel*                         EndZoomPosition_Label_;
+//    QLineEdit*                      LabelWave_LineEdit_;
+    QPushButton*                    SaveWaveLabel_Button_;
+    QPushButton*                    ClearWaveLabel_Button_;
 
     bool                            SelectionMade_;
 

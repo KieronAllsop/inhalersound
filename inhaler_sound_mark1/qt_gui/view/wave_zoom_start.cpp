@@ -25,7 +25,7 @@ wave_zoom_start::
 wave_zoom_start
 (   QWidget* Parent   )
 : QWidget(Parent)
-, PlayPosition_( nanoseconds_t( 0 ) )
+, PlayPosition_( std::chrono::nanoseconds( 0 ) )
 {
 }
 
@@ -33,64 +33,16 @@ wave_zoom_start
 void wave_zoom_start::
 reset( const shared_data_t& Data )
 {
-    std::cout << "reset wave zoom start" << std::endl;
     Data_ = Data;
-    create_wave();
-    paint_static_wave( size().width(), size().height() );
     update();
 }
 
 
 void wave_zoom_start::
-set_play_position( nanoseconds_t Position )
+set_play_position( std::chrono::nanoseconds Position )
 {
     PlayPosition_ = Position;
-}
-
-
-void wave_zoom_start::
-create_wave()
-{
-    std::cout << "create wave zoom start" << std::endl;
-}
-
-
-std::size_t wave_zoom_start::
-wave_index( std::size_t Sample, std::size_t Channel ) const
-{
-    return Sample*Data_->format().channel_count()+Channel;
-}
-
-
-wave_zoom_start::wave_sample_t& wave_zoom_start::
-wave_sample( std::size_t Sample, std::size_t Channel )
-{
-    return Wave_[ wave_index( Sample, Channel ) ];
-}
-
-
-const wave_zoom_start::wave_sample_t& wave_zoom_start::
-wave_sample( std::size_t Sample, std::size_t Channel ) const
-{
-    return Wave_[ wave_index( Sample, Channel ) ];
-}
-
-
-std::size_t wave_zoom_start::
-wave_size() const
-{
-    return Wave_.size() / Data_->format().channel_count();
-}
-
-
-void wave_zoom_start::
-resizeEvent( QResizeEvent* Event )
-{
-    if( !Data_ )
-    {
-        return;
-    }
-    paint_static_wave( size().width(), size().height() );
+    update();
 }
 
 
@@ -103,58 +55,11 @@ paintEvent( QPaintEvent* Event )
     }
     QPainter Painter(this);
 
-    Painter.drawPixmap( 0, 0, StaticWaveView_ );
-
     Painter.setRenderHint( QPainter::Antialiasing );
-
-    auto ChannelCount = Data_->format().channel_count();
-
-//    for( unsigned c=0; c<ChannelCount; ++c )
-//    {
-//        auto& ChannelRect = PreviewChannelRect_[c];
-
-//        const double XStart = ChannelRect.left();
-//        const double Width = ChannelRect.width();
-
-//        // Overlay play PlayPosition
-//        if( PlayPosition_.count() )
-//        {
-//            Painter.setPen( QColor( 214, 214, 43, 255 ) );
-
-//            double Position = XStart + Width * PlayPercent_;
-//            Painter.drawLine( QLine( Position, ChannelRect.top(), Position, ChannelRect.bottom() ) );
-//        }
-//        if( SelectionStart_ > 0.0 || SelectionEnd_ > 0.0 )
-//        {
-//            Painter.setPen( QColor( 83, 140, 214, 127 ) );
-//            if( SelectionEnd_ )
-//            {
-//                Painter.drawLine( QLineF( SelectionStart_, ChannelRect.top(), SelectionStart_, ChannelRect.bottom() ) );
-//                auto Width = SelectionEnd_ - SelectionStart_;
-//                auto SelectionRect = QRectF( SelectionStart_, ChannelRect.top(), Width, ChannelRect.height() );
-//                Painter.fillRect( SelectionRect, QColor( 83, 160, 224, 45 ) );
-//                Painter.drawLine( QLineF( SelectionEnd_, ChannelRect.top(), SelectionEnd_, ChannelRect.bottom() ) );
-//            }
-//        }
-//    }
-}
-
-
-void wave_zoom_start::
-paint_static_wave( int Width, int Height )
-{
-    StaticWaveView_ = QPixmap( Width, Height );
-    QPainter Painter( &StaticWaveView_ );
-
-    Painter.setRenderHint( QPainter::Antialiasing );
-
-    Painter.fillRect( Painter.window(), QWidget::palette().color( QWidget::backgroundRole() ) );
 
     auto ChannelCount = Data_->format().channel_count();
 
     auto ChannelHeight = Painter.window().height() / ChannelCount;
-
-    WaveChannelRect_.resize( ChannelCount );
 
     auto YTickSize = 5;
     auto NumberOfTicks = 21;
@@ -174,9 +79,7 @@ paint_static_wave( int Width, int Height )
     for( unsigned c=0; c<ChannelCount; ++c )
     {
         // Draw Background
-        WaveChannelRect_[c] = QRectF( 0, c*ChannelHeight, Painter.window().width(), ChannelHeight );
-        auto& ChannelRect = WaveChannelRect_[c];
-
+        auto ChannelRect = QRectF( 0, c*ChannelHeight, Painter.window().width(), ChannelHeight );
         ChannelRect.adjust( 2, 4, -2, -4 );
         QPainterPath ChannelPath;
         ChannelPath.addRoundedRect( ChannelRect, 9, 9 );
@@ -187,12 +90,11 @@ paint_static_wave( int Width, int Height )
         ChannelRect.adjust( 32, 8, -16, -8 );
         Painter.fillRect( ChannelRect, QColor( 12, 12, 12, 255 ) );
         auto XAxis_Y = ChannelRect.top() + ChannelRect.height() / 2;
-        auto XAxisLine = QLineF( ChannelRect.left(), XAxis_Y, ChannelRect.right() - 2, XAxis_Y );
+        auto XAxisLine = QLineF( ChannelRect.left(), XAxis_Y, ChannelRect.right(), XAxis_Y );
         auto YAxisLine = QLineF( ChannelRect.left(), ChannelRect.top(), ChannelRect.left(), ChannelRect.bottom() );
 
         // Draw Axis
-        Painter.setPen( QColor( 255, 255, 255, 255 ) );
-        Painter.drawLine( XAxisLine );
+        Painter.setPen( QColor( 255, 255, 255, 200 ) );
         Painter.drawLine( YAxisLine );
 
         // Draw ticks on Y-axis
@@ -216,51 +118,58 @@ paint_static_wave( int Width, int Height )
             Painter.drawText( YLabelPosition, Qt::AlignRight, YLabels[y] );
         }
 
-        // Draw Wave Preview
-        const double Size   = wave_size();
+        // Prep for wave zoom
+        auto ZoomDisplay = 2*50*Data_->format().sample_rate() / 1000;
 
-        ChannelRect.adjust( +1, 0, -2, 0 );
+        std::vector<QPointF> Points( ZoomDisplay + 1 );
 
-        const double XStart = ChannelRect.left();
-        const double YStart = ChannelRect.top();
-        const double Width  = ChannelRect.width();
-        const double Height = ChannelRect.height();
+        unsigned long long CentreSample = PlayPosition_.count()*Data_->format().sample_rate() / 1000000000;
+        unsigned long long StartSample = 0;
+        unsigned SkipStart = 0;
+        unsigned SkipEnd = 0;
 
-//        for( unsigned p=0; p<Size; ++p )
-//        {
-//            const auto& Sample = wave_sample( p, c );
-
-//            auto Left = XStart + p * Width / Size;
-//            auto Right = Left;
-
-//            // Get Top and Bottom for Min and Max
-//            auto ExtentTop = YStart + ( 1.0 - Sample.Max ) * Height / 2;
-//            auto ExtentBottom = YStart + ( 1.0 - Sample.Min ) * Height / 2;
-
-//            Painter.setPen( QColor( 68, 119, 59, 255 ) );
-//            Painter.drawLine( QLineF( Left, ExtentTop, Right, ExtentBottom ) );
-
-//            // Get Top and Bottom for 1 Standard Deviation from mean
-//            auto StdDevTop = YStart + ( 1.0 - Sample.Mean - Sample.StdDev ) * Height / 2;
-//            auto StdDevBottom = YStart + ( 1.0 - Sample.Mean + Sample.StdDev ) * Height / 2;
-
-//            Painter.setPen( QColor( 93, 146, 83, 255 ) );
-//            Painter.drawLine
-//                (   QLineF
-//                    (   Left,
-//                        StdDevTop < ExtentTop ? ExtentTop : StdDevTop,
-//                        Right,
-//                        StdDevBottom > ExtentBottom ? ExtentBottom : StdDevBottom   )   );
+        // Determine SkipStart
+        if( ZoomDisplay/2 < CentreSample )
+        {
+            StartSample = CentreSample - ZoomDisplay/2;
+            SkipStart = 0;
+        }
+        else if( CentreSample < ZoomDisplay/2 )
+        {
+            SkipStart = ZoomDisplay/2 - CentreSample;
         }
 
+        // Determine SkipEnd
+        if( ( StartSample + ZoomDisplay/2 ) > Data_->samples_per_channel() )
+        {
+            SkipEnd = StartSample + ZoomDisplay/2 - Data_->samples_per_channel();
+        }
+
+        // Add points to vector
+        unsigned i=SkipStart;
+        for( unsigned long long s=StartSample ; s<StartSample+Points.size()-SkipStart-SkipEnd; ++s, ++i )
+        {
+            auto Sample = Data_->normalised_sample( s, c );
+
+            auto Xpoint = ChannelRect.left() + i * ChannelRect.width() / Points.size();
+            auto Ypoint = ChannelRect.top() + ( 1.0 - Sample ) * ChannelRect.height() / 2;
+            Points[i] = QPointF( Xpoint, Ypoint );
+        }
+
+        // Draw wave
+        Painter.setPen( QColor( 68, 189, 45, 255 ) );
+        Painter.drawPolyline( &Points[SkipStart], Points.size()-(SkipStart - SkipEnd) );
+
         // Overlay X-Axis
-//        Painter.setPen( QColor( 255, 255, 255, 127 ) );
-//        Painter.drawLine( XAxisLine );
+        Painter.setPen( QColor( 255, 255, 255, 127 ) );
+        Painter.drawLine( XAxisLine );
 
-        // Overlay Named Regions
-        /// TODO
+        // Overlay CentrePosition
+        Painter.setPen( QColor( 83, 140, 214, 127 ) );
+        auto WindowMiddle = ( ChannelRect.right() + ChannelRect.left() ) / 2;
+        Painter.drawLine( QLine( WindowMiddle, ChannelRect.top(), WindowMiddle, ChannelRect.bottom() ) );
     }
-
+}
 
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n

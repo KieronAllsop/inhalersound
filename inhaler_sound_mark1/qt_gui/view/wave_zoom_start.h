@@ -10,7 +10,6 @@
 
 // Qt Includes
 #include <QWidget>
-#include <QPixmap>
 
 // C++ Standard Library Includes
 #include <vector>
@@ -31,9 +30,8 @@ class wave_zoom_start : public QWidget
 
 public:
 
-    using data_t                = qt::audio::raw_data;
-    using shared_data_t         = std::shared_ptr<data_t>;
-    using nanoseconds_t         = std::chrono::nanoseconds;
+    using data_t        = qt::audio::raw_data;
+    using shared_data_t = std::shared_ptr<data_t>;
 
 public:
 
@@ -41,43 +39,14 @@ public:
 
     void                    reset                       (   const shared_data_t& Data   );
 
-    void                    set_play_position           (   nanoseconds_t Position   );
-
-protected:
-
-    void                    resizeEvent                 (   QResizeEvent* Event   );
+    void                    set_play_position           (   std::chrono::nanoseconds Position   );
 
     void                    paintEvent                  (   QPaintEvent* Event   );
 
 private:
 
-    struct wave_sample_t
-    {
-        double Point;
-    };
-
-private:
-
-    void                    create_wave                 ();
-
-    void                    paint_static_wave           (   int Width, int Height   );
-
-    std::size_t             wave_index                  (   std::size_t Sample, std::size_t Channel   ) const;
-
-    wave_sample_t&          wave_sample                 (   std::size_t Sample, std::size_t Channel   );
-
-    const wave_sample_t&    wave_sample                 (   std::size_t Sample, std::size_t Channel   ) const;
-
-    std::size_t             wave_size                   () const;
-
-private:
-
     shared_data_t                   Data_;
-    std::vector<wave_sample_t>      Wave_;
-    nanoseconds_t                   PlayPosition_;
-
-    QPixmap                         StaticWaveView_;
-    std::vector<QRectF>             WaveChannelRect_;
+    std::chrono::nanoseconds        PlayPosition_;
 
 };
 

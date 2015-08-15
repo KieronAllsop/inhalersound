@@ -303,8 +303,7 @@ paint_static_preview( int Width, int Height )
         auto YAxisLine = QLineF( ChannelRect.left(), ChannelRect.top(), ChannelRect.left(), ChannelRect.bottom() );
 
         // Draw Axis
-        Painter.setPen( QColor( 255, 255, 255, 255 ) );
-        Painter.drawLine( XAxisLine );
+        Painter.setPen( QColor( 255, 255, 255, 200 ) );
         Painter.drawLine( YAxisLine );
 
         // Draw ticks on Y-axis
