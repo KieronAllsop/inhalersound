@@ -5,6 +5,8 @@
 
 // qt_gui/view includes
 #include "qt_gui/view/wave_form.h"
+#include "qt_gui/view/wave_zoom_start.h"
+#include "qt_gui/view/wave_zoom_end.h"
 
 // Qt Includes
 #include <QPushButton>
@@ -38,6 +40,7 @@ explore_wave
 // Create Widgets
 , WaveName_Label_ ( new QLabel( tr("<h2>No Wave Selected</h2>"), this ) )
 , WaveView_Frame_ ( new QFrame( this ) )
+, WaveZoom_Frame_ ( new QFrame( this ) )
 
 , WaveFormView_
     (   new qt_gui::view::wave_form
@@ -46,6 +49,12 @@ explore_wave
                 handler_selection_update( Start, End );
             },
             this   )   )
+
+, WaveZoomStartView_
+    (   new qt_gui::view::wave_zoom_start( this ) )
+
+, WaveZoomEndView_
+    (   new qt_gui::view::wave_zoom_end( this ) )
 
 , PlayPauseWave_Button_ ( new QPushButton( this ) )
 , StopWave_Button_      ( new QPushButton( this ) )
@@ -107,6 +116,9 @@ void explore_wave::initialise_layout()
     WaveView_Frame_->setSizePolicy( QSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding ) );
     WaveView_Frame_->setFrameStyle( QFrame::StyledPanel | QFrame::Sunken );
 
+    WaveZoom_Frame_->setSizePolicy( QSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding ) );
+    WaveZoom_Frame_->setFrameStyle( QFrame::StyledPanel | QFrame::Sunken );
+
     QHBoxLayout* WaveButtonsLayout = new QHBoxLayout();
 
     WaveButtonsLayout->addWidget( PlayPauseWave_Button_, 0, Qt::AlignLeft );
@@ -116,6 +128,15 @@ void explore_wave::initialise_layout()
     WaveButtonsLayout->addStretch();
     WaveButtonsLayout->addWidget( Position_Label_, 0, Qt::AlignRight );
 
+    QHBoxLayout* WaveZoomLayout = new QHBoxLayout();
+
+    WaveZoomStartView_->setSizePolicy( QSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding ) );
+    WaveZoomEndView_->setSizePolicy( QSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding ) );
+
+    WaveZoomLayout->addWidget( WaveZoomStartView_ );
+    WaveZoomLayout->addWidget( WaveZoomEndView_ );
+    WaveZoom_Frame_->setLayout( WaveZoomLayout );
+
     QVBoxLayout* WaveFrameLayout = new QVBoxLayout();
 
     WaveFormView_->setSizePolicy( QSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding ) );
@@ -124,7 +145,8 @@ void explore_wave::initialise_layout()
     WaveView_Frame_->setLayout( WaveFrameLayout );
 
     MasterLayout->addWidget( WaveName_Label_, 0, Qt::AlignLeft );
-    MasterLayout->addWidget( WaveView_Frame_ );
+    MasterLayout->addWidget( WaveView_Frame_, 1, 0 );
+    MasterLayout->addWidget( WaveZoom_Frame_, 1, 0 );
 
     setLayout( MasterLayout );
 }
@@ -144,6 +166,8 @@ reset
     WaveDetails_ = WaveDetails;
     DataRetriever_ = DataRetriever;
     WaveFormView_->reset( Data );
+    WaveZoomStartView_->reset( Data );
+    WaveZoomEndView_->reset( Data );
 
     SelectionStart_ = std::chrono::nanoseconds( 0 );
     SelectionEnd_   = std::chrono::nanoseconds( 0 );
@@ -216,6 +240,8 @@ set_play_position( const std::chrono::milliseconds& Position )
     std::chrono::duration<double> Time = Position;
     Position_Label_->setText( QString( "%1 secs" ).arg( Time.count(), 0, 'f', 3 ) );
     WaveFormView_->set_play_position( Position );
+//    WaveZoomStartView_->set_play_position( Position );
+//    WaveZoomEndView_->set_play_position( Position );
 }
 
 
@@ -224,6 +250,8 @@ handler_selection_update
 (   const std::chrono::nanoseconds& Start,
     const std::chrono::nanoseconds& End   )
 {
+    WaveZoomEndView_->set_play_position( Start );
+
     if( PlaySelection_->isEnabled()
             && SelectionMade_ == true
             && ( SelectionStart_ != Start || SelectionEnd_ != End ) )
@@ -238,6 +266,7 @@ handler_selection_update
 
     PlaySelection_->setEnabled( true );
     ClearSelection_->setEnabled( true );
+
 }
 
 

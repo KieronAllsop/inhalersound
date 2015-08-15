@@ -35,6 +35,8 @@ namespace qt_gui {
 namespace view {
 
     class wave_form;
+    class wave_zoom_start;
+    class wave_zoom_end;
 
 }
 }
@@ -121,7 +123,10 @@ private:
 
     QLabel*                         WaveName_Label_;
     QFrame*                         WaveView_Frame_;
+    QFrame*                         WaveZoom_Frame_;
     wave_form*                      WaveFormView_;
+    wave_zoom_start*                WaveZoomStartView_;
+    wave_zoom_end*                  WaveZoomEndView_;
 
     QPushButton*                    PlayPauseWave_Button_;
     QPushButton*                    StopWave_Button_;

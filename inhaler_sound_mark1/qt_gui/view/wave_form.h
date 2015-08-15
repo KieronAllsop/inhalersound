@@ -8,7 +8,7 @@
 // qt::audio Includes
 #include "qt/audio/raw_data.hpp"
 
-// QT Includes
+// Qt Includes
 #include <QWidget>
 #include <QPixmap>
 
@@ -101,6 +101,8 @@ private:
     const preview_sample_t& preview_sample              	(   std::size_t Sample, std::size_t Channel   ) const;
 
     std::size_t             preview_size                	() const;
+
+    unsigned                calculate_maxres                ();
 
 private:
 

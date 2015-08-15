@@ -1,8 +1,9 @@
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
+
 // Self Include
 #include "qt_gui/view/wave_form.h"
 
-// QT Includes
+// Qt Includes
 #include <QPainter>
 #include <QMouseEvent>
 #include <QApplication>
@@ -66,15 +67,36 @@ reset_play_position()
 }
 
 
+unsigned wave_form::calculate_maxres()
+{
+    unsigned Res = 1900;
+    auto LowestExtra = Data_->samples_per_channel() % Res;
+    unsigned BestRes = 1900;
+
+    for( ; Res<2101 ; ++Res )
+    {
+        if( ( Data_->samples_per_channel() % Res ) < LowestExtra )
+        {
+            BestRes = Res;
+        }
+    }
+
+    return BestRes;
+}
+
+
 void wave_form::
 create_preview_wave()
 {
-    unsigned MaxRes = 2000;
+    unsigned MaxRes = calculate_maxres();
+
     unsigned Size = MaxRes < Data_->samples_per_channel() ? MaxRes : Data_->samples_per_channel();
     unsigned WindowSize = Data_->samples_per_channel() / Size;
-    if( Data_->samples_per_channel() % Size )
+    auto Extra = Data_->samples_per_channel() % Size;
+
+    if( Extra )
     {
-        WindowSize += 1;
+        Size += 1+Extra/WindowSize;
     }
 
     namespace ba = boost::accumulators;
@@ -103,7 +125,7 @@ create_preview_wave()
 
         for( unsigned c = 0; c < ChannelCount; ++c )
         {
-            if( w == 0 )
+            if( w == 0 || s == Data_->samples_per_channel()-1 )
             {
                 preview_sample( p,c )
                     = { ba::min( Accumulator[c] ),

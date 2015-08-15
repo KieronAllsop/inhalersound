@@ -186,6 +186,7 @@ void get_patient::on_retrieve_clicked()
         Status_Label_->setText( tr("Patient successfully retrieved") );
 
         Finish_Button_->setEnabled( true );     // Disabled by default
+        Finish_Button_->setFocus();
         Finish_Button_->setDefault( true );     // Handle keyboard enter
     }
     else
