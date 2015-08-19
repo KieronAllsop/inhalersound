@@ -74,8 +74,8 @@ explore_wave
 , SaveWaveLabel_Button_     ( new QPushButton( this ) )
 , ClearWaveLabel_Button_    ( new QPushButton( this ) )
 , DeleteLabelRow_Button_    ( new QPushButton( this ) )
-, LabelFile_View_           ( new QTreeView( this ) )
-, LabelFile_                ( new QStandardItemModel( this ) )
+, LabelTreeView_            ( new QTreeView( this ) )
+, LabelModel_               ( new QStandardItemModel( this ) )
 , Start_FineTune_Lower_     ( new QPushButton( this ) )
 , Start_FineTune_Higher_    ( new QPushButton( this ) )
 , End_FineTune_Lower_       ( new QPushButton( this ) )
@@ -111,15 +111,15 @@ connect_event_handlers()
     connect( ClearSelection_, &QPushButton::released, [this](){ on_clear_selection(); } );
     connect( LabelWave_LineEdit_, &QLineEdit::textChanged, [this](){ on_label_typed(); } );
     connect( ClearWaveLabel_Button_, &QPushButton::released, [this](){ on_clear_wave_label(); } );
-    connect( DeleteLabelRow_Button_, &QPushButton::released, [this](){ on_remove_tree_row(); } );
-    connect( SaveWaveLabel_Button_, &QPushButton::released, [this](){ on_save_wave_label(); } );
+    connect( DeleteLabelRow_Button_, &QPushButton::released, [this](){ on_remove_wave_label(); } );
+    connect( SaveWaveLabel_Button_, &QPushButton::released, [this](){ on_add_wave_label(); } );
     connect( Start_FineTune_Lower_, &QPushButton::pressed, [this](){ on_start_left_arrow(); } );
     connect( Start_FineTune_Higher_, &QPushButton::pressed, [this](){ on_start_right_arrow(); } );
     connect( End_FineTune_Lower_, &QPushButton::pressed, [this](){ on_end_left_arrow(); } );
     connect( End_FineTune_Higher_, &QPushButton::pressed, [this](){ on_end_right_arrow(); } );
 
     connect
-        (   LabelFile_View_->selectionModel(),
+        (   LabelTreeView_->selectionModel(),
             &QItemSelectionModel::currentChanged,
             [this]( const QModelIndex& Current, const QModelIndex& Previous )
             {
@@ -131,23 +131,24 @@ connect_event_handlers()
 
 
 void explore_wave::
-on_save_wave_label()
+on_add_wave_label()
 {
+    auto Item = qt::audio::labelled_vocabulary( LabelWave_LineEdit_->text().toStdString(),
+                                                StartSample_, EndSample_ );
+    LabelFileData_.push_back( Item );
+
     QList<QStandardItem*> Items;
     Items.append( new QStandardItem( QString( tr( "%1" ).arg( StartSample_ ) ) ) );
     Items.append( new QStandardItem( QString( tr( "%1" ).arg( EndSample_ ) ) ) );
     Items.append( new QStandardItem( QString( LabelWave_LineEdit_->text() ) ) );
-    LabelFile_->appendRow( Items );
-    auto Item = qt::audio::labelled_vocabulary( LabelWave_LineEdit_->text().toStdString(), StartSample_, EndSample_ );
-    LabelFileData_[LabelFile_->rowCount()] = Item;
-    std::cout << "size after add = " << LabelFileData_.size() << std::endl;
+    LabelModel_->appendRow( Items );
 }
 
 
 void explore_wave::
-on_remove_tree_row()
+on_remove_wave_label()
 {
-    if( RowSelected_ && LabelFile_->rowCount() > 1 )
+    if( RowSelected_ )
     {
         QMessageBox Confirm;
         Confirm.setText("Delete Row");
@@ -157,30 +158,11 @@ on_remove_tree_row()
 
         if( Confirm.exec() == QMessageBox::Ok )
         {
-            LabelFile_->removeRows( SelectedRow_, 1 );
             LabelFileData_.erase( LabelFileData_.begin() + SelectedRow_ );
-            std::cout << "size after erase = " << LabelFileData_.size() << std::endl;
+            LabelModel_->removeRows( SelectedRow_, 1 );
         }
         RowSelected_ = false;
-        LabelFile_View_->reset();
-        SelectedRow_ = 0;
-    }
-    if( RowSelected_ && LabelFile_->rowCount() == 1 )
-    {
-        QMessageBox Confirm;
-        Confirm.setText("Delete Row");
-        Confirm.setInformativeText( "Are you sure you want to delete this label?" );
-        Confirm.setStandardButtons( QMessageBox::Ok | QMessageBox::Cancel );
-        Confirm.setDefaultButton( QMessageBox::Ok );
-
-        if( Confirm.exec() == QMessageBox::Ok )
-        {
-            LabelFile_->clear();
-            set_label_headers();
-            LabelFileData_.clear();
-        }
-        RowSelected_ = false;
-        LabelFile_View_->reset();
+        LabelTreeView_->reset();
         SelectedRow_ = 0;
     }
 }
@@ -192,7 +174,6 @@ on_row_selection_changed( const QModelIndex& Current, const QModelIndex& Previou
     RowSelected_ = true;
     DeleteLabelRow_Button_->setEnabled( true );
     SelectedRow_ = Current.row();
-    std::cout << "SelectedRow int in on_row_selection_changed = " << SelectedRow_ << std::endl;
 }
 
 
@@ -232,14 +213,14 @@ initialise_widgets()
     End_FineTune_Higher_->setEnabled( false );
     End_FineTune_Higher_->setAutoRepeat( true );
 
-    LabelFile_View_->setSizePolicy( QSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding ) );
-    LabelFile_View_->setModel( LabelFile_ );
-    LabelFile_View_->setSelectionBehavior( QTreeView::SelectRows );
-    LabelFile_View_->setUniformRowHeights( true );
-    LabelFile_View_->setSelectionMode( QTreeView::SingleSelection );
-    LabelFile_View_->setEditTriggers( QTreeView::DoubleClicked );
+    LabelTreeView_->setSizePolicy( QSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding ) );
+    LabelTreeView_->setModel( LabelModel_ );
+    LabelTreeView_->setSelectionBehavior( QTreeView::SelectRows );
+    LabelTreeView_->setUniformRowHeights( true );
+    LabelTreeView_->setSelectionMode( QTreeView::SingleSelection );
+    LabelTreeView_->setEditTriggers( QTreeView::DoubleClicked );
 
-    LabelFile_->setColumnCount( 3 );
+    LabelModel_->setColumnCount( 3 );
 
     set_label_headers();
 
@@ -255,7 +236,7 @@ void explore_wave
         << "Start"
         << "End"
         << "Word";
-    LabelFile_->setHorizontalHeaderLabels( Headers );
+    LabelModel_->setHorizontalHeaderLabels( Headers );
 }
 
 
@@ -309,7 +290,7 @@ initialise_layout()
 
     WaveZoomDetailEntry->addWidget( LabelWave_LineEdit_ );
     WaveZoomDetailEntry->addLayout( WaveZoomButtonsLayout );
-    WaveZoomDetailEntry->addWidget( LabelFile_View_ );
+    WaveZoomDetailEntry->addWidget( LabelTreeView_ );
     WaveZoomDetailEntry->addWidget( DeleteLabelRow_Button_, 0, Qt::AlignCenter );
     WaveZoomDetailEntry->addStretch();
 

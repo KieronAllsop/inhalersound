@@ -94,12 +94,14 @@ private:
 
     void                    on_clear_wave_label         ();
 
-    void                    on_save_wave_label          ();
+    void                    on_add_wave_label           ();
 
     void                    on_row_selection_changed    (   const QModelIndex& Current,
                                                             const QModelIndex& Previous   );
 
-    void                    on_remove_tree_row          ();
+    void                    on_remove_wave_label        ();
+
+    void                    on_edit_wave_label          ();
 
     void                    on_start_left_arrow         ();
 
@@ -153,7 +155,7 @@ private:
     std::chrono::nanoseconds        SelectionEnd_;
     std::size_t                     StartSample_;
     std::size_t                     EndSample_;
-    std::vector<vocabulary_t>       LabelFileData_;
+    std::vector<vocabulary_t>       LabelData_;
 
     boost::posix_time::time_facet*  TimestampFacet_;
     std::locale                     TimestampLocale_;
@@ -180,8 +182,8 @@ private:
     QPushButton*                    ClearWaveLabel_Button_;
     QPushButton*                    DeleteLabelRow_Button_;
 
-    QTreeView*                      LabelFile_View_;
-    QStandardItemModel*             LabelFile_;
+    QTreeView*                      LabelTreeView_;
+    QStandardItemModel*             LabelModel_;
     int                             SelectedRow_;
 
     QPushButton*                    Start_FineTune_Lower_;
