@@ -34,12 +34,14 @@ wave_form
 (   const selection_handler_t& SelectionHandler,
     QWidget* Parent   )
 : QWidget( Parent )
-, SelectionHandler_     ( SelectionHandler )
-, PlayPosition_         ( std::chrono::nanoseconds( 0 ) )
-, PlayPercent_          ( 0 )
-, SelectionMode_        ( selection_mode::start )
-, SelectionStart_       ( 0.0 )
-, SelectionEnd_         ( 0.0 )
+, SelectionHandler_         ( SelectionHandler )
+, PlayPositionTime_         ( nanoseconds_t( 0 ) )
+, PlayPositionPercent_      ( 0.0 )
+, SelectionMode_            ( selection_mode::start )
+, SelectionStartPercent_    ( 0.0 )
+, SelectionEndPercent_      ( 0.0 )
+, NewStartPosition_         ( nanoseconds_t( 0 ) )
+, NewEndPosition_           ( nanoseconds_t( 0 ) )
 {
     setMouseTracking( true );
 }
@@ -59,10 +61,10 @@ reset( const shared_data_t& Data )
 void wave_form::
 reset_play_position()
 {
-    PlayPosition_ = std::chrono::nanoseconds( 0 );
-    PlayPercent_ = 0;
-    SelectionStart_ = 0.0;
-    SelectionEnd_ = 0.0;
+    PlayPositionTime_ = nanoseconds_t( 0 );
+    PlayPositionPercent_ = 0.0;
+    SelectionStartPercent_ = 0.0;
+    SelectionEndPercent_ = 0.0;
     update();
 }
 
@@ -146,11 +148,29 @@ create_preview_wave()
 
 
 void wave_form::
-set_play_position( std::chrono::nanoseconds Position )
+set_play_position( nanoseconds_t Position )
 {
-    PlayPosition_ = Position;
-    PlayPercent_ = static_cast<double>( PlayPosition_.count() ) / Data_->duration().count();
+    PlayPositionTime_ = Position;
+    PlayPositionPercent_ = static_cast<double>( PlayPositionTime_.count() ) / Data_->duration().count();
     update();
+}
+
+
+void wave_form::
+set_selection_start( nanoseconds_t Position )
+{
+    NewStartPosition_ = Position;
+    SelectionStartPercent_ = SelectionStartPercent_ + static_cast<double>( NewStartPosition_.count() ) / Data_->duration().count();
+    update_start_and_end();
+}
+
+
+void wave_form::
+set_selection_end( nanoseconds_t Position )
+{
+    NewEndPosition_ = Position;
+    SelectionEndPercent_ = SelectionEndPercent_ + static_cast<double>( NewEndPosition_.count() ) / Data_->duration().count();
+    update_start_and_end();
 }
 
 
@@ -196,13 +216,13 @@ resizeEvent( QResizeEvent* Event )
 
     QRectF NewChannel = PreviewChannelRect_[0];
 
-    double OldOffsetStart = SelectionStart_ - OldChannel.left();
-    double OldOffsetEnd   = SelectionEnd_ - OldChannel.left();
+    double OldOffsetStart = SelectionStartPercent_ - OldChannel.left();
+    double OldOffsetEnd   = SelectionEndPercent_ - OldChannel.left();
 
     double Scale = NewChannel.width() / OldChannel.width();
 
-    SelectionStart_ = Scale * OldOffsetStart + NewChannel.left();
-    SelectionEnd_   = Scale * OldOffsetEnd + NewChannel.left();
+    SelectionStartPercent_ = Scale * OldOffsetStart + NewChannel.left();
+    SelectionEndPercent_   = Scale * OldOffsetEnd + NewChannel.left();
 }
 
 
@@ -229,23 +249,23 @@ paintEvent( QPaintEvent* Event )
         const double Width = ChannelRect.width();
 
         // Overlay play PlayPosition
-        if( PlayPosition_.count() )
+        if( PlayPositionTime_.count() )
         {
             Painter.setPen( QColor( 214, 214, 43, 255 ) );
 
-            double Position = XStart + Width * PlayPercent_;
+            double Position = XStart + Width * PlayPositionPercent_;
             Painter.drawLine( QLine( Position, ChannelRect.top(), Position, ChannelRect.bottom() ) );
         }
-        if( SelectionStart_ > 0.0 || SelectionEnd_ > 0.0 )
+        if( SelectionStartPercent_ > 0.0 || SelectionEndPercent_ > 0.0 )
         {
             Painter.setPen( QColor( 83, 140, 214, 127 ) );
-            if( SelectionEnd_ )
+            if( SelectionEndPercent_ )
             {
-                Painter.drawLine( QLineF( SelectionStart_, ChannelRect.top(), SelectionStart_, ChannelRect.bottom() ) );
-                auto Width = SelectionEnd_ - SelectionStart_;
-                auto SelectionRect = QRectF( SelectionStart_, ChannelRect.top(), Width, ChannelRect.height() );
+                Painter.drawLine( QLineF( SelectionStartPercent_, ChannelRect.top(), SelectionStartPercent_, ChannelRect.bottom() ) );
+                auto Width = SelectionEndPercent_ - SelectionStartPercent_;
+                auto SelectionRect = QRectF( SelectionStartPercent_, ChannelRect.top(), Width, ChannelRect.height() );
                 Painter.fillRect( SelectionRect, QColor( 83, 160, 224, 45 ) );
-                Painter.drawLine( QLineF( SelectionEnd_, ChannelRect.top(), SelectionEnd_, ChannelRect.bottom() ) );
+                Painter.drawLine( QLineF( SelectionEndPercent_, ChannelRect.top(), SelectionEndPercent_, ChannelRect.bottom() ) );
             }
         }
     }
@@ -394,15 +414,23 @@ update_start_and_end()
     auto Left = PreviewChannelRect_[0].left();
     auto Width = PreviewChannelRect_[0].width();
 
-     std::size_t StartSample = 0.5 + Data_->samples_per_channel() * ( SelectionStart_ - Left ) / Width;
+     std::size_t StartSample = 0.5 + Data_->samples_per_channel() * ( SelectionStartPercent_ - Left ) / Width;
      auto StartPosition = Data_->duration_from( StartSample );
 
-     std::size_t EndSample = 0.5 + Data_->samples_per_channel() * ( SelectionEnd_ - Left ) / Width;
-     auto EndPosition = Data_->duration_from( EndSample );
+     auto EndPosition = StartPosition;
+
+     if( SelectionEndPercent_ > 0.0 )
+     {
+        std::size_t EndSample = 0.5 + Data_->samples_per_channel() * ( SelectionEndPercent_ - Left ) / Width;
+        EndPosition = Data_->duration_from( EndSample );
+     }
+
+     std::size_t StartSelectionSample = StartPosition.count()*Data_->format().sample_rate() / 1000000000;
+     std::size_t EndSelectionSample = EndPosition.count()*Data_->format().sample_rate() / 1000000000;
 
      if( SelectionHandler_ )
      {
-         SelectionHandler_( StartPosition, EndPosition );
+         SelectionHandler_( StartPosition, EndPosition, StartSelectionSample, EndSelectionSample );
      }
 }
 
@@ -410,7 +438,7 @@ update_start_and_end()
 void wave_form::
 limit_selection_to_boundaries( int Position, const selection_mode& Mode )
 {
-    auto& Boundary = ( Mode == selection_mode::adjusting_start ) ? SelectionStart_ : SelectionEnd_;
+    auto& Boundary = ( Mode == selection_mode::adjusting_start ) ? SelectionStartPercent_ : SelectionEndPercent_;
     if( Position > PreviewChannelRect_[0].right() )
     {
         Boundary = PreviewChannelRect_[0].right();
@@ -423,9 +451,9 @@ limit_selection_to_boundaries( int Position, const selection_mode& Mode )
     {
         Boundary = Position;
     }
-    if( SelectionEnd_ < SelectionStart_ )
+    if( SelectionEndPercent_ < SelectionStartPercent_ )
     {
-        std::swap( SelectionStart_, SelectionEnd_ );
+        std::swap( SelectionStartPercent_, SelectionEndPercent_ );
     }
 }
 
@@ -446,8 +474,8 @@ mousePressEvent( QMouseEvent* Event )
         }
         else if( SelectionMode_ == selection_mode::start )
         {
-            SelectionStart_ = x;
-            SelectionEnd_ = 0.0;
+            SelectionStartPercent_ = x;
+            SelectionEndPercent_ = 0.0;
             update_start_and_end();
             SelectionMode_ = selection_mode::adjusting_end;
             update();
@@ -485,11 +513,11 @@ mouseReleaseEvent( QMouseEvent* Event )
             {
                 QApplication::restoreOverrideCursor();
 
-                auto& Boundary = ( SelectionMode_ == selection_mode::adjusting_start ) ? SelectionStart_ : SelectionEnd_;
+                auto& Boundary = ( SelectionMode_ == selection_mode::adjusting_start ) ? SelectionStartPercent_ : SelectionEndPercent_;
                 Boundary = x;
-                if( SelectionEnd_ < SelectionStart_ )
+                if( SelectionEndPercent_ < SelectionStartPercent_ )
                 {
-                    std::swap( SelectionStart_, SelectionEnd_ );
+                    std::swap( SelectionStartPercent_, SelectionEndPercent_ );
                 }
                 update_start_and_end();
                 SelectionMode_ = selection_mode::start;
@@ -500,7 +528,7 @@ mouseReleaseEvent( QMouseEvent* Event )
             {
                 QApplication::restoreOverrideCursor();
 
-                auto& Boundary = ( SelectionMode_ == selection_mode::grab_start ) ? SelectionStart_ : SelectionEnd_;
+                auto& Boundary = ( SelectionMode_ == selection_mode::grab_start ) ? SelectionStartPercent_ : SelectionEndPercent_;
                 Boundary = x;
                 update_start_and_end();
                 SelectionMode_ = selection_mode::start;
@@ -515,9 +543,9 @@ mouseReleaseEvent( QMouseEvent* Event )
                 QApplication::restoreOverrideCursor();
 
                 limit_selection_to_boundaries( x, SelectionMode_ );
-                if( SelectionEnd_ < SelectionStart_ )
+                if( SelectionEndPercent_ < SelectionStartPercent_ )
                 {
-                    std::swap( SelectionStart_, SelectionEnd_ );
+                    std::swap( SelectionStartPercent_, SelectionEndPercent_ );
                 }
                 update_start_and_end();
                 SelectionMode_ = selection_mode::start;
@@ -549,16 +577,16 @@ mouseMoveEvent( QMouseEvent* Event )
         {
             if( SelectionMode_ == selection_mode::start )
             {
-                if(     SelectionStart_ > 0.0
-                    &&  x > ( SelectionStart_-4.0 )
-                    &&  x < ( SelectionStart_+4.0 ) )
+                if(     SelectionStartPercent_ > 0.0
+                    &&  x > ( SelectionStartPercent_-4.0 )
+                    &&  x < ( SelectionStartPercent_+4.0 ) )
                 {
                     SelectionMode_ = selection_mode::grab_start;
                     QApplication::setOverrideCursor( Qt::SizeHorCursor );
                 }
-                else if(    SelectionEnd_ > 0.0
-                        &&  x > ( SelectionEnd_-4.0 )
-                        &&  x < ( SelectionEnd_+4.0 ) )
+                else if(    SelectionEndPercent_ > 0.0
+                        &&  x > ( SelectionEndPercent_-4.0 )
+                        &&  x < ( SelectionEndPercent_+4.0 ) )
                 {
                     SelectionMode_ = selection_mode::grab_end;
                     QApplication::setOverrideCursor( Qt::SizeHorCursor );
@@ -567,11 +595,11 @@ mouseMoveEvent( QMouseEvent* Event )
             else if(    SelectionMode_ == selection_mode::adjusting_start
                     ||  SelectionMode_ == selection_mode::adjusting_end )
             {
-                auto& Boundary = SelectionMode_ == selection_mode::adjusting_start ? SelectionStart_ : SelectionEnd_;
+                auto& Boundary = SelectionMode_ == selection_mode::adjusting_start ? SelectionStartPercent_ : SelectionEndPercent_;
                 Boundary = x;
-                if( SelectionEnd_ < SelectionStart_ )
+                if( SelectionEndPercent_ < SelectionStartPercent_ )
                 {
-                    std::swap( SelectionStart_, SelectionEnd_ );
+                    std::swap( SelectionStartPercent_, SelectionEndPercent_ );
                     SelectionMode_ = ( SelectionMode_ == selection_mode::adjusting_start ) ? selection_mode::adjusting_end : selection_mode::adjusting_start;
                 }
                 update_start_and_end();
@@ -582,9 +610,9 @@ mouseMoveEvent( QMouseEvent* Event )
                 ||  SelectionMode_ == selection_mode::adjusting_end )
         {
             limit_selection_to_boundaries( x, SelectionMode_ );
-            if( SelectionEnd_ < SelectionStart_ )
+            if( SelectionEndPercent_ < SelectionStartPercent_ )
             {
-                std::swap( SelectionStart_, SelectionEnd_ );
+                std::swap( SelectionStartPercent_, SelectionEndPercent_ );
                 SelectionMode_ = ( SelectionMode_ == selection_mode::adjusting_start ) ? selection_mode::adjusting_end : selection_mode::adjusting_start;
             }
             update_start_and_end();
@@ -595,16 +623,16 @@ mouseMoveEvent( QMouseEvent* Event )
     {
         if( MouseInChannels && SelectionMode_ == selection_mode::start )
         {
-            if(     SelectionStart_ > 0.0
-                &&  x > ( SelectionStart_-4.0 )
-                &&  x < ( SelectionStart_+4.0 ) )
+            if(     SelectionStartPercent_ > 0.0
+                &&  x > ( SelectionStartPercent_-4.0 )
+                &&  x < ( SelectionStartPercent_+4.0 ) )
             {
                 SelectionMode_ = selection_mode::grab_start;
                 QApplication::setOverrideCursor( Qt::SizeHorCursor );
             }
-            else if(     SelectionEnd_ > 0.0
-                &&  x > ( SelectionEnd_-4.0 )
-                &&  x < ( SelectionEnd_+4.0 ) )
+            else if(     SelectionEndPercent_ > 0.0
+                &&  x > ( SelectionEndPercent_-4.0 )
+                &&  x < ( SelectionEndPercent_+4.0 ) )
             {
                 SelectionMode_ = selection_mode::grab_end;
                 QApplication::setOverrideCursor( Qt::SizeHorCursor );
@@ -613,7 +641,7 @@ mouseMoveEvent( QMouseEvent* Event )
         else if(    SelectionMode_ == selection_mode::grab_start
                  || SelectionMode_ == selection_mode::grab_end )
         {
-            auto& Boundary = SelectionMode_ == selection_mode::grab_start ? SelectionStart_ : SelectionEnd_;
+            auto& Boundary = SelectionMode_ == selection_mode::grab_start ? SelectionStartPercent_ : SelectionEndPercent_;
             if( Boundary && ( x <= ( Boundary-4.0 ) || x >= ( Boundary+4.0 ) ) )
             {
                 SelectionMode_ = selection_mode::start;

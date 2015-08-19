@@ -63,7 +63,8 @@ HEADERS += \
             qt/audio/play_status.hpp \
             qt/audio/probe_status.hpp \
     qt_gui/view/wave_zoom_start.h \
-    qt_gui/view/wave_zoom_end.h
+    qt_gui/view/wave_zoom_end.h \
+    qt/audio/vocabulary_kind.hpp
 
 FORMS   +=
 

@@ -11,6 +11,7 @@
 // qt::audio Includes
 #include "qt/audio/raw_data.hpp"
 #include "qt/audio/audio_player.hpp"
+#include "qt/audio/vocabulary_kind.hpp"
 
 // QT Includes
 #include <QFrame>
@@ -22,7 +23,7 @@
 // C++ Standard Library Includes
 #include <memory>
 #include <locale>
-
+#include <vector>
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
@@ -30,7 +31,10 @@
 class QLabel;
 class QPushButton;
 class QRadioButton;
-// class QLineEdit;
+class QLineEdit;
+class QTreeView;
+class QStandardItemModel;
+class QModelIndex;
 
 namespace qt_gui {
 namespace view {
@@ -60,6 +64,7 @@ public:
     using data_t                    = qt::audio::raw_data;
     using shared_data_t             = std::shared_ptr<data_t>;
     using player_t                  = qt::audio::audio_player;
+    using vocabulary_t              = qt::audio::labelled_vocabulary;
 
 public:
 
@@ -81,6 +86,29 @@ private:
 
     void                    reset_interface             ();
 
+    void                    set_label_headers           ();
+
+private:
+
+    void                    on_label_typed              ();
+
+    void                    on_clear_wave_label         ();
+
+    void                    on_save_wave_label          ();
+
+    void                    on_row_selection_changed    (   const QModelIndex& Current,
+                                                            const QModelIndex& Previous   );
+
+    void                    on_remove_tree_row          ();
+
+    void                    on_start_left_arrow         ();
+
+    void                    on_end_left_arrow           ();
+
+    void                    on_start_right_arrow        ();
+
+    void                    on_end_right_arrow          ();
+
 private:
 
     void                    enable_playing              ();
@@ -92,8 +120,12 @@ private:
 
     void                    set_play_position           (   const std::chrono::milliseconds& Position   );
 
+    void                    set_zoom_sample_labels      ();
+
     void                    handler_selection_update    (   const std::chrono::nanoseconds& Start,
-                                                            const std::chrono::nanoseconds& End   );
+                                                            const std::chrono::nanoseconds& End,
+                                                            const std::size_t& StartSample,
+                                                            const std::size_t& EndSample   );
 
 private:
 
@@ -116,8 +148,12 @@ private:
     patient_wave_details_t          WaveDetails_;
     shared_data_retriever_t         DataRetriever_;
     std::shared_ptr<player_t>       Player_;
+    shared_data_t                   Data_;
     std::chrono::nanoseconds        SelectionStart_;
     std::chrono::nanoseconds        SelectionEnd_;
+    std::size_t                     StartSample_;
+    std::size_t                     EndSample_;
+    std::vector<vocabulary_t>       LabelFileData_;
 
     boost::posix_time::time_facet*  TimestampFacet_;
     std::locale                     TimestampLocale_;
@@ -138,11 +174,23 @@ private:
 
     QLabel*                         StartZoomPosition_Label_;
     QLabel*                         EndZoomPosition_Label_;
-//    QLineEdit*                      LabelWave_LineEdit_;
+    QLabel*                         LabelWave_Label_;
+    QLineEdit*                      LabelWave_LineEdit_;
     QPushButton*                    SaveWaveLabel_Button_;
     QPushButton*                    ClearWaveLabel_Button_;
+    QPushButton*                    DeleteLabelRow_Button_;
+
+    QTreeView*                      LabelFile_View_;
+    QStandardItemModel*             LabelFile_;
+    int                             SelectedRow_;
+
+    QPushButton*                    Start_FineTune_Lower_;
+    QPushButton*                    Start_FineTune_Higher_;
+    QPushButton*                    End_FineTune_Lower_;
+    QPushButton*                    End_FineTune_Higher_;
 
     bool                            SelectionMade_;
+    bool                            RowSelected_;
 
 };
 

@@ -39,6 +39,14 @@ reset( const shared_data_t& Data )
 
 
 void wave_zoom_start::
+clear()
+{
+    PlayPosition_ = std::chrono::nanoseconds( 0 );
+    update();
+}
+
+
+void wave_zoom_start::
 set_play_position( std::chrono::nanoseconds Position )
 {
     PlayPosition_ = Position;
@@ -119,38 +127,37 @@ paintEvent( QPaintEvent* Event )
         }
 
         // Prep for wave zoom
-        auto ZoomDisplay = 2*50*Data_->format().sample_rate() / 1000;
+        std::size_t WindowSize = 1 + 2*50*Data_->format().sample_rate() / 1000;
 
-        std::vector<QPointF> Points( ZoomDisplay + 1 );
+        std::vector<QPointF> Points( WindowSize );
 
-        unsigned long long CentreSample = PlayPosition_.count()*Data_->format().sample_rate() / 1000000000;
-        unsigned long long StartSample = 0;
-        unsigned SkipStart = 0;
-        unsigned SkipEnd = 0;
+        std::size_t CentreSample = PlayPosition_.count()*Data_->format().sample_rate() / 1000000000;
+        std::size_t StartSample = 0;
+        std::size_t SkipStart = 0;
+        std::size_t SkipEnd = 0;
 
-        // Determine SkipStart
-        if( ZoomDisplay/2 < CentreSample )
+        if( WindowSize/2 < CentreSample )
         {
-            StartSample = CentreSample - ZoomDisplay/2;
+            StartSample = CentreSample - WindowSize/2;
             SkipStart = 0;
         }
-        else if( CentreSample < ZoomDisplay/2 )
+        else if( CentreSample < WindowSize/2 )
         {
-            SkipStart = ZoomDisplay/2 - CentreSample;
+            SkipStart = WindowSize/2 - CentreSample;
         }
 
-        // Determine SkipEnd
-        if( ( StartSample + ZoomDisplay/2 ) > Data_->samples_per_channel() )
+        if( ( StartSample + WindowSize ) > Data_->samples_per_channel() )
         {
-            SkipEnd = StartSample + ZoomDisplay/2 - Data_->samples_per_channel();
+            SkipEnd = StartSample + WindowSize - Data_->samples_per_channel();
         }
 
         // Add points to vector
-        unsigned i=SkipStart;
-        for( unsigned long long s=StartSample ; s<StartSample+Points.size()-SkipStart-SkipEnd; ++s, ++i )
+        std::size_t i = SkipStart;
+        std::size_t End = StartSample + WindowSize - SkipStart - SkipEnd;
+
+        for( auto s = StartSample ; s<End; ++s, ++i )
         {
             auto Sample = Data_->normalised_sample( s, c );
-
             auto Xpoint = ChannelRect.left() + i * ChannelRect.width() / Points.size();
             auto Ypoint = ChannelRect.top() + ( 1.0 - Sample ) * ChannelRect.height() / 2;
             Points[i] = QPointF( Xpoint, Ypoint );
@@ -158,7 +165,7 @@ paintEvent( QPaintEvent* Event )
 
         // Draw wave
         Painter.setPen( QColor( 68, 189, 45, 255 ) );
-        Painter.drawPolyline( &Points[SkipStart], Points.size()-(SkipStart - SkipEnd) );
+        Painter.drawPolyline( &Points[SkipStart], Points.size()-SkipStart -SkipEnd );
 
         // Overlay X-Axis
         Painter.setPen( QColor( 255, 255, 255, 127 ) );

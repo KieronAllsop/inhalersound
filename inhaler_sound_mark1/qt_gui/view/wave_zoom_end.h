@@ -39,6 +39,8 @@ public:
 
     void                    reset                       (   const shared_data_t& Data   );
 
+    void                    clear                       ();
+
     void                    set_play_position           (   std::chrono::nanoseconds Position   );
 
     void                    paintEvent                  (   QPaintEvent* Event   );

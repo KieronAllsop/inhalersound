@@ -37,7 +37,8 @@ public:
     using data_t                = qt::audio::raw_data;
     using shared_data_t         = std::shared_ptr<data_t>;
     using nanoseconds_t         = std::chrono::nanoseconds;
-    using selection_handler_t   = std::function<void( const nanoseconds_t& Start, const nanoseconds_t& End )>;
+    using selection_handler_t   = std::function<void( const nanoseconds_t& Start, const nanoseconds_t& End,
+                                                      const std::size_t& StartSample, const std::size_t& EndSample)>;
 
 public:
 
@@ -49,6 +50,10 @@ public:
     void                    set_play_position           (   nanoseconds_t Position   );
 
     void                    reset_play_position         ();
+
+    void                    set_selection_start         (   nanoseconds_t Position   );
+
+    void                    set_selection_end           (   nanoseconds_t Position   );
 
 protected:
 
@@ -109,17 +114,20 @@ private:
     selection_handler_t             SelectionHandler_;
     shared_data_t                   Data_;
     std::vector<preview_sample_t>   Preview_;
-    nanoseconds_t                   PlayPosition_;
+    nanoseconds_t                   PlayPositionTime_;
 
-    double                          PlayPercent_;
+    double                          PlayPositionPercent_;
 
     QPixmap                         StaticPreview_;
     std::vector<QRectF>             PreviewChannelRect_;
 
     selection_mode                  SelectionMode_;
 
-    double                          SelectionStart_;
-    double                          SelectionEnd_;
+    double                          SelectionStartPercent_;
+    double                          SelectionEndPercent_;
+
+    nanoseconds_t                   NewStartPosition_;
+    nanoseconds_t                   NewEndPosition_;
 };
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
