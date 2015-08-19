@@ -29,8 +29,7 @@ SOURCES +=  application/main.cpp \
             qt_gui/view/wave_form.cpp \
             qt_gui/view/explore_wave.cpp \
             qt/audio/audio_buffer_test.cpp \
-    qt_gui/view/wave_zoom_start.cpp \
-    qt_gui/view/wave_zoom_end.cpp
+    qt_gui/view/wave_zoom.cpp
 
 HEADERS += \
             data_model/schema.hpp \
@@ -62,9 +61,8 @@ HEADERS += \
             qt/audio/audio_player.hpp \
             qt/audio/play_status.hpp \
             qt/audio/probe_status.hpp \
-    qt_gui/view/wave_zoom_start.h \
-    qt_gui/view/wave_zoom_end.h \
-    qt/audio/vocabulary_kind.hpp
+    qt/audio/vocabulary_kind.hpp \
+    qt_gui/view/wave_zoom.h
 
 FORMS   +=
 

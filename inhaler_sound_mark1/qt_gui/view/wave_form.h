@@ -53,7 +53,11 @@ public:
 
     void                    set_selection_start         (   nanoseconds_t Position   );
 
+    void                    set_label_start             (   nanoseconds_t Position   );
+
     void                    set_selection_end           (   nanoseconds_t Position   );
+
+    void                    set_label_end               (   nanoseconds_t Position   );
 
 protected:
 
@@ -123,11 +127,15 @@ private:
 
     selection_mode                  SelectionMode_;
 
-    double                          SelectionStartPercent_;
-    double                          SelectionEndPercent_;
+    double                          SelectionStart_;
+    double                          SelectionEnd_;
 
-    nanoseconds_t                   NewStartPosition_;
-    nanoseconds_t                   NewEndPosition_;
+    nanoseconds_t                   StartPosition_;
+    nanoseconds_t                   EndPosition_;
+
+    bool                            FineTuning_;
+    double                          FineTuneStartFactor_;
+    double                          FineTuneEndFactor_;
 };
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n

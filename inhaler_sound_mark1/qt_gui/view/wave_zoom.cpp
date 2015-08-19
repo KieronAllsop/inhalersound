@@ -1,7 +1,7 @@
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
 // Self Include
-#include "qt_gui/view/wave_zoom_start.h"
+#include "qt_gui/view/wave_zoom.h"
 
 // Qt Includes
 #include <QPainter>
@@ -21,8 +21,8 @@ namespace view {
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 
 
-wave_zoom_start::
-wave_zoom_start
+wave_zoom::
+wave_zoom
 (   QWidget* Parent   )
 : QWidget(Parent)
 , PlayPosition_( std::chrono::nanoseconds( 0 ) )
@@ -30,7 +30,7 @@ wave_zoom_start
 }
 
 
-void wave_zoom_start::
+void wave_zoom::
 reset( const shared_data_t& Data )
 {
     Data_ = Data;
@@ -38,7 +38,7 @@ reset( const shared_data_t& Data )
 }
 
 
-void wave_zoom_start::
+void wave_zoom::
 clear()
 {
     PlayPosition_ = std::chrono::nanoseconds( 0 );
@@ -46,7 +46,7 @@ clear()
 }
 
 
-void wave_zoom_start::
+void wave_zoom::
 set_play_position( std::chrono::nanoseconds Position )
 {
     PlayPosition_ = Position;
@@ -54,7 +54,7 @@ set_play_position( std::chrono::nanoseconds Position )
 }
 
 
-void wave_zoom_start::
+void wave_zoom::
 paintEvent( QPaintEvent* Event )
 {
     if( !Data_ )

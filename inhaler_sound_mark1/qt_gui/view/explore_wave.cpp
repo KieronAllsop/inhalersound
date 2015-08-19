@@ -5,8 +5,9 @@
 
 // qt_gui/view includes
 #include "qt_gui/view/wave_form.h"
-#include "qt_gui/view/wave_zoom_start.h"
-#include "qt_gui/view/wave_zoom_end.h"
+#include "qt_gui/view/wave_zoom.h"
+//#include "qt_gui/view/wave_zoom_start.h"
+//#include "qt_gui/view/wave_zoom_end.h"
 
 // Qt Includes
 #include <QPushButton>
@@ -57,10 +58,10 @@ explore_wave
             this   )   )
 
 , WaveZoomStartView_
-    (   new qt_gui::view::wave_zoom_start( this ) )
+    (   new qt_gui::view::wave_zoom( this ) )
 
 , WaveZoomEndView_
-    (   new qt_gui::view::wave_zoom_end( this ) )
+    (   new qt_gui::view::wave_zoom( this ) )
 
 , PlayPauseWave_Button_     ( new QPushButton( this ) )
 , StopWave_Button_          ( new QPushButton( this ) )
@@ -71,9 +72,10 @@ explore_wave
 , EndZoomPosition_Label_    ( new QLabel( this ) )
 , LabelWave_Label_          ( new QLabel( this ) )
 , LabelWave_LineEdit_       ( new QLineEdit( this ) )
-, SaveWaveLabel_Button_     ( new QPushButton( this ) )
-, ClearWaveLabel_Button_    ( new QPushButton( this ) )
-, DeleteLabelRow_Button_    ( new QPushButton( this ) )
+, AddWaveLabel_Button_      ( new QPushButton( this ) )
+, ClearWaveLineEdit_Button_ ( new QPushButton( this ) )
+, RemoveLabelRow_Button_    ( new QPushButton( this ) )
+, EditLabelRow_Button_      ( new QPushButton( this ) )
 , LabelTreeView_            ( new QTreeView( this ) )
 , LabelModel_               ( new QStandardItemModel( this ) )
 , Start_FineTune_Lower_     ( new QPushButton( this ) )
@@ -82,6 +84,7 @@ explore_wave
 , End_FineTune_Higher_      ( new QPushButton( this ) )
 , SelectionMade_            ( false )
 , RowSelected_              ( false )
+, BeingEditted_             ( false )
 {
     TimestampFacet_->format( "%Y-%m-%d %H:%M" );
 
@@ -110,9 +113,10 @@ connect_event_handlers()
     connect( PlaySelection_, &QRadioButton::clicked, [this]( const bool& Checked ){ on_selected_wave( Checked ); } );
     connect( ClearSelection_, &QPushButton::released, [this](){ on_clear_selection(); } );
     connect( LabelWave_LineEdit_, &QLineEdit::textChanged, [this](){ on_label_typed(); } );
-    connect( ClearWaveLabel_Button_, &QPushButton::released, [this](){ on_clear_wave_label(); } );
-    connect( DeleteLabelRow_Button_, &QPushButton::released, [this](){ on_remove_wave_label(); } );
-    connect( SaveWaveLabel_Button_, &QPushButton::released, [this](){ on_add_wave_label(); } );
+    connect( ClearWaveLineEdit_Button_, &QPushButton::released, [this](){ on_clear_wave_label(); } );
+    connect( RemoveLabelRow_Button_, &QPushButton::released, [this](){ on_remove_wave_label(); } );
+    connect( AddWaveLabel_Button_, &QPushButton::released, [this](){ on_add_wave_label(); } );
+    connect( EditLabelRow_Button_, &QPushButton::released, [this](){ on_edit_wave_label(); } );
     connect( Start_FineTune_Lower_, &QPushButton::pressed, [this](){ on_start_left_arrow(); } );
     connect( Start_FineTune_Higher_, &QPushButton::pressed, [this](){ on_start_right_arrow(); } );
     connect( End_FineTune_Lower_, &QPushButton::pressed, [this](){ on_end_left_arrow(); } );
@@ -131,11 +135,32 @@ connect_event_handlers()
 
 
 void explore_wave::
+on_edit_wave_label()
+{
+    if( RowSelected_ )
+    {
+        std::string Label = LabelData_.at( SelectedRow_ ).label_name();
+        LabelWave_LineEdit_->setText( QString::fromStdString( Label ) );
+        WaveFormView_->reset_play_position();
+
+        StartSample_ = LabelData_.at( SelectedRow_ ).label_start();
+        auto LabelStart = ( std::chrono::nanoseconds( StartSample_ * 1000000000 / Data_->format().sample_rate() ) );
+        std::cout << "LabelStart.count = " << LabelStart.count() << std::endl;
+        WaveFormView_->set_label_start( LabelStart );
+
+        EndSample_ = LabelData_.at( SelectedRow_ ).label_end();
+        auto LabelEnd = ( std::chrono::nanoseconds( EndSample_ * 1000000000 / Data_->format().sample_rate() ) );
+        WaveFormView_->set_label_end( LabelEnd );
+    }
+}
+
+
+void explore_wave::
 on_add_wave_label()
 {
     auto Item = qt::audio::labelled_vocabulary( LabelWave_LineEdit_->text().toStdString(),
                                                 StartSample_, EndSample_ );
-    LabelFileData_.push_back( Item );
+    LabelData_.push_back( Item );
 
     QList<QStandardItem*> Items;
     Items.append( new QStandardItem( QString( tr( "%1" ).arg( StartSample_ ) ) ) );
@@ -158,7 +183,7 @@ on_remove_wave_label()
 
         if( Confirm.exec() == QMessageBox::Ok )
         {
-            LabelFileData_.erase( LabelFileData_.begin() + SelectedRow_ );
+            LabelData_.erase( LabelData_.begin() + SelectedRow_ );
             LabelModel_->removeRows( SelectedRow_, 1 );
         }
         RowSelected_ = false;
@@ -172,7 +197,7 @@ void explore_wave::
 on_row_selection_changed( const QModelIndex& Current, const QModelIndex& Previous )
 {
     RowSelected_ = true;
-    DeleteLabelRow_Button_->setEnabled( true );
+    RemoveLabelRow_Button_->setEnabled( true );
     SelectedRow_ = Current.row();
 }
 
@@ -193,12 +218,14 @@ initialise_widgets()
 
     LabelWave_Label_->setText( "Enter Word" );
     LabelWave_LineEdit_->setEnabled( false );
-    SaveWaveLabel_Button_->setIcon( style()->standardIcon( QStyle::SP_DialogYesButton ) );
-    SaveWaveLabel_Button_->setEnabled( false );
-    ClearWaveLabel_Button_->setIcon( style()->standardIcon( QStyle::SP_DialogNoButton ) );
-    ClearWaveLabel_Button_->setEnabled( false );
-    DeleteLabelRow_Button_->setIcon( style()->standardIcon( QStyle::SP_DialogDiscardButton ) );
-    DeleteLabelRow_Button_->setEnabled( false );
+    AddWaveLabel_Button_->setIcon( style()->standardIcon( QStyle::SP_DialogApplyButton ) );
+    AddWaveLabel_Button_->setEnabled( false );
+    ClearWaveLineEdit_Button_->setIcon( style()->standardIcon( QStyle::SP_LineEditClearButton ) );
+    ClearWaveLineEdit_Button_->setEnabled( false );
+    RemoveLabelRow_Button_->setIcon( style()->standardIcon( QStyle::SP_DialogDiscardButton ) );
+    RemoveLabelRow_Button_->setEnabled( false );
+    EditLabelRow_Button_->setIcon( style()->standardIcon( QStyle::SP_DialogOpenButton ) );
+    EditLabelRow_Button_->setEnabled( true );  // fix this
 
     Start_FineTune_Lower_->setIcon( style()->standardIcon( QStyle::SP_ArrowLeft ) );
     Start_FineTune_Lower_->setEnabled( false );
@@ -218,7 +245,6 @@ initialise_widgets()
     LabelTreeView_->setSelectionBehavior( QTreeView::SelectRows );
     LabelTreeView_->setUniformRowHeights( true );
     LabelTreeView_->setSelectionMode( QTreeView::SingleSelection );
-    LabelTreeView_->setEditTriggers( QTreeView::DoubleClicked );
 
     LabelModel_->setColumnCount( 3 );
 
@@ -283,15 +309,16 @@ initialise_layout()
 
     QHBoxLayout* WaveZoomButtonsLayout = new QHBoxLayout();
 
-    WaveZoomButtonsLayout->addWidget( SaveWaveLabel_Button_, 0, Qt::AlignCenter );
-    WaveZoomButtonsLayout->addWidget( ClearWaveLabel_Button_, 0, Qt::AlignCenter );
+    WaveZoomButtonsLayout->addWidget( AddWaveLabel_Button_, 0, Qt::AlignCenter );
+    WaveZoomButtonsLayout->addWidget( ClearWaveLineEdit_Button_, 0, Qt::AlignCenter );
 
     QVBoxLayout* WaveZoomDetailEntry = new QVBoxLayout();
 
     WaveZoomDetailEntry->addWidget( LabelWave_LineEdit_ );
     WaveZoomDetailEntry->addLayout( WaveZoomButtonsLayout );
     WaveZoomDetailEntry->addWidget( LabelTreeView_ );
-    WaveZoomDetailEntry->addWidget( DeleteLabelRow_Button_, 0, Qt::AlignCenter );
+    WaveZoomDetailEntry->addWidget( EditLabelRow_Button_, 0, Qt::AlignCenter );
+    WaveZoomDetailEntry->addWidget( RemoveLabelRow_Button_, 0, Qt::AlignCenter );
     WaveZoomDetailEntry->addStretch();
 
     QHBoxLayout* WaveZoomLayout = new QHBoxLayout();
@@ -431,36 +458,45 @@ set_zoom_sample_labels( )
 void explore_wave::
 on_start_left_arrow()
 {
-    WaveFormView_->set_selection_start( std::chrono::milliseconds( -1000 ) );
+    std::size_t SampleChange = 10;
+    auto TimeChange = ( std::chrono::nanoseconds( SampleChange * 1000000000 / Data_->format().sample_rate() ) );
+    WaveFormView_->set_selection_start( -TimeChange );
 }
 
 
 void explore_wave::
 on_start_right_arrow()
 {
-    WaveFormView_->set_selection_start( std::chrono::milliseconds( 1000 ) );
+    std::size_t SampleChange = 10;
+    auto TimeChange = ( std::chrono::nanoseconds( SampleChange * 1000000000 / Data_->format().sample_rate() ) );
+    WaveFormView_->set_selection_start( TimeChange );
 }
 
 
 void explore_wave::
 on_end_left_arrow()
 {
-    WaveFormView_->set_selection_end( std::chrono::milliseconds( -1000 ) );
+    std::size_t SampleChange = 10;
+    auto TimeChange = ( std::chrono::nanoseconds( SampleChange * 1000000000 / Data_->format().sample_rate() ) );
+    WaveFormView_->set_selection_end( -TimeChange );
 }
 
 
 void explore_wave::
 on_end_right_arrow()
 {
-    WaveFormView_->set_selection_end( std::chrono::milliseconds( 1000 ) );
+    std::size_t SampleChange = 10;
+    auto TimeChange = ( std::chrono::nanoseconds( SampleChange * 1000000000 / Data_->format().sample_rate() ) );
+    WaveFormView_->set_selection_end( TimeChange );
+
 }
 
 
 void explore_wave::
 on_label_typed()
 {
-    SaveWaveLabel_Button_->setEnabled( true );
-    ClearWaveLabel_Button_->setEnabled( true );
+    AddWaveLabel_Button_->setEnabled( true );
+    ClearWaveLineEdit_Button_->setEnabled( true );
 }
 
 
@@ -502,8 +538,8 @@ handler_selection_update
     PlaySelection_->setEnabled( true );
 
     LabelWave_LineEdit_->setEnabled( true );
-    SaveWaveLabel_Button_->setEnabled( true );
-    ClearWaveLabel_Button_->setEnabled( true );
+    AddWaveLabel_Button_->setEnabled( true );
+    ClearWaveLineEdit_Button_->setEnabled( true );
     Start_FineTune_Lower_->setEnabled( true );
     Start_FineTune_Higher_->setEnabled( true );
     End_FineTune_Lower_->setEnabled( true );
@@ -525,8 +561,8 @@ on_clear_selection()
     PlaySelection_->setEnabled( false );
     ClearSelection_->setEnabled( false );
     LabelWave_LineEdit_->setEnabled( false );
-    SaveWaveLabel_Button_->setEnabled( false );
-    ClearWaveLabel_Button_->setEnabled( false );
+    AddWaveLabel_Button_->setEnabled( false );
+    ClearWaveLineEdit_Button_->setEnabled( false );
     Start_FineTune_Lower_->setEnabled( false );
     Start_FineTune_Higher_->setEnabled( false );
     End_FineTune_Lower_->setEnabled( false );

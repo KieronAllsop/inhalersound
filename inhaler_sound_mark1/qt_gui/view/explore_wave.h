@@ -40,8 +40,9 @@ namespace qt_gui {
 namespace view {
 
     class wave_form;
-    class wave_zoom_start;
-    class wave_zoom_end;
+    class wave_zoom;
+//    class wave_zoom_start;
+//    class wave_zoom_end;
 
 }
 }
@@ -164,8 +165,8 @@ private:
     QFrame*                         WaveView_Frame_;
     QFrame*                         WaveZoom_Frame_;
     wave_form*                      WaveFormView_;
-    wave_zoom_start*                WaveZoomStartView_;
-    wave_zoom_end*                  WaveZoomEndView_;
+    wave_zoom*                      WaveZoomStartView_;
+    wave_zoom*                      WaveZoomEndView_;
 
     QPushButton*                    PlayPauseWave_Button_;
     QPushButton*                    StopWave_Button_;
@@ -178,9 +179,10 @@ private:
     QLabel*                         EndZoomPosition_Label_;
     QLabel*                         LabelWave_Label_;
     QLineEdit*                      LabelWave_LineEdit_;
-    QPushButton*                    SaveWaveLabel_Button_;
-    QPushButton*                    ClearWaveLabel_Button_;
-    QPushButton*                    DeleteLabelRow_Button_;
+    QPushButton*                    AddWaveLabel_Button_;
+    QPushButton*                    ClearWaveLineEdit_Button_;
+    QPushButton*                    RemoveLabelRow_Button_;
+    QPushButton*                    EditLabelRow_Button_;
 
     QTreeView*                      LabelTreeView_;
     QStandardItemModel*             LabelModel_;
@@ -193,6 +195,8 @@ private:
 
     bool                            SelectionMade_;
     bool                            RowSelected_;
+    bool                            BeingEditted_;
+    int                             EdittedRow_;
 
 };
 

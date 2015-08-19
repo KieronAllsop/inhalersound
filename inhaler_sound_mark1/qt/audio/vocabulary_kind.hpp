@@ -38,12 +38,30 @@ public:
 }
     // Observers here
 
+    const std::string& label_name() const
+    {
+        return Label_;
+    }
+
+    const std::size_t& label_start() const
+    {
+        return Start_;
+    }
+
+    const std::size_t& label_end() const
+    {
+        return End_;
+    }
+
+
 private:
     vocabulary_kind Kind_;
     std::string Label_;
     std::size_t Start_;
     std::size_t End_;
 };
+
+
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 } // audio
