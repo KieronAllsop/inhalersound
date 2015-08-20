@@ -145,12 +145,14 @@ on_edit_wave_label()
 
         StartSample_ = LabelData_.at( SelectedRow_ ).label_start();
         auto LabelStart = ( std::chrono::nanoseconds( StartSample_ * 1000000000 / Data_->format().sample_rate() ) );
-        std::cout << "LabelStart.count = " << LabelStart.count() << std::endl;
-        WaveFormView_->set_label_start( LabelStart );
+        WaveFormView_->set_selection_start( LabelStart );
 
         EndSample_ = LabelData_.at( SelectedRow_ ).label_end();
         auto LabelEnd = ( std::chrono::nanoseconds( EndSample_ * 1000000000 / Data_->format().sample_rate() ) );
-        WaveFormView_->set_label_end( LabelEnd );
+        WaveFormView_->set_selection_end( LabelEnd );
+
+        PlaySelection_->click();
+        PlaySelection_->click();
     }
 }
 
@@ -412,14 +414,16 @@ reset
 }
 
 
-void explore_wave::enable_playing()
+void explore_wave::
+enable_playing()
 {
     PlayPauseWave_Button_->setEnabled( true );
     StopWave_Button_->setEnabled( true );
 }
 
 
-void explore_wave::disable_playing()
+void explore_wave::
+disable_playing()
 {
     PlayPauseWave_Button_->setEnabled( false );
     StopWave_Button_->setEnabled( false );
@@ -458,36 +462,36 @@ set_zoom_sample_labels( )
 void explore_wave::
 on_start_left_arrow()
 {
-    std::size_t SampleChange = 10;
-    auto TimeChange = ( std::chrono::nanoseconds( SampleChange * 1000000000 / Data_->format().sample_rate() ) );
-    WaveFormView_->set_selection_start( -TimeChange );
+    std::size_t NewSample = StartSample_ - 10;
+    auto TimeChanged = ( std::chrono::nanoseconds( NewSample * 1'000'000'000 / Data_->format().sample_rate() ) );
+    WaveFormView_->set_selection_start( TimeChanged );
 }
 
 
 void explore_wave::
 on_start_right_arrow()
 {
-    std::size_t SampleChange = 10;
-    auto TimeChange = ( std::chrono::nanoseconds( SampleChange * 1000000000 / Data_->format().sample_rate() ) );
-    WaveFormView_->set_selection_start( TimeChange );
+    std::size_t NewSample = StartSample_ + 10;
+    auto TimeChanged = ( std::chrono::nanoseconds( NewSample * 1'000'000'000 / Data_->format().sample_rate() ) );
+    WaveFormView_->set_selection_start( TimeChanged );
 }
 
 
 void explore_wave::
 on_end_left_arrow()
 {
-    std::size_t SampleChange = 10;
-    auto TimeChange = ( std::chrono::nanoseconds( SampleChange * 1000000000 / Data_->format().sample_rate() ) );
-    WaveFormView_->set_selection_end( -TimeChange );
+    std::size_t NewSample = EndSample_ - 10;
+    auto TimeChanged = ( std::chrono::nanoseconds( NewSample * 1'000'000'000 / Data_->format().sample_rate() ) );
+    WaveFormView_->set_selection_end( TimeChanged );
 }
 
 
 void explore_wave::
 on_end_right_arrow()
 {
-    std::size_t SampleChange = 10;
-    auto TimeChange = ( std::chrono::nanoseconds( SampleChange * 1000000000 / Data_->format().sample_rate() ) );
-    WaveFormView_->set_selection_end( TimeChange );
+    std::size_t NewSample = EndSample_ + 10;
+    auto TimeChanged = ( std::chrono::nanoseconds( NewSample * 1'000'000'000 / Data_->format().sample_rate() ) );
+    WaveFormView_->set_selection_end( TimeChanged );
 
 }
 
@@ -520,6 +524,13 @@ handler_selection_update
             && ( SelectionStart_ != Start || SelectionEnd_ != End ) )
     {
         PlaySelection_->click();
+        PlaySelection_->click();
+    }
+
+    if( PlaySelection_->isEnabled()
+            && SelectionMade_ == true
+            && ( SelectionStart_ == SelectionEnd_ ) )
+    {
         PlaySelection_->click();
     }
 

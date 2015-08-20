@@ -42,7 +42,6 @@ wave_form
 , SelectionEnd_             ( 0.0 )
 , StartPosition_            ( nanoseconds_t( 0 ) )
 , EndPosition_              ( nanoseconds_t( 0 ) )
-, FineTuning_               ( false )
 , FineTuneStartFactor_      ( 0.0 )
 , FineTuneEndFactor_        ( 0.0 )
 {
@@ -162,18 +161,14 @@ set_play_position( nanoseconds_t Position )
 void wave_form::
 set_selection_start( nanoseconds_t Position )
 {
-    FineTuning_ = true;
-    auto NewStartPosition_ = StartPosition_ + Position;
-    FineTuneStartFactor_ = static_cast<double>( NewStartPosition_.count() ) / Data_->duration().count();
-    update_start_and_end();
-}
-
-
-void wave_form::
-set_label_start( nanoseconds_t Position )
-{
-    FineTuning_ = true;
+    auto Left = PreviewChannelRect_[0].left();
+    auto Width = PreviewChannelRect_[0].width();
     FineTuneStartFactor_ = static_cast<double>( Position.count() ) / Data_->duration().count();
+    SelectionStart_ = FineTuneStartFactor_*Width + Left;
+    if( SelectionStart_ > Width + Left )
+    {
+        SelectionStart_ = Left;
+    }
     update_start_and_end();
 }
 
@@ -181,18 +176,14 @@ set_label_start( nanoseconds_t Position )
 void wave_form::
 set_selection_end( nanoseconds_t Position )
 {
-    FineTuning_ = true;
-    auto NewEndPosition_ = EndPosition_ + Position;
-    FineTuneEndFactor_ = static_cast<double>( NewEndPosition_.count() ) / Data_->duration().count();
-    update_start_and_end();
-}
-
-
-void wave_form::
-set_label_end( nanoseconds_t Position )
-{
-    FineTuning_ = true;
+    auto Left = PreviewChannelRect_[0].left();
+    auto Width = PreviewChannelRect_[0].width();
     FineTuneEndFactor_ = static_cast<double>( Position.count() ) / Data_->duration().count();
+    SelectionEnd_ = FineTuneEndFactor_*Width + Left;
+    if( SelectionEnd_ > Width + Left )
+    {
+        SelectionEnd_ = Width + Left;
+    }
     update_start_and_end();
 }
 
@@ -436,45 +427,18 @@ update_start_and_end()
 {
     auto Left = PreviewChannelRect_[0].left();
     auto Width = PreviewChannelRect_[0].width();
-    std::size_t StartSample;
-    std::size_t EndSample;
-    nanoseconds_t StartPosition;
-    nanoseconds_t EndPosition;
 
-    if ( FineTuning_ == true )
+    auto StartSample = 0.5 + Data_->samples_per_channel() * ( SelectionStart_ - Left ) / Width;
+    StartPosition_ = Data_->duration_from( StartSample );
+    EndPosition_ = StartPosition_;
+    if( SelectionEnd_ > 0.0 )
     {
-        if( FineTuneStartFactor_ > 0.0 )
-        {
-            StartSample = 0.5 + Data_->samples_per_channel() * FineTuneStartFactor_;
-            StartPosition = Data_->duration_from( StartSample );
-            EndPosition = StartPosition;
-            SelectionStart_ = FineTuneStartFactor_*Width + Left;
-        }
-        if( FineTuneEndFactor_ > 0.0 )
-        {
-            EndSample = 0.5 + Data_->samples_per_channel() * FineTuneEndFactor_;
-            EndPosition = Data_->duration_from( EndSample );
-            SelectionEnd_ = FineTuneEndFactor_*Width + Left;
-        }
-        FineTuning_ = false;
+        auto EndSample = 0.5 + Data_->samples_per_channel() * ( SelectionEnd_ - Left ) / Width;
+        EndPosition_ = Data_->duration_from( EndSample );
     }
-    else
-    {
-        StartSample = 0.5 + Data_->samples_per_channel() * ( SelectionStart_ - Left ) / Width;
-        StartPosition = Data_->duration_from( StartSample );
-        EndPosition = StartPosition;
-        if( SelectionEnd_ > 0.0 )
-        {
-            std::size_t EndSample = 0.5 + Data_->samples_per_channel() * ( SelectionEnd_ - Left ) / Width;
-            EndPosition = Data_->duration_from( EndSample );
-        }
-     }
 
-    std::size_t StartSelectionSample = StartPosition.count()*Data_->format().sample_rate() / 1000000000;
-    std::size_t EndSelectionSample = EndPosition.count()*Data_->format().sample_rate() / 1000000000;
-
-    StartPosition_ = StartPosition;
-    EndPosition_ = EndPosition;
+    std::size_t StartSelectionSample = StartPosition_.count()*Data_->format().sample_rate() / 1'000'000'000;
+    std::size_t EndSelectionSample = EndPosition_.count()*Data_->format().sample_rate() / 1'000'000'000;
 
     if( SelectionHandler_ )
     {

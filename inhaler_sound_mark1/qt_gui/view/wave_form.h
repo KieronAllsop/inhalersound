@@ -133,7 +133,6 @@ private:
     nanoseconds_t                   StartPosition_;
     nanoseconds_t                   EndPosition_;
 
-    bool                            FineTuning_;
     double                          FineTuneStartFactor_;
     double                          FineTuneEndFactor_;
 };
