@@ -186,7 +186,6 @@ private:
 
     QTreeView*                      LabelTreeView_;
     QStandardItemModel*             LabelModel_;
-    int                             SelectedRow_;
 
     QPushButton*                    Start_FineTune_Lower_;
     QPushButton*                    Start_FineTune_Higher_;
@@ -195,8 +194,9 @@ private:
 
     bool                            SelectionMade_;
     bool                            RowSelected_;
-    bool                            BeingEditted_;
-    int                             EdittedRow_;
+    bool                            BeingEdited_;
+    int                             SelectedRow_;
+    int                             EditedRow_;
 
 };
 
