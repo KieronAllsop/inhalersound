@@ -183,6 +183,7 @@ private:
     QPushButton*                    ClearWaveLineEdit_Button_;
     QPushButton*                    RemoveLabelRow_Button_;
     QPushButton*                    EditLabelRow_Button_;
+    QPushButton*                    ClearLabelRowSelection_Button_;
 
     QTreeView*                      LabelTreeView_;
     QStandardItemModel*             LabelModel_;

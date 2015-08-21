@@ -63,30 +63,31 @@ explore_wave
 , WaveZoomEndView_
     (   new qt_gui::view::wave_zoom( this ) )
 
-, PlayPauseWave_Button_     ( new QPushButton( this ) )
-, StopWave_Button_          ( new QPushButton( this ) )
-, Position_Label_           ( new QLabel( this ) )
-, PlaySelection_            ( new QRadioButton( this ) )
-, ClearSelection_           ( new QPushButton( this ) )
-, StartZoomPosition_Label_  ( new QLabel( this ) )
-, EndZoomPosition_Label_    ( new QLabel( this ) )
-, LabelWave_Label_          ( new QLabel( this ) )
-, LabelWave_LineEdit_       ( new QLineEdit( this ) )
-, AddWaveLabel_Button_      ( new QPushButton( this ) )
-, ClearWaveLineEdit_Button_ ( new QPushButton( this ) )
-, RemoveLabelRow_Button_    ( new QPushButton( this ) )
-, EditLabelRow_Button_      ( new QPushButton( this ) )
-, LabelTreeView_            ( new QTreeView( this ) )
-, LabelModel_               ( new QStandardItemModel( this ) )
-, Start_FineTune_Lower_     ( new QPushButton( this ) )
-, Start_FineTune_Higher_    ( new QPushButton( this ) )
-, End_FineTune_Lower_       ( new QPushButton( this ) )
-, End_FineTune_Higher_      ( new QPushButton( this ) )
-, SelectionMade_            ( false )
-, RowSelected_              ( false )
-, BeingEdited_              ( false )
-, SelectedRow_              ( -1 )
-, EditedRow_                ( -1 )
+, PlayPauseWave_Button_             ( new QPushButton( this ) )
+, StopWave_Button_                  ( new QPushButton( this ) )
+, Position_Label_                   ( new QLabel( this ) )
+, PlaySelection_                    ( new QRadioButton( this ) )
+, ClearSelection_                   ( new QPushButton( this ) )
+, StartZoomPosition_Label_          ( new QLabel( this ) )
+, EndZoomPosition_Label_            ( new QLabel( this ) )
+, LabelWave_Label_                  ( new QLabel( this ) )
+, LabelWave_LineEdit_               ( new QLineEdit( this ) )
+, AddWaveLabel_Button_              ( new QPushButton( this ) )
+, ClearWaveLineEdit_Button_         ( new QPushButton( this ) )
+, RemoveLabelRow_Button_            ( new QPushButton( this ) )
+, EditLabelRow_Button_              ( new QPushButton( this ) )
+, ClearLabelRowSelection_Button_    ( new QPushButton( this ) )
+, LabelTreeView_                    ( new QTreeView( this ) )
+, LabelModel_                       ( new QStandardItemModel( this ) )
+, Start_FineTune_Lower_             ( new QPushButton( this ) )
+, Start_FineTune_Higher_            ( new QPushButton( this ) )
+, End_FineTune_Lower_               ( new QPushButton( this ) )
+, End_FineTune_Higher_              ( new QPushButton( this ) )
+, SelectionMade_                    ( false )
+, RowSelected_                      ( false )
+, BeingEdited_                      ( false )
+, SelectedRow_                      ( -1 )
+, EditedRow_                        ( -1 )
 {
     TimestampFacet_->format( "%Y-%m-%d %H:%M" );
 
@@ -129,6 +130,7 @@ initialise_widgets()
 
     LabelWave_Label_->setText( "Enter Word" );
     LabelWave_LineEdit_->setEnabled( false );
+    LabelWave_LineEdit_->setClearButtonEnabled( true );
 
     AddWaveLabel_Button_->setIcon( style()->standardIcon( QStyle::SP_DialogApplyButton ) );
     AddWaveLabel_Button_->setEnabled( false );
@@ -145,6 +147,9 @@ initialise_widgets()
 
     EditLabelRow_Button_->setText( "Edit Row" );
     EditLabelRow_Button_->setEnabled( false );
+
+    ClearLabelRowSelection_Button_->setText( "Clear Selection" );
+    ClearLabelRowSelection_Button_->setEnabled( false );
 
     Start_FineTune_Lower_->setIcon( style()->standardIcon( QStyle::SP_ArrowLeft ) );
     Start_FineTune_Lower_->setEnabled( false );
@@ -167,6 +172,7 @@ initialise_widgets()
     LabelTreeView_->setSelectionBehavior( QTreeView::SelectRows );
     LabelTreeView_->setUniformRowHeights( true );
     LabelTreeView_->setSelectionMode( QTreeView::SingleSelection );
+    LabelTreeView_->setEditTriggers( QTreeView::NoEditTriggers );
 
     LabelModel_->setColumnCount( 3 );
 
@@ -210,18 +216,23 @@ initialise_layout()
     WaveZoomLabelLayout->addWidget( End_FineTune_Higher_ );
     WaveZoomLabelLayout->addStretch( 22 );
 
-    QHBoxLayout* WaveZoomButtonsLayout = new QHBoxLayout();
+    QHBoxLayout* WaveZoomTopButtonRow = new QHBoxLayout();
 
-    WaveZoomButtonsLayout->addWidget( AddWaveLabel_Button_, 0, Qt::AlignCenter );
-    WaveZoomButtonsLayout->addWidget( ClearWaveLineEdit_Button_, 0, Qt::AlignCenter );
+    WaveZoomTopButtonRow->addWidget( AddWaveLabel_Button_, 0, Qt::AlignCenter );
+    WaveZoomTopButtonRow->addWidget( ClearWaveLineEdit_Button_, 0, Qt::AlignCenter );
+
+    QHBoxLayout* WaveZoomMiddleButtonRow = new QHBoxLayout();
+
+    WaveZoomMiddleButtonRow->addWidget( EditLabelRow_Button_ );
+    WaveZoomMiddleButtonRow->addWidget( RemoveLabelRow_Button_ );
 
     QVBoxLayout* WaveZoomDetailEntry = new QVBoxLayout();
 
     WaveZoomDetailEntry->addWidget( LabelWave_LineEdit_ );
-    WaveZoomDetailEntry->addLayout( WaveZoomButtonsLayout );
+    WaveZoomDetailEntry->addLayout( WaveZoomTopButtonRow );
     WaveZoomDetailEntry->addWidget( LabelTreeView_ );
-    WaveZoomDetailEntry->addWidget( EditLabelRow_Button_, 0, Qt::AlignCenter );
-    WaveZoomDetailEntry->addWidget( RemoveLabelRow_Button_, 0, Qt::AlignCenter );
+    WaveZoomDetailEntry->addWidget( ClearLabelRowSelection_Button_, 0, Qt::AlignCenter );
+    WaveZoomDetailEntry->addLayout( WaveZoomMiddleButtonRow );
     WaveZoomDetailEntry->addStretch();
 
     QHBoxLayout* WaveZoomLayout = new QHBoxLayout();
@@ -337,6 +348,8 @@ on_add_wave_label()
         LabelModel_->removeRows( EditedRow_, 1 );
         LabelModel_->insertRow( EditedRow_, Items );
         BeingEdited_ = false;
+        LabelWave_LineEdit_->clear();
+        LabelWave_LineEdit_->setEnabled( false );
         LabelTreeView_->reset();
         EditedRow_ = -1;
         SelectedRow_ = -1;
@@ -352,6 +365,8 @@ on_add_wave_label()
         Items.append( new QStandardItem( QString( tr( "%1" ).arg( EndSample_ ) ) ) );
         Items.append( new QStandardItem( QString( LabelWave_LineEdit_->text() ) ) );
         LabelModel_->appendRow( Items );
+        LabelWave_LineEdit_->clear();
+        LabelWave_LineEdit_->setEnabled( false );
     }
 }
 
@@ -562,6 +577,7 @@ void explore_wave::
 on_clear_wave_label()
 {
     LabelWave_LineEdit_->clear();
+    AddWaveLabel_Button_->setEnabled( false );
 }
 
 
@@ -602,8 +618,8 @@ handler_selection_update
     set_zoom_sample_labels();
 
     LabelWave_LineEdit_->setEnabled( true );
-    AddWaveLabel_Button_->setEnabled( true );
-    ClearWaveLineEdit_Button_->setEnabled( true );
+//    AddWaveLabel_Button_->setEnabled( true );
+//    ClearWaveLineEdit_Button_->setEnabled( true );
     Start_FineTune_Lower_->setEnabled( true );
     Start_FineTune_Higher_->setEnabled( true );
     End_FineTune_Lower_->setEnabled( true );
