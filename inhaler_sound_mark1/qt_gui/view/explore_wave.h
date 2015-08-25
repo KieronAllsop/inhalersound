@@ -7,6 +7,7 @@
 
 // Inhaler Includes
 #include "inhaler/data_retriever.hpp"
+#include "inhaler/label_file_editor.hpp"
 
 // qt::audio Includes
 #include "qt/audio/raw_data.hpp"
@@ -27,7 +28,7 @@
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
-// Forward Delcarations
+// Forward Declarations
 class QLabel;
 class QPushButton;
 class QRadioButton;
@@ -35,14 +36,13 @@ class QLineEdit;
 class QTreeView;
 class QStandardItemModel;
 class QModelIndex;
+class QSlider;
 
 namespace qt_gui {
 namespace view {
 
     class wave_form;
     class wave_zoom;
-//    class wave_zoom_start;
-//    class wave_zoom_end;
 
 }
 }
@@ -66,6 +66,8 @@ public:
     using shared_data_t             = std::shared_ptr<data_t>;
     using player_t                  = qt::audio::audio_player;
     using vocabulary_t              = qt::audio::labelled_vocabulary;
+    using label_editor_t            = inhaler::label_file_editor;
+    using shared_label_editor_t     = std::shared_ptr<inhaler::label_file_editor>;
 
 public:
 
@@ -104,6 +106,8 @@ private:
 
     void                    on_edit_wave_label          ();
 
+    void                    on_commit_changes           ();
+
     void                    on_start_left_arrow         ();
 
     void                    on_end_left_arrow           ();
@@ -111,6 +115,10 @@ private:
     void                    on_start_right_arrow        ();
 
     void                    on_end_right_arrow          ();
+
+    void                    on_slider_changed           ();
+
+    std::string             to_string                   (   const std::size_t& Sample   );
 
 private:
 
@@ -152,6 +160,7 @@ private:
     shared_data_retriever_t         DataRetriever_;
     std::shared_ptr<player_t>       Player_;
     shared_data_t                   Data_;
+    shared_label_editor_t           LabelEditor_;
     std::chrono::nanoseconds        SelectionStart_;
     std::chrono::nanoseconds        SelectionEnd_;
     std::size_t                     StartSample_;
@@ -178,16 +187,23 @@ private:
     QLabel*                         StartZoomPosition_Label_;
     QLabel*                         EndZoomPosition_Label_;
     QLabel*                         LabelWave_Label_;
+    QLabel*                         EventLabelling_Label_;
+
     QLineEdit*                      LabelWave_LineEdit_;
     QPushButton*                    AddWaveLabel_Button_;
-    QPushButton*                    ClearWaveLineEdit_Button_;
     QPushButton*                    RemoveLabelRow_Button_;
     QPushButton*                    EditLabelRow_Button_;
-    QPushButton*                    ClearLabelRowSelection_Button_;
+    QPushButton*                    CommitToDatabase_Button_;
+    QPushButton*                    Revert_Button_;
 
     QTreeView*                      LabelTreeView_;
     QStandardItemModel*             LabelModel_;
 
+    QSlider*                        ZoomSample_Slider_;
+    QLabel*                         MinSample_Label_;
+    QLabel*                         MaxSample_Label_;
+    QLabel*                         ZoomSlider_Label_;
+    QLabel*                         ZoomIncrement_Label_;
     QPushButton*                    Start_FineTune_Lower_;
     QPushButton*                    Start_FineTune_Higher_;
     QPushButton*                    End_FineTune_Lower_;
@@ -198,6 +214,7 @@ private:
     bool                            BeingEdited_;
     int                             SelectedRow_;
     int                             EditedRow_;
+    std::size_t                     ZoomIncrement_;
 
 };
 

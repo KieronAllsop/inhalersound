@@ -84,8 +84,8 @@ struct wavelabelfile
 {
     quince::serial                  patientwave_id;         // primary key & foreign key
     int                             label_number;           // primary key
-    long                            start_sample;
-    long                            end_sample;
+    std::size_t                     start_sample;
+    std::size_t                     end_sample;
     std::string                     event;
 };
 QUINCE_MAP_CLASS(wavelabelfile, (patientwave_id)(label_number)(start_sample)(end_sample)(event))

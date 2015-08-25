@@ -71,7 +71,8 @@ reset_play_position()
 }
 
 
-unsigned wave_form::calculate_maxres()
+unsigned wave_form::
+calculate_maxres()
 {
     unsigned Res = 1900;
     auto LowestExtra = Data_->samples_per_channel() % Res;

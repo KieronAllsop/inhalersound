@@ -29,7 +29,8 @@ SOURCES +=  application/main.cpp \
             qt_gui/view/wave_form.cpp \
             qt_gui/view/explore_wave.cpp \
             qt/audio/audio_buffer_test.cpp \
-    qt_gui/view/wave_zoom.cpp
+    qt_gui/view/wave_zoom.cpp \
+    qt_gui/view/label_file_edit.cpp
 
 HEADERS += \
             data_model/schema.hpp \
@@ -62,7 +63,8 @@ HEADERS += \
             qt/audio/play_status.hpp \
             qt/audio/probe_status.hpp \
     qt/audio/vocabulary_kind.hpp \
-    qt_gui/view/wave_zoom.h
+    qt_gui/view/wave_zoom.h \
+    inhaler/label_file_editor.hpp
 
 FORMS   +=
 

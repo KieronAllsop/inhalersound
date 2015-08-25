@@ -6,8 +6,6 @@
 // qt_gui/view includes
 #include "qt_gui/view/wave_form.h"
 #include "qt_gui/view/wave_zoom.h"
-//#include "qt_gui/view/wave_zoom_start.h"
-//#include "qt_gui/view/wave_zoom_end.h"
 
 // Qt Includes
 #include <QPushButton>
@@ -23,9 +21,12 @@
 #include <QStandardItemModel>
 #include <QStringList>
 #include <QMessageBox>
+#include <QSlider>
 
 // C++ Standard Library Includes
 #include <chrono>
+#include <string>
+#include <sstream>
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
@@ -71,23 +72,32 @@ explore_wave
 , StartZoomPosition_Label_          ( new QLabel( this ) )
 , EndZoomPosition_Label_            ( new QLabel( this ) )
 , LabelWave_Label_                  ( new QLabel( this ) )
+
 , LabelWave_LineEdit_               ( new QLineEdit( this ) )
 , AddWaveLabel_Button_              ( new QPushButton( this ) )
-, ClearWaveLineEdit_Button_         ( new QPushButton( this ) )
 , RemoveLabelRow_Button_            ( new QPushButton( this ) )
 , EditLabelRow_Button_              ( new QPushButton( this ) )
-, ClearLabelRowSelection_Button_    ( new QPushButton( this ) )
+, CommitToDatabase_Button_          ( new QPushButton( this ) )
+, Revert_Button_                    ( new QPushButton( this ) )
 , LabelTreeView_                    ( new QTreeView( this ) )
 , LabelModel_                       ( new QStandardItemModel( this ) )
+
+, ZoomSample_Slider_                ( new QSlider( this ) )
+, MinSample_Label_                  ( new QLabel( this ) )
+, MaxSample_Label_                  ( new QLabel( this ) )
+, ZoomSlider_Label_                 ( new QLabel( this ) )
+, ZoomIncrement_Label_              ( new QLabel( this ) )
 , Start_FineTune_Lower_             ( new QPushButton( this ) )
 , Start_FineTune_Higher_            ( new QPushButton( this ) )
 , End_FineTune_Lower_               ( new QPushButton( this ) )
 , End_FineTune_Higher_              ( new QPushButton( this ) )
+
 , SelectionMade_                    ( false )
 , RowSelected_                      ( false )
 , BeingEdited_                      ( false )
 , SelectedRow_                      ( -1 )
 , EditedRow_                        ( -1 )
+, ZoomIncrement_                    ( 10 )
 {
     TimestampFacet_->format( "%Y-%m-%d %H:%M" );
 
@@ -129,18 +139,12 @@ initialise_widgets()
     EndZoomPosition_Label_->setText( "End Sample" );
 
     LabelWave_Label_->setText( "Enter Word" );
+
     LabelWave_LineEdit_->setEnabled( false );
     LabelWave_LineEdit_->setClearButtonEnabled( true );
 
-    AddWaveLabel_Button_->setIcon( style()->standardIcon( QStyle::SP_DialogApplyButton ) );
+    AddWaveLabel_Button_->setText( "Add Label" );
     AddWaveLabel_Button_->setEnabled( false );
-    AddWaveLabel_Button_->setToolTip( "Add Label" );
-    AddWaveLabel_Button_->setToolTipDuration( 1000 );
-
-    ClearWaveLineEdit_Button_->setIcon( style()->standardIcon( QStyle::SP_LineEditClearButton ) );
-    ClearWaveLineEdit_Button_->setEnabled( false );
-    ClearWaveLineEdit_Button_->setToolTip( "Clear Text" );
-    ClearWaveLineEdit_Button_->setToolTipDuration( 1000 );
 
     RemoveLabelRow_Button_->setText( "Delete Row" );
     RemoveLabelRow_Button_->setEnabled( false );
@@ -148,8 +152,38 @@ initialise_widgets()
     EditLabelRow_Button_->setText( "Edit Row" );
     EditLabelRow_Button_->setEnabled( false );
 
-    ClearLabelRowSelection_Button_->setText( "Clear Selection" );
-    ClearLabelRowSelection_Button_->setEnabled( false );
+    CommitToDatabase_Button_->setText( "Commit changes" );
+    CommitToDatabase_Button_->setEnabled( true );
+
+    Revert_Button_->setText( "Revert changes" );
+    Revert_Button_->setEnabled( false );
+
+    LabelTreeView_->setSizePolicy( QSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding ) );
+    LabelTreeView_->setModel( LabelModel_ );
+    LabelTreeView_->setSelectionBehavior( QTreeView::SelectRows );
+    LabelTreeView_->setUniformRowHeights( true );
+    LabelTreeView_->setSelectionMode( QTreeView::SingleSelection );
+    LabelTreeView_->setEditTriggers( QTreeView::NoEditTriggers );
+
+    LabelModel_->setColumnCount( 3 );
+
+    set_label_headers();
+
+    ZoomSample_Slider_->setOrientation(Qt::Horizontal);
+    ZoomSample_Slider_->setMinimum( 1 );
+    ZoomSample_Slider_->setMaximum( 100 );
+    ZoomSample_Slider_->setTickInterval( 10 );
+    ZoomSample_Slider_->setSliderPosition( 10 );
+    ZoomSample_Slider_->setSingleStep( 1 );
+    ZoomSample_Slider_->setPageStep( 10 );
+    ZoomSample_Slider_->setTickPosition( QSlider::TicksAbove );
+
+    MinSample_Label_->setText( "1" );
+    MaxSample_Label_->setText( "100" );
+
+    ZoomSlider_Label_->setText( "Zoom Precision =" );
+
+    ZoomIncrement_Label_->setText( "10 samples" );
 
     Start_FineTune_Lower_->setIcon( style()->standardIcon( QStyle::SP_ArrowLeft ) );
     Start_FineTune_Lower_->setEnabled( false );
@@ -166,17 +200,6 @@ initialise_widgets()
     End_FineTune_Higher_->setIcon( style()->standardIcon( QStyle::SP_ArrowRight ) );
     End_FineTune_Higher_->setEnabled( false );
     End_FineTune_Higher_->setAutoRepeat( true );
-
-    LabelTreeView_->setSizePolicy( QSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding ) );
-    LabelTreeView_->setModel( LabelModel_ );
-    LabelTreeView_->setSelectionBehavior( QTreeView::SelectRows );
-    LabelTreeView_->setUniformRowHeights( true );
-    LabelTreeView_->setSelectionMode( QTreeView::SingleSelection );
-    LabelTreeView_->setEditTriggers( QTreeView::NoEditTriggers );
-
-    LabelModel_->setColumnCount( 3 );
-
-    set_label_headers();
 
     disable_playing();
 }
@@ -204,36 +227,64 @@ initialise_layout()
 
     QHBoxLayout* WaveZoomLabelLayout = new QHBoxLayout();
 
-    WaveZoomLabelLayout->addStretch( 22 );
-    WaveZoomLabelLayout->addWidget( Start_FineTune_Lower_ );
-    WaveZoomLabelLayout->addWidget( StartZoomPosition_Label_ );
-    WaveZoomLabelLayout->addWidget( Start_FineTune_Higher_ );
-    WaveZoomLabelLayout->addStretch( 34 );
-    WaveZoomLabelLayout->addWidget( LabelWave_Label_, 0, Qt::AlignCenter );
-    WaveZoomLabelLayout->addStretch( 34 );
-    WaveZoomLabelLayout->addWidget( End_FineTune_Lower_ );
-    WaveZoomLabelLayout->addWidget( EndZoomPosition_Label_ );
-    WaveZoomLabelLayout->addWidget( End_FineTune_Higher_ );
-    WaveZoomLabelLayout->addStretch( 22 );
+    QHBoxLayout* SliderLayout = new QHBoxLayout();
 
-    QHBoxLayout* WaveZoomTopButtonRow = new QHBoxLayout();
+    SliderLayout->addWidget( MinSample_Label_ );
+    SliderLayout->addWidget( ZoomSample_Slider_ );
+    SliderLayout->addWidget( MaxSample_Label_ );
 
-    WaveZoomTopButtonRow->addWidget( AddWaveLabel_Button_, 0, Qt::AlignCenter );
-    WaveZoomTopButtonRow->addWidget( ClearWaveLineEdit_Button_, 0, Qt::AlignCenter );
+    QHBoxLayout* SliderLabelLayout = new QHBoxLayout();
 
-    QHBoxLayout* WaveZoomMiddleButtonRow = new QHBoxLayout();
+    SliderLabelLayout->addStretch();
+    SliderLabelLayout->addWidget( ZoomSlider_Label_ );
+    SliderLabelLayout->addWidget( ZoomIncrement_Label_ );
+    SliderLabelLayout->addStretch();
 
-    WaveZoomMiddleButtonRow->addWidget( EditLabelRow_Button_ );
-    WaveZoomMiddleButtonRow->addWidget( RemoveLabelRow_Button_ );
+    QHBoxLayout* LeftWaveZoomLabelLayout = new QHBoxLayout();
 
-    QVBoxLayout* WaveZoomDetailEntry = new QVBoxLayout();
+    LeftWaveZoomLabelLayout->addStretch();
+    LeftWaveZoomLabelLayout->addWidget( Start_FineTune_Lower_ );
+    LeftWaveZoomLabelLayout->addWidget( StartZoomPosition_Label_ );
+    LeftWaveZoomLabelLayout->addWidget( Start_FineTune_Higher_ );
+    LeftWaveZoomLabelLayout->addStretch();
 
-    WaveZoomDetailEntry->addWidget( LabelWave_LineEdit_ );
-    WaveZoomDetailEntry->addLayout( WaveZoomTopButtonRow );
-    WaveZoomDetailEntry->addWidget( LabelTreeView_ );
-    WaveZoomDetailEntry->addWidget( ClearLabelRowSelection_Button_, 0, Qt::AlignCenter );
-    WaveZoomDetailEntry->addLayout( WaveZoomMiddleButtonRow );
-    WaveZoomDetailEntry->addStretch();
+    QHBoxLayout* RightWaveZoomLabelLayout = new QHBoxLayout();
+
+    RightWaveZoomLabelLayout->addStretch();
+    RightWaveZoomLabelLayout->addWidget( End_FineTune_Lower_ );
+    RightWaveZoomLabelLayout->addWidget( EndZoomPosition_Label_ );
+    RightWaveZoomLabelLayout->addWidget( End_FineTune_Higher_ );
+    RightWaveZoomLabelLayout->addStretch();
+
+    WaveZoomLabelLayout->addLayout( LeftWaveZoomLabelLayout, 4 );
+    WaveZoomLabelLayout->addLayout( SliderLayout, 2 );
+    WaveZoomLabelLayout->addLayout( RightWaveZoomLabelLayout, 4 );
+
+    QHBoxLayout* ViewEditDeleteRow = new QHBoxLayout();
+
+    ViewEditDeleteRow->addWidget( EditLabelRow_Button_ );
+    ViewEditDeleteRow->addWidget( RemoveLabelRow_Button_ );
+
+    QHBoxLayout* DatabaseInteractionRow = new QHBoxLayout();
+
+    DatabaseInteractionRow->addWidget( CommitToDatabase_Button_ );
+    DatabaseInteractionRow->addWidget( Revert_Button_ );
+
+    QHBoxLayout* WordEntryLayout = new QHBoxLayout();
+
+    WordEntryLayout->addWidget( LabelWave_Label_, 0, Qt::AlignLeft );
+    WordEntryLayout->addWidget( LabelWave_LineEdit_ );
+
+    QVBoxLayout* LabelDetailEntry = new QVBoxLayout();
+
+    LabelDetailEntry->addLayout( SliderLabelLayout );
+    LabelDetailEntry->addStretch();
+    LabelDetailEntry->addLayout( WordEntryLayout );
+    LabelDetailEntry->addWidget( AddWaveLabel_Button_ );
+    LabelDetailEntry->addWidget( LabelTreeView_ );
+    LabelDetailEntry->addLayout( ViewEditDeleteRow );
+    LabelDetailEntry->addLayout( DatabaseInteractionRow );
+
 
     QHBoxLayout* WaveZoomLayout = new QHBoxLayout();
 
@@ -241,7 +292,7 @@ initialise_layout()
     WaveZoomEndView_->setSizePolicy( QSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding ) );
 
     WaveZoomLayout->addWidget( WaveZoomStartView_, 4 );
-    WaveZoomLayout->addLayout( WaveZoomDetailEntry, 2 );
+    WaveZoomLayout->addLayout( LabelDetailEntry, 2 );
     WaveZoomLayout->addWidget( WaveZoomEndView_, 4 );
 
     QVBoxLayout* WaveFrameLayout = new QVBoxLayout();
@@ -273,7 +324,6 @@ connect_event_handlers()
     connect( PlaySelection_, &QRadioButton::clicked, [this]( const bool& Checked ){ on_selected_wave( Checked ); } );
     connect( ClearSelection_, &QPushButton::released, [this](){ on_clear_selection(); } );
     connect( LabelWave_LineEdit_, &QLineEdit::textChanged, [this](){ on_label_typed(); } );
-    connect( ClearWaveLineEdit_Button_, &QPushButton::released, [this](){ on_clear_wave_label(); } );
     connect( RemoveLabelRow_Button_, &QPushButton::released, [this](){ on_remove_wave_label(); } );
     connect( AddWaveLabel_Button_, &QPushButton::released, [this](){ on_add_wave_label(); } );
     connect( EditLabelRow_Button_, &QPushButton::released, [this](){ on_edit_wave_label(); } );
@@ -281,6 +331,8 @@ connect_event_handlers()
     connect( Start_FineTune_Higher_, &QPushButton::pressed, [this](){ on_start_right_arrow(); } );
     connect( End_FineTune_Lower_, &QPushButton::pressed, [this](){ on_end_left_arrow(); } );
     connect( End_FineTune_Higher_, &QPushButton::pressed, [this](){ on_end_right_arrow(); } );
+    connect( ZoomSample_Slider_, &QSlider::valueChanged, [this](){ on_slider_changed(); } );
+    connect( CommitToDatabase_Button_, &QPushButton::released, [this](){ on_commit_changes(); } );
 
     connect
         (   LabelTreeView_->selectionModel(),
@@ -297,6 +349,38 @@ void explore_wave::
 reset_interface()
 {
     /// TODO if needed
+}
+
+
+void explore_wave::
+on_slider_changed()
+{
+    int SliderValue = ZoomSample_Slider_->sliderPosition();
+    ZoomIncrement_ = SliderValue;
+    if( SliderValue == 1 )
+    {
+        ZoomIncrement_Label_->setText( QString( tr( "%1 sample").arg( QString::fromStdString( to_string( ZoomIncrement_) ) ) ) );
+    }
+    else
+    {
+        ZoomIncrement_Label_->setText( QString( tr( "%1 samples").arg( QString::fromStdString( to_string( ZoomIncrement_) ) ) ) );
+    }
+}
+
+
+std::string explore_wave::
+to_string( const std::size_t& Sample )
+{
+    std::stringstream StringStream;
+    StringStream << Sample;
+    return StringStream.str();
+}
+
+
+void explore_wave::
+on_commit_changes()
+{
+    LabelEditor_->delete_all_wave_labels();
 }
 
 
@@ -432,6 +516,8 @@ reset
     WaveZoomStartView_->reset( Data );
     WaveZoomEndView_->reset( Data );
 
+    LabelEditor_ = std::make_shared<label_editor_t>( DataRetriever_->schema(), DataRetriever_->patient(), WaveDetails );
+
     StartSample_ = 0;
     EndSample_ = 0;
     SelectionStart_ = std::chrono::nanoseconds( 0 );
@@ -529,7 +615,7 @@ set_zoom_sample_labels( )
 void explore_wave::
 on_start_left_arrow()
 {
-    std::size_t NewSample = StartSample_ - 10;
+    std::size_t NewSample = StartSample_ - ZoomIncrement_;
     auto TimeChanged = ( std::chrono::nanoseconds( NewSample * 1'000'000'000 / Data_->format().sample_rate() ) );
     WaveFormView_->set_selection_start( TimeChanged );
 }
@@ -538,7 +624,7 @@ on_start_left_arrow()
 void explore_wave::
 on_start_right_arrow()
 {
-    std::size_t NewSample = StartSample_ + 10;
+    std::size_t NewSample = StartSample_ + ZoomIncrement_;
     auto TimeChanged = ( std::chrono::nanoseconds( NewSample * 1'000'000'000 / Data_->format().sample_rate() ) );
     WaveFormView_->set_selection_start( TimeChanged );
 }
@@ -547,7 +633,7 @@ on_start_right_arrow()
 void explore_wave::
 on_end_left_arrow()
 {
-    std::size_t NewSample = EndSample_ - 10;
+    std::size_t NewSample = EndSample_ - ZoomIncrement_;
     auto TimeChanged = ( std::chrono::nanoseconds( NewSample * 1'000'000'000 / Data_->format().sample_rate() ) );
     WaveFormView_->set_selection_end( TimeChanged );
 }
@@ -556,7 +642,7 @@ on_end_left_arrow()
 void explore_wave::
 on_end_right_arrow()
 {
-    std::size_t NewSample = EndSample_ + 10;
+    std::size_t NewSample = EndSample_ + ZoomIncrement_;
     auto TimeChanged = ( std::chrono::nanoseconds( NewSample * 1'000'000'000 / Data_->format().sample_rate() ) );
     WaveFormView_->set_selection_end( TimeChanged );
 
@@ -567,15 +653,6 @@ void explore_wave::
 on_label_typed()
 {
     AddWaveLabel_Button_->setEnabled( true );
-    ClearWaveLineEdit_Button_->setEnabled( true );
-}
-
-
-void explore_wave::
-on_clear_wave_label()
-{
-    LabelWave_LineEdit_->clear();
-    AddWaveLabel_Button_->setEnabled( false );
 }
 
 
@@ -609,6 +686,8 @@ handler_selection_update
     WaveZoomStartView_->set_play_position( Start );
     WaveZoomEndView_->set_play_position( End );
 
+//    LabelFileEdit_View->set_sample( StartSample_, EndSample_ );
+
     set_zoom_sample_labels();
 
     LabelWave_LineEdit_->setEnabled( true );
@@ -633,7 +712,6 @@ on_clear_selection()
     ClearSelection_->setEnabled( false );
     LabelWave_LineEdit_->setEnabled( false );
     AddWaveLabel_Button_->setEnabled( false );
-    ClearWaveLineEdit_Button_->setEnabled( false );
     Start_FineTune_Lower_->setEnabled( false );
     Start_FineTune_Higher_->setEnabled( false );
     End_FineTune_Lower_->setEnabled( false );

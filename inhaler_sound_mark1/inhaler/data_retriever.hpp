@@ -114,6 +114,11 @@ public:
         return Patient_;
     }
 
+    const shared_schema_t& schema() const
+    {
+        return Schema_;
+    }
+
     const patient_wave_files_t& wave_files() const
     {
         return WaveFiles_;

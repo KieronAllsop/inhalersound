@@ -5,6 +5,9 @@
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
+// Inhaler Includes
+#include "inhaler/label_file_editor.hpp"
+
 // Qt Includes
 #include <QWizardPage>
 
