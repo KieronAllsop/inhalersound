@@ -28,11 +28,12 @@ process_files_page
 (   const shared_importer_t& Importer,
     QWidget* Parent )
 
-: QWizardPage( Parent )
+: QWizardPage       ( Parent )
 
-, Importer_ ( Importer )
-, Cancelled_( false )
-, Complete_( true )
+, Importer_         ( Importer )
+, Cancelled_        ( false )
+, Complete_         ( true )
+, DuplicateFile_    ( false )
 
 // Create Widgets
 , ProcessingFiles_Label_        ( new QLabel        ( "Selected wave files will be added to the Database and then are undergo the initial stage of processing"))
@@ -86,7 +87,14 @@ isComplete() const
 {
     if( Complete_ )
     {
+        if( DuplicateFile_ )
+        {
+            ProgressLabel_->setText( tr( "Halted due to duplicate wave file(s)!\nClose Wizard and try again." ) );
+        }
+        else
+        {
         ProgressLabel_->setText( tr( "Complete!" ) );
+        }
     }
     return Complete_;
 }
@@ -136,17 +144,25 @@ start_processing_files()
 void process_files_page::
 process_files()
 {
-    Importer_->import_wave_files
-        (   [&]( const inhaler::wave_details& WaveFile, int Number, inhaler::import_status Status )
-            {
-                if( Cancelled_ )
+    try
+    {
+        Importer_->import_wave_files
+            (   [&]( const inhaler::wave_details& WaveFile, int Number, inhaler::import_status Status )
                 {
-                    return;
+                    if( Cancelled_ )
+                    {
+                        return;
+                    }
+                    QCoreApplication::postEvent( this, new import_status_event( WaveFile, Number, Status ) );
                 }
-                QCoreApplication::postEvent( this, new import_status_event( WaveFile, Number, Status ) );
-            }
-        );
-    Complete_ = true;
+            );
+        Complete_ = true;
+    }
+    catch( const inhaler::exception::duplicate_wave_file& Error )
+    {
+        DuplicateFile_ = true;
+    }
+
     completeChanged();
 }
 

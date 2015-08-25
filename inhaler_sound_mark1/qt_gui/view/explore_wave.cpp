@@ -262,7 +262,6 @@ initialise_layout()
     MasterLayout->addWidget( WaveZoom_Frame_, 1, 0 );
 
     setLayout( MasterLayout );
-
 }
 
 
@@ -291,7 +290,6 @@ connect_event_handlers()
                 on_row_selection_changed( Current, Previous );
             }
         );
-
 }
 
 
@@ -589,27 +587,23 @@ handler_selection_update
     const std::size_t& EndSample    )
 {
 
-    SelectionStart_ = Start;
-    SelectionEnd_ = End;
-    StartSample_ = StartSample;
-    EndSample_ = EndSample;
-
-    SelectionMade_ = true;
-    PlaySelection_->setEnabled( true );
-
     if( PlaySelection_->isEnabled()
             && SelectionMade_ == true
-            && ( SelectionStart_ != Start || SelectionEnd_ != End ) )
+            && ( SelectionStart_ != Start || SelectionEnd_ != End || Start == End ) )
     {
         PlaySelection_->click();
         PlaySelection_->click();
     }
 
-    if( PlaySelection_->isEnabled()
-            && SelectionMade_ == true
-            && ( SelectionStart_ == SelectionEnd_ ) )
+    SelectionStart_ = Start;
+    SelectionEnd_ = End;
+    StartSample_ = StartSample;
+    EndSample_ = EndSample;
+
+    if( SelectionStart_ > std::chrono::nanoseconds( 0 ) )
     {
-        PlaySelection_->click();
+        SelectionMade_ = true;
+        PlaySelection_->setEnabled( true );
     }
 
     WaveZoomStartView_->set_play_position( Start );
@@ -618,15 +612,12 @@ handler_selection_update
     set_zoom_sample_labels();
 
     LabelWave_LineEdit_->setEnabled( true );
-//    AddWaveLabel_Button_->setEnabled( true );
-//    ClearWaveLineEdit_Button_->setEnabled( true );
     Start_FineTune_Lower_->setEnabled( true );
     Start_FineTune_Higher_->setEnabled( true );
     End_FineTune_Lower_->setEnabled( true );
     End_FineTune_Higher_->setEnabled( true );
 
     ClearSelection_->setEnabled( true );
-
 }
 
 

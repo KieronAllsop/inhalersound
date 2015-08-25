@@ -68,15 +68,27 @@ QUINCE_MAP_CLASS(patient, (id)(title)(forename)(middlename)(surname)(date_of_bir
 
 struct patientwave
 {
-    quince::serial                  patient_id;             // primary key & foreign key
-    std::string                     inhaler_type;           // primary key
-    std::string                     file_name;              // primary key
-    boost::posix_time::ptime        creation_timestamp;     // primary key
+    quince::serial                  id;                     // primary key
+    quince::serial                  patient_id;             // unique & foreign key
+    std::string                     inhaler_type;           // unique
+    std::string                     file_name;              // unique
+    boost::posix_time::ptime        creation_timestamp;     // unique
     boost::posix_time::ptime        import_timestamp;
     std::vector<uint8_t>            wave_file;
     int                             file_size;
 };
-QUINCE_MAP_CLASS(patientwave, (patient_id)(inhaler_type)(file_name)(creation_timestamp)(import_timestamp)(wave_file)(file_size))
+QUINCE_MAP_CLASS(patientwave, (id)(patient_id)(inhaler_type)(file_name)(creation_timestamp)(import_timestamp)(wave_file)(file_size))
+
+
+struct wavelabelfile
+{
+    quince::serial                  patientwave_id;         // primary key & foreign key
+    int                             label_number;           // primary key
+    long                            start_sample;
+    long                            end_sample;
+    std::string                     event;
+};
+QUINCE_MAP_CLASS(wavelabelfile, (patientwave_id)(label_number)(start_sample)(end_sample)(event))
 
 
 struct inhalerdata
@@ -98,12 +110,14 @@ public:
     using patient_t         = patient;
     using userlogin_t       = userlogin;
     using patientwave_t     = patientwave;
+    using wavelabelfile_t   = wavelabelfile;
     using inhalerdata_t     = inhalerdata;
 
     using users_t           = quince::serial_table<user>;
     using userlogins_t      = quince::table<userlogin>;
     using patients_t        = quince::serial_table<patient>;
-    using patientwaves_t    = quince::table<patientwave>;
+    using patientwaves_t    = quince::serial_table<patientwave>;
+    using wavelabelfiles_t  = quince::table<wavelabelfile>;
     using inhalersdata_t    = quince::table<inhalerdata>;
 
 public:
@@ -111,23 +125,30 @@ public:
     // forward all the arguments from Schema to the Database
     template<class... ArgsT>
     explicit schema( ArgsT&&... Args )                     // parameter pack
-        : Database_     ( std::forward<ArgsT>(Args)... )   // takes type list and parameter pack
-        , Initialised_  ( false )
-        , Users_        ( Database_, "users",          &user::id  )
-        , Userlogins_   ( Database_, "userlogins",     &userlogin::username )
-        , Patients_     ( Database_, "patients",       &patient::id )
-        , Patientwaves_ ( Database_, "patientwaves" )
-        , Inhalersdata_ ( Database_, "inhalersdata",   &inhalerdata::inhaler_type )
+        : Database_         ( std::forward<ArgsT>(Args)... )   // takes type list and parameter pack
+        , Initialised_      ( false )
+        , Users_            ( Database_, "users",          &user::id  )
+        , Userlogins_       ( Database_, "userlogins",     &userlogin::username )
+        , Patients_         ( Database_, "patients",       &patient::id )
+        , Patientwaves_     ( Database_, "patientwaves",   &patientwave::id)
+        , Wavelabelfiles_   ( Database_, "wavelabelfiles" )
+        , Inhalersdata_     ( Database_, "inhalersdata",   &inhalerdata::inhaler_type )
     {
         Userlogins_.specify_foreign( Userlogins_->user_id, Users_ );
 
-        Patientwaves_.specify_key
+        Patientwaves_.specify_unique
             ( Patientwaves_->patient_id,
               Patientwaves_->file_name,
               Patientwaves_->inhaler_type,
               Patientwaves_->creation_timestamp );
 
         Patientwaves_.specify_foreign( Patientwaves_->patient_id, Patients_ );
+
+        Wavelabelfiles_.specify_key
+            ( Wavelabelfiles_->patientwave_id,
+              Wavelabelfiles_->label_number );
+
+        Wavelabelfiles_.specify_foreign( Wavelabelfiles_->patientwave_id, Patientwaves_ );
     }
 
 
@@ -151,6 +172,7 @@ private:
         Userlogins_.open();
         Patients_.open();
         Patientwaves_.open();
+        Wavelabelfiles_.open();
         Inhalersdata_.open();
     }
 
@@ -256,6 +278,7 @@ private:
         Userlogins_.remove();
         Patients_.remove();
         Patientwaves_.remove();
+        Wavelabelfiles_.remove();
         Inhalersdata_.remove();
     }
 
@@ -305,6 +328,16 @@ public:
         return Patientwaves_;
     }
 
+    const wavelabelfiles_t& wavelabelfiles() const
+    {
+        return Wavelabelfiles_;
+    }
+
+    wavelabelfiles_t& wavelabelfiles()
+    {
+        return Wavelabelfiles_;
+    }
+
     const inhalersdata_t& inhalersdata() const
     {
         return Inhalersdata_;
@@ -321,11 +354,12 @@ private:
     bool        Initialised_;
 
     // Schema Objects
-    quince::serial_table<user>      Users_;
-    quince::table<userlogin>        Userlogins_;
-    quince::serial_table<patient>   Patients_;
-    quince::table<patientwave>      Patientwaves_;
-    quince::table<inhalerdata>      Inhalersdata_;
+    quince::serial_table<user>          Users_;
+    quince::table<userlogin>            Userlogins_;
+    quince::serial_table<patient>       Patients_;
+    quince::serial_table<patientwave>   Patientwaves_;
+    quince::table<wavelabelfile>        Wavelabelfiles_;
+    quince::table<inhalerdata>          Inhalersdata_;
 };
 
 

@@ -9,9 +9,13 @@
 #include "inhaler/server.hpp"
 #include "inhaler/wave_details.hpp"
 
+// Quince Includes
+#include <quince/quince.h>
+
 // Boost Includes
 #include <boost/filesystem.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/exception/all.hpp>
 
 // C++ Standard Library Includes
 #include <vector>
@@ -24,6 +28,11 @@
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 namespace inhaler {
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
+
+namespace exception
+{
+    struct duplicate_wave_file : virtual boost::exception, virtual std::exception {};
+}
 
 
 enum class import_status
@@ -122,7 +131,14 @@ public:
 
             Handler( WaveFile, Index, import_status::storing );
 
-            store_file( WaveFile, ImportTime, Data );
+            try
+            {
+                store_file( WaveFile, ImportTime, Data );
+            }
+            catch( const quince::dbms_exception& Error )
+            {
+                BOOST_THROW_EXCEPTION( exception::duplicate_wave_file() );
+            }
 
             Handler( WaveFile, Index, import_status::processing );
 
@@ -153,7 +169,8 @@ private:
     {
         Schema_->patientwaves()
             .insert
-                ( { Patient_.id,
+                ( { quince::serial(),
+                    Patient_.id,
                     InhalerModel_,
                     WaveFile.path().filename().string(),
                     WaveFile.modified_time(),

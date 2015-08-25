@@ -123,6 +123,7 @@ private:
     shared_importer_t   Importer_;
     std::atomic<bool>   Cancelled_;
     std::atomic<bool>   Complete_;
+    std::atomic<bool>   DuplicateFile_;
     std::thread         ProcessingThread_;
 
     // Owned Widgets
