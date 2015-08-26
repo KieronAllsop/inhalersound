@@ -77,6 +77,7 @@ explore_wave
 , AddWaveLabel_Button_              ( new QPushButton( this ) )
 , RemoveLabelRow_Button_            ( new QPushButton( this ) )
 , EditLabelRow_Button_              ( new QPushButton( this ) )
+, CancelEditLabel_Button_           ( new QPushButton( this ) )
 , CommitToDatabase_Button_          ( new QPushButton( this ) )
 , Revert_Button_                    ( new QPushButton( this ) )
 , LabelTreeView_                    ( new QTreeView( this ) )
@@ -95,6 +96,7 @@ explore_wave
 , SelectionMade_                    ( false )
 , RowSelected_                      ( false )
 , BeingEdited_                      ( false )
+, LabelFileChanged_                 ( false )
 , SelectedRow_                      ( -1 )
 , EditedRow_                        ( -1 )
 , ZoomIncrement_                    ( 10 )
@@ -114,7 +116,10 @@ explore_wave
 explore_wave::
 ~explore_wave()
 {
-    Player_->stop();
+    if( Player_ )
+    {
+        Player_->stop();
+    }
 }
 
 
@@ -138,7 +143,7 @@ initialise_widgets()
     StartZoomPosition_Label_->setText( "Start Sample" );
     EndZoomPosition_Label_->setText( "End Sample" );
 
-    LabelWave_Label_->setText( "Enter Word" );
+    LabelWave_Label_->setText( "Enter Event" );
 
     LabelWave_LineEdit_->setEnabled( false );
     LabelWave_LineEdit_->setClearButtonEnabled( true );
@@ -152,8 +157,11 @@ initialise_widgets()
     EditLabelRow_Button_->setText( "Edit Row" );
     EditLabelRow_Button_->setEnabled( false );
 
+    CancelEditLabel_Button_->setText( "Cancel Edit" );
+    CancelEditLabel_Button_->setEnabled( false );
+
     CommitToDatabase_Button_->setText( "Commit changes" );
-    CommitToDatabase_Button_->setEnabled( true );
+    CommitToDatabase_Button_->setEnabled( false );
 
     Revert_Button_->setText( "Revert changes" );
     Revert_Button_->setEnabled( false );
@@ -169,6 +177,7 @@ initialise_widgets()
 
     set_label_headers();
 
+    ZoomSample_Slider_->setEnabled( false );
     ZoomSample_Slider_->setOrientation(Qt::Horizontal);
     ZoomSample_Slider_->setMinimum( 1 );
     ZoomSample_Slider_->setMaximum( 100 );
@@ -263,6 +272,7 @@ initialise_layout()
     QHBoxLayout* ViewEditDeleteRow = new QHBoxLayout();
 
     ViewEditDeleteRow->addWidget( EditLabelRow_Button_ );
+    ViewEditDeleteRow->addWidget( CancelEditLabel_Button_ );
     ViewEditDeleteRow->addWidget( RemoveLabelRow_Button_ );
 
     QHBoxLayout* DatabaseInteractionRow = new QHBoxLayout();
@@ -327,12 +337,15 @@ connect_event_handlers()
     connect( RemoveLabelRow_Button_, &QPushButton::released, [this](){ on_remove_wave_label(); } );
     connect( AddWaveLabel_Button_, &QPushButton::released, [this](){ on_add_wave_label(); } );
     connect( EditLabelRow_Button_, &QPushButton::released, [this](){ on_edit_wave_label(); } );
+    connect( CancelEditLabel_Button_, &QPushButton::released, [this](){ on_cancel_edit_label(); } );
+    connect( Revert_Button_, &QPushButton::released, [this](){ on_revert_changes(); } );
     connect( Start_FineTune_Lower_, &QPushButton::pressed, [this](){ on_start_left_arrow(); } );
     connect( Start_FineTune_Higher_, &QPushButton::pressed, [this](){ on_start_right_arrow(); } );
     connect( End_FineTune_Lower_, &QPushButton::pressed, [this](){ on_end_left_arrow(); } );
     connect( End_FineTune_Higher_, &QPushButton::pressed, [this](){ on_end_right_arrow(); } );
     connect( ZoomSample_Slider_, &QSlider::valueChanged, [this](){ on_slider_changed(); } );
     connect( CommitToDatabase_Button_, &QPushButton::released, [this](){ on_commit_changes(); } );
+
 
     connect
         (   LabelTreeView_->selectionModel(),
@@ -349,6 +362,66 @@ void explore_wave::
 reset_interface()
 {
     /// TODO if needed
+}
+
+
+void explore_wave::
+on_revert_changes()
+{
+    LabelTreeView_->setEnabled( false );
+
+    QMessageBox Confirm;
+    Confirm.setText("Revert Changes");
+    Confirm.setInformativeText( "Are you sure you want revert all changes?" );
+    Confirm.setStandardButtons( QMessageBox::Ok | QMessageBox::Cancel );
+    Confirm.setDefaultButton( QMessageBox::Ok );
+
+    if( Confirm.exec() == QMessageBox::Ok )
+    {
+        LabelData_.clear();
+        for( const auto& OldLabelRow: OldLabelData_)
+        {
+            LabelData_.push_back( OldLabelRow );
+        }
+        LabelFileChanged_ = false;
+        Revert_Button_->setEnabled( false );
+        LabelModel_->clear();
+        set_label_headers();
+
+        if( LabelData_.size() > 0 )
+        {
+            for( const auto& LabelRow: LabelData_)
+            {
+                QList<QStandardItem*> Items;
+                Items.append( new QStandardItem( QString( tr( "%1" ).arg( LabelRow.label_start() ) ) ) );
+                Items.append( new QStandardItem( QString( tr( "%1" ).arg( LabelRow.label_end() ) ) ) );
+                Items.append( new QStandardItem( QString::fromStdString( LabelRow.label_name() ) ) );
+                LabelModel_->appendRow( Items );
+            }
+        }
+    }
+    RemoveLabelRow_Button_->setEnabled( false );
+    EditLabelRow_Button_->setEnabled( false );
+    LabelTreeView_->setEnabled( true );
+    LabelTreeView_->reset();
+}
+
+
+void explore_wave::
+on_cancel_edit_label()
+{
+    BeingEdited_ = false;
+    RowSelected_ = false;
+    LabelWave_LineEdit_->clear();
+    LabelWave_LineEdit_->setEnabled( false );
+    RemoveLabelRow_Button_->setEnabled( false );
+    EditLabelRow_Button_->setEnabled( false );
+    CancelEditLabel_Button_->setEnabled( false );
+    EditedRow_ = -1;
+    SelectedRow_ = -1;
+    on_clear_selection();
+    LabelTreeView_->setEnabled( true );
+    LabelTreeView_->reset();
 }
 
 
@@ -380,7 +453,31 @@ to_string( const std::size_t& Sample )
 void explore_wave::
 on_commit_changes()
 {
-    LabelEditor_->delete_all_wave_labels();
+    LabelTreeView_->setEnabled( false );
+
+    QMessageBox Confirm;
+    Confirm.setText("Commit Changes");
+    Confirm.setInformativeText( "Are you sure you want to commit this label file to the database?" );
+    Confirm.setStandardButtons( QMessageBox::Ok | QMessageBox::Cancel );
+    Confirm.setDefaultButton( QMessageBox::Ok );
+
+    if( Confirm.exec() == QMessageBox::Ok )
+    {
+        LabelEditor_->delete_all_wave_labels();
+        LabelEditor_->add_wave_labels( LabelData_ );
+        Revert_Button_->setEnabled( false );
+        OldLabelData_.clear();
+        for( const auto& LabelRow: LabelData_)
+        {
+            OldLabelData_.push_back( LabelRow );
+        }
+        LabelFileChanged_ = false;
+        CommitToDatabase_Button_->setEnabled( false );
+    }
+    RemoveLabelRow_Button_->setEnabled( false );
+    EditLabelRow_Button_->setEnabled( false );
+    LabelTreeView_->setEnabled( true );
+    LabelTreeView_->reset();
 }
 
 
@@ -389,21 +486,25 @@ on_edit_wave_label()
 {
     if( RowSelected_ )
     {
+        LabelTreeView_->setEnabled( false );
+
         BeingEdited_ = true;
+        CommitToDatabase_Button_->setEnabled( false );
+        CancelEditLabel_Button_->setEnabled( true );
         RemoveLabelRow_Button_->setEnabled( false );
         EditLabelRow_Button_->setEnabled( false );
 
         EditedRow_ = SelectedRow_;
 
-        std::string Label = LabelData_.at( SelectedRow_ ).label_name();
+        std::string Label = LabelData_[SelectedRow_].label_name();
         LabelWave_LineEdit_->setText( QString::fromStdString( Label ) );
         WaveFormView_->reset_play_position();
 
-        StartSample_ = LabelData_.at( SelectedRow_ ).label_start();
+        StartSample_ = LabelData_[SelectedRow_].label_start();
         auto LabelStart = ( std::chrono::nanoseconds( StartSample_ * 1'000'000'000 / Data_->format().sample_rate() ) );
         WaveFormView_->set_selection_start( LabelStart );
 
-        EndSample_ = LabelData_.at( SelectedRow_ ).label_end();
+        EndSample_ = LabelData_[SelectedRow_].label_end();
         auto LabelEnd = ( std::chrono::nanoseconds( EndSample_ * 1'000'000'000 / Data_->format().sample_rate() ) );
         WaveFormView_->set_selection_end( LabelEnd );
 
@@ -416,11 +517,13 @@ on_edit_wave_label()
 void explore_wave::
 on_add_wave_label()
 {
+    LabelTreeView_->setEnabled( false );
+
     if( BeingEdited_ )
     {
         auto Item = qt::audio::labelled_vocabulary( LabelWave_LineEdit_->text().toStdString(),
                                                     StartSample_, EndSample_ );
-        LabelData_.at( EditedRow_ ) = Item;
+        LabelData_[ EditedRow_ ] = Item;
 
         QList<QStandardItem*> Items;
         Items.append( new QStandardItem( QString( tr( "%1" ).arg( StartSample_ ) ) ) );
@@ -430,11 +533,10 @@ on_add_wave_label()
         LabelModel_->removeRows( EditedRow_, 1 );
         LabelModel_->insertRow( EditedRow_, Items );
         BeingEdited_ = false;
-        LabelWave_LineEdit_->clear();
-        LabelWave_LineEdit_->setEnabled( false );
-        LabelTreeView_->reset();
+        CancelEditLabel_Button_->setEnabled( false );
         EditedRow_ = -1;
         SelectedRow_ = -1;
+
     }
     else
     {
@@ -447,9 +549,22 @@ on_add_wave_label()
         Items.append( new QStandardItem( QString( tr( "%1" ).arg( EndSample_ ) ) ) );
         Items.append( new QStandardItem( QString( LabelWave_LineEdit_->text() ) ) );
         LabelModel_->appendRow( Items );
-        LabelWave_LineEdit_->clear();
-        LabelWave_LineEdit_->setEnabled( false );
     }
+
+    LabelWave_LineEdit_->clear();
+    LabelWave_LineEdit_->setEnabled( false );
+    RemoveLabelRow_Button_->setEnabled( false );
+    EditLabelRow_Button_->setEnabled( false );
+    LabelTreeView_->setEnabled( true );
+    LabelTreeView_->reset();
+
+    if( OldLabelData_.size() > 0 )
+    {
+        Revert_Button_->setEnabled( true );
+    }
+
+    LabelFileChanged_ = true;
+    CommitToDatabase_Button_->setEnabled( true );
 }
 
 
@@ -458,6 +573,8 @@ on_remove_wave_label()
 {
     if( RowSelected_ )
     {
+        LabelTreeView_->setEnabled( false );
+
         QMessageBox Confirm;
         Confirm.setText("Delete Row");
         Confirm.setInformativeText( "Are you sure you want to delete this label?" );
@@ -468,9 +585,18 @@ on_remove_wave_label()
         {
             LabelData_.erase( LabelData_.begin() + SelectedRow_ );
             LabelModel_->removeRows( SelectedRow_, 1 );
+            CommitToDatabase_Button_->setEnabled( true );
         }
         RowSelected_ = false;
         SelectedRow_ = -1;
+        RemoveLabelRow_Button_->setEnabled( false );
+        EditLabelRow_Button_->setEnabled( false );
+
+        if( OldLabelData_.size() > 0 || LabelFileChanged_ )
+        {
+            Revert_Button_->setEnabled( true );
+        }
+        LabelTreeView_->setEnabled( true );
         LabelTreeView_->reset();
     }
 }
@@ -486,14 +612,14 @@ on_row_selection_changed( const QModelIndex& Current, const QModelIndex& Previou
 }
 
 
-void explore_wave
-::set_label_headers()
+void explore_wave::
+set_label_headers()
 {
     QStringList Headers;
     Headers
         << "Start"
         << "End"
-        << "Word";
+        << "Event";
     LabelModel_->setHorizontalHeaderLabels( Headers );
 }
 
@@ -515,8 +641,29 @@ reset
     WaveFormView_->reset( Data );
     WaveZoomStartView_->reset( Data );
     WaveZoomEndView_->reset( Data );
+    ZoomSample_Slider_->setEnabled( true );
 
     LabelEditor_ = std::make_shared<label_editor_t>( DataRetriever_->schema(), DataRetriever_->patient(), WaveDetails );
+
+    LabelData_.clear();
+    OldLabelData_.clear();
+    LabelModel_->clear();
+    set_label_headers();
+
+    LabelData_ = LabelEditor_->retrieve_wave_labels();
+
+    if( LabelData_.size() > 0 )
+    {
+        for( const auto& LabelRow: LabelData_)
+        {
+            QList<QStandardItem*> Items;
+            Items.append( new QStandardItem( QString( tr( "%1" ).arg( LabelRow.label_start() ) ) ) );
+            Items.append( new QStandardItem( QString( tr( "%1" ).arg( LabelRow.label_end() ) ) ) );
+            Items.append( new QStandardItem( QString::fromStdString( LabelRow.label_name() ) ) );
+            LabelModel_->appendRow( Items );
+            OldLabelData_.push_back( LabelRow );
+        }
+    }
 
     StartSample_ = 0;
     EndSample_ = 0;
@@ -557,7 +704,6 @@ reset
                         handle_player_buffer( Status, Buffer );
                     }
                 );
-
         enable_playing();
     }
     else
@@ -645,14 +791,20 @@ on_end_right_arrow()
     std::size_t NewSample = EndSample_ + ZoomIncrement_;
     auto TimeChanged = ( std::chrono::nanoseconds( NewSample * 1'000'000'000 / Data_->format().sample_rate() ) );
     WaveFormView_->set_selection_end( TimeChanged );
-
 }
 
 
 void explore_wave::
 on_label_typed()
 {
-    AddWaveLabel_Button_->setEnabled( true );
+    if( LabelWave_LineEdit_->text().length() == 0 )
+    {
+        AddWaveLabel_Button_->setEnabled( false );
+    }
+    else
+    {
+        AddWaveLabel_Button_->setEnabled( true );
+    }
 }
 
 
@@ -685,8 +837,6 @@ handler_selection_update
 
     WaveZoomStartView_->set_play_position( Start );
     WaveZoomEndView_->set_play_position( End );
-
-//    LabelFileEdit_View->set_sample( StartSample_, EndSample_ );
 
     set_zoom_sample_labels();
 

@@ -106,7 +106,11 @@ private:
 
     void                    on_edit_wave_label          ();
 
+    void                    on_cancel_edit_label        ();
+
     void                    on_commit_changes           ();
+
+    void                    on_revert_changes           ();
 
     void                    on_start_left_arrow         ();
 
@@ -166,6 +170,7 @@ private:
     std::size_t                     StartSample_;
     std::size_t                     EndSample_;
     std::vector<vocabulary_t>       LabelData_;
+    std::vector<vocabulary_t>       OldLabelData_;
 
     boost::posix_time::time_facet*  TimestampFacet_;
     std::locale                     TimestampLocale_;
@@ -193,6 +198,7 @@ private:
     QPushButton*                    AddWaveLabel_Button_;
     QPushButton*                    RemoveLabelRow_Button_;
     QPushButton*                    EditLabelRow_Button_;
+    QPushButton*                    CancelEditLabel_Button_;
     QPushButton*                    CommitToDatabase_Button_;
     QPushButton*                    Revert_Button_;
 
@@ -212,6 +218,7 @@ private:
     bool                            SelectionMade_;
     bool                            RowSelected_;
     bool                            BeingEdited_;
+    bool                            LabelFileChanged_;
     int                             SelectedRow_;
     int                             EditedRow_;
     std::size_t                     ZoomIncrement_;

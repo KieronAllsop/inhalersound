@@ -36,7 +36,7 @@ public:
     using data_retriever_t          = inhaler::data_retriever;
     using shared_data_retriever_t   = std::shared_ptr<inhaler::data_retriever>;
     using patient_wave_details_t    = data_retriever_t::patient_wave_details_t;
-    using result_t                  = std::tuple<int, std::size_t, std::size_t, std::string>;
+    using result_t                  = std::tuple<int, std::int64_t, std::int64_t, std::string>;
     using vocabulary_t              = qt::audio::labelled_vocabulary;
     using wave_labels_t             = std::vector<vocabulary_t>;
 
@@ -72,7 +72,7 @@ public:
     }
 
 
-    void retrieve_wave_labels()
+    wave_labels_t retrieve_wave_labels()
     {
         const auto& PatientWaves = Schema_->patientwaves();
         const auto& WaveLabelFiles = Schema_->wavelabelfiles();
@@ -101,19 +101,19 @@ public:
             auto Label          = std::get<3>(LabelRowTuple);
 
             auto Item = qt::audio::labelled_vocabulary( Label, StartSample, EndSample );
-            LabelData_.at( Element ) = Item;
+            LabelData_.push_back( Item );
         }
+        return LabelData_;
     }
 
 
     void add_wave_labels( const wave_labels_t& Labels )
     {
         auto WaveID = get_wave_id();
+        int Element = 0;
 
         for( const auto& Label: Labels )
         {
-            int Element = 0;
-
             Schema_->wavelabelfiles()
                 .insert
                     ( { WaveID,
@@ -121,21 +121,20 @@ public:
                         Label.label_start(),
                         Label.label_end(),
                         Label.label_name() } );
-           ++Element;
+            ++Element;
         }
     }
 
 
     void delete_all_wave_labels()
     {
+        auto WaveID = get_wave_id();
         const auto& WaveLabelFiles = Schema_->wavelabelfiles();
 
-        auto WaveID = get_wave_id();
-
-            Schema_->wavelabelfiles()
-                .where
-                    ( WaveLabelFiles->patientwave_id == WaveID )
-                .remove();
+        Schema_->wavelabelfiles()
+            .where
+                ( WaveLabelFiles->patientwave_id == WaveID )
+            .remove();
     }
 
 
