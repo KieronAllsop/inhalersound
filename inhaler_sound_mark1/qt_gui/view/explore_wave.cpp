@@ -22,11 +22,13 @@
 #include <QStringList>
 #include <QMessageBox>
 #include <QSlider>
+//#include <QCheckBox>
 
 // C++ Standard Library Includes
 #include <chrono>
 #include <string>
 #include <sstream>
+#include <ostream>
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
@@ -92,11 +94,13 @@ explore_wave
 , Start_FineTune_Higher_            ( new QPushButton( this ) )
 , End_FineTune_Lower_               ( new QPushButton( this ) )
 , End_FineTune_Higher_              ( new QPushButton( this ) )
+//, GenerateLabelFileCheck_           ( new QCheckBox( this ) )
 
 , SelectionMade_                    ( false )
 , RowSelected_                      ( false )
 , BeingEdited_                      ( false )
 , LabelFileChanged_                 ( false )
+//, GenerateLabelFile_                ( false )
 , SelectedRow_                      ( -1 )
 , EditedRow_                        ( -1 )
 , ZoomIncrement_                    ( 10 )
@@ -210,6 +214,8 @@ initialise_widgets()
     End_FineTune_Higher_->setEnabled( false );
     End_FineTune_Higher_->setAutoRepeat( true );
 
+//    GenerateLabelFileCheck_->setText( "Generate Label File" );
+
     disable_playing();
 }
 
@@ -295,7 +301,6 @@ initialise_layout()
     LabelDetailEntry->addLayout( ViewEditDeleteRow );
     LabelDetailEntry->addLayout( DatabaseInteractionRow );
 
-
     QHBoxLayout* WaveZoomLayout = new QHBoxLayout();
 
     WaveZoomStartView_->setSizePolicy( QSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding ) );
@@ -345,7 +350,7 @@ connect_event_handlers()
     connect( End_FineTune_Higher_, &QPushButton::pressed, [this](){ on_end_right_arrow(); } );
     connect( ZoomSample_Slider_, &QSlider::valueChanged, [this](){ on_slider_changed(); } );
     connect( CommitToDatabase_Button_, &QPushButton::released, [this](){ on_commit_changes(); } );
-
+//    connect( GenerateLabelFileCheck_, &QCheckBox::clicked, [this](){ on_checkbox_checked(); } );
 
     connect
         (   LabelTreeView_->selectionModel(),
@@ -363,6 +368,12 @@ reset_interface()
 {
     /// TODO if needed
 }
+
+
+//void explore_wave::on_checkbox_checked()
+//{
+//    GenerateLabelFile_ = true;
+//}
 
 
 void explore_wave::
@@ -399,11 +410,20 @@ on_revert_changes()
                 LabelModel_->appendRow( Items );
             }
         }
+
+        WaveFormView_->update_label_data( LabelData_ );
     }
     RemoveLabelRow_Button_->setEnabled( false );
     EditLabelRow_Button_->setEnabled( false );
     LabelTreeView_->setEnabled( true );
     LabelTreeView_->reset();
+}
+
+
+bool explore_wave::
+unsaved_changes()
+{
+    return CommitToDatabase_Button_->isEnabled();
 }
 
 
@@ -417,6 +437,7 @@ on_cancel_edit_label()
     RemoveLabelRow_Button_->setEnabled( false );
     EditLabelRow_Button_->setEnabled( false );
     CancelEditLabel_Button_->setEnabled( false );
+    AddWaveLabel_Button_->setText( "Add Label" );
     EditedRow_ = -1;
     SelectedRow_ = -1;
     on_clear_selection();
@@ -454,30 +475,224 @@ void explore_wave::
 on_commit_changes()
 {
     LabelTreeView_->setEnabled( false );
+    sort_label_vector();
+    bool LabelOverlap = check_for_label_overlap();
 
-    QMessageBox Confirm;
-    Confirm.setText("Commit Changes");
-    Confirm.setInformativeText( "Are you sure you want to commit this label file to the database?" );
-    Confirm.setStandardButtons( QMessageBox::Ok | QMessageBox::Cancel );
-    Confirm.setDefaultButton( QMessageBox::Ok );
-
-    if( Confirm.exec() == QMessageBox::Ok )
+    if( LabelOverlap )
     {
-        LabelEditor_->delete_all_wave_labels();
-        LabelEditor_->add_wave_labels( LabelData_ );
-        Revert_Button_->setEnabled( false );
-        OldLabelData_.clear();
-        for( const auto& LabelRow: LabelData_)
+        QMessageBox Message;
+        Message.setText( "Label Overlap!" );
+        Message.setInformativeText( "There is overlap in some of the labels. Please correct and try again." );
+        Message.setStandardButtons( QMessageBox::Ok );
+        Message.setDefaultButton( QMessageBox::Ok );
+
+        if( Message.exec() == QMessageBox::Ok )
         {
-            OldLabelData_.push_back( LabelRow );
+            LabelModel_->clear();
+            set_label_headers();
+
+            if( LabelData_.size() > 0 )
+            {
+                for( const auto& LabelRow: LabelData_)
+                {
+                    QList<QStandardItem*> Items;
+                    Items.append( new QStandardItem( QString( tr( "%1" ).arg( LabelRow.label_start() ) ) ) );
+                    Items.append( new QStandardItem( QString( tr( "%1" ).arg( LabelRow.label_end() ) ) ) );
+                    Items.append( new QStandardItem( QString::fromStdString( LabelRow.label_name() ) ) );
+                    LabelModel_->appendRow( Items );
+                }
+            }
         }
-        LabelFileChanged_ = false;
-        CommitToDatabase_Button_->setEnabled( false );
     }
+    else
+    {
+        QMessageBox Confirm;
+        Confirm.setText( "Commit Changes" );
+//        Confirm.setCheckBox( GenerateLabelFileCheck_ );
+        Confirm.setInformativeText( "Are you sure you want to commit this label file to the database?" );
+        Confirm.setStandardButtons( QMessageBox::Ok | QMessageBox::Cancel );
+        Confirm.setDefaultButton( QMessageBox::Ok );
+
+        if( Confirm.exec() == QMessageBox::Ok )
+        {
+//            if( GenerateLabelFile_ )
+//            {
+                generate_label_file();
+//            }
+            LabelEditor_->delete_all_wave_labels();
+            LabelEditor_->add_wave_labels( LabelData_ );
+
+            LabelModel_->clear();
+            set_label_headers();
+
+            if( LabelData_.size() > 0 )
+            {
+                for( const auto& LabelRow: LabelData_)
+                {
+                    QList<QStandardItem*> Items;
+                    Items.append( new QStandardItem( QString( tr( "%1" ).arg( LabelRow.label_start() ) ) ) );
+                    Items.append( new QStandardItem( QString( tr( "%1" ).arg( LabelRow.label_end() ) ) ) );
+                    Items.append( new QStandardItem( QString::fromStdString( LabelRow.label_name() ) ) );
+                    LabelModel_->appendRow( Items );
+                }
+            }
+
+            Revert_Button_->setEnabled( false );
+            OldLabelData_.clear();
+            for( const auto& LabelRow: LabelData_)
+            {
+                OldLabelData_.push_back( LabelRow );
+            }
+            LabelFileChanged_ = false;
+            CommitToDatabase_Button_->setEnabled( false );
+        }
+    }
+
+//    GenerateLabelFileCheck_->setChecked( false );
+//    GenerateLabelFile_ = false;
     RemoveLabelRow_Button_->setEnabled( false );
     EditLabelRow_Button_->setEnabled( false );
     LabelTreeView_->setEnabled( true );
     LabelTreeView_->reset();
+}
+
+
+void explore_wave::
+sort_label_vector()
+{
+    std::sort
+        (   LabelData_.begin(), LabelData_.end(),
+            []( const vocabulary_t& Lower, const vocabulary_t& Higher )
+            {
+                return Lower.label_start() < Higher.label_start();
+            }
+        );
+}
+
+
+bool explore_wave::
+check_for_label_overlap()
+{
+    bool LabelOverlap = false;
+
+    for( unsigned int loop = 0; loop < LabelData_.size()-1 ; ++loop )
+    {
+        if( LabelData_[loop].label_end() >= LabelData_[loop+1].label_start() )
+        {
+            LabelOverlap = true;
+        }
+    }
+    return LabelOverlap;
+}
+
+
+void explore_wave::
+generate_label_file()
+{
+    std::vector<vocabulary_t> WordsOnlyLabels;
+    std::vector<vocabulary_t> WordsAndSilenceLabels;
+    std::size_t EndSample = Data_->samples_per_channel();
+    auto Filename = WaveDetails_.name();
+
+    for( const auto& LabelRow: LabelData_ )
+    {
+        WordsOnlyLabels.push_back( LabelRow );
+    }
+
+    for( unsigned int loop = 0; loop < WordsOnlyLabels.size(); ++loop )
+    {
+        if( loop == 0 )
+        {
+            if( WordsOnlyLabels[loop].label_start() == 0 )
+            {
+                WordsAndSilenceLabels.push_back( WordsOnlyLabels[loop] );
+            }
+            else if( WordsOnlyLabels[loop].label_start() == 1 )
+            {
+                auto Label = WordsOnlyLabels[loop].label_name();
+                std::size_t NewStart = 0;
+                auto End = WordsOnlyLabels[loop].label_end();
+                auto Item = qt::audio::labelled_vocabulary( Label, NewStart, End );
+                WordsAndSilenceLabels.push_back( Item );
+            }
+            else
+            {
+                std::string Label = "silence";
+                std::size_t Start = 0;
+                auto End = WordsOnlyLabels[loop].label_start() - 1;
+                auto Item = qt::audio::labelled_vocabulary( Label, Start, End );
+                WordsAndSilenceLabels.push_back( Item );
+                WordsAndSilenceLabels.push_back( WordsOnlyLabels[loop] );
+            }
+        }
+
+        if( loop > 0 && loop < WordsOnlyLabels.size() )
+        {
+            if( WordsOnlyLabels[loop].label_start() - WordsOnlyLabels[loop-1].label_end() == 1 )
+            {
+                WordsAndSilenceLabels.push_back( WordsOnlyLabels[loop] );
+            }
+            else if( WordsOnlyLabels[loop].label_start() - WordsOnlyLabels[loop-1].label_end() == 2 )
+            {
+                auto Label = WordsOnlyLabels[loop].label_name();
+                auto NewStart = WordsOnlyLabels[loop].label_start() - 1;
+                auto End = WordsOnlyLabels[loop].label_end();
+                auto Item = qt::audio::labelled_vocabulary( Label, NewStart, End );
+                WordsAndSilenceLabels.push_back( Item );
+            }
+            else
+            {
+                std::string Label = "silence";
+                auto Start = WordsOnlyLabels[loop-1].label_end() + 1;
+                auto End = WordsOnlyLabels[loop].label_start() - 1;
+                auto Item = qt::audio::labelled_vocabulary( Label, Start, End );
+                WordsAndSilenceLabels.push_back( Item );
+                WordsAndSilenceLabels.push_back( WordsOnlyLabels[loop] );
+            }
+        }
+
+        if( loop == WordsOnlyLabels.size()-1 )
+        {
+            if( EndSample - WordsOnlyLabels[loop].label_end() == 1 )
+            {
+                auto Label = WordsOnlyLabels[loop].label_name();
+                auto Start = WordsOnlyLabels[loop].label_start();
+                auto NewEnd = EndSample;
+                auto Item = qt::audio::labelled_vocabulary( Label, Start, NewEnd );
+                WordsAndSilenceLabels.pop_back();
+                WordsAndSilenceLabels.push_back( Item );
+            }
+            else if( ( EndSample - WordsOnlyLabels[loop].label_end() ) > 1 )
+            {
+                std::string Label = "silence";
+                auto Start = WordsOnlyLabels[loop].label_end() + 1;
+                auto End = EndSample;
+                auto Item = qt::audio::labelled_vocabulary( Label, Start, End );
+                WordsAndSilenceLabels.push_back( Item );
+            }
+        }
+    }
+
+    std::string FileNameNoExtension = Filename.substr(0,Filename.length()-4);
+    std::string LabelFile = FileNameNoExtension + ".mlf";
+    std::ofstream Output( LabelFile );
+
+    Output << "\"" + FileNameNoExtension + "\"\n";
+
+    for( const auto& LabelRow: WordsAndSilenceLabels )
+    {
+        auto Start = LabelRow.label_start();
+        auto End = LabelRow.label_end();
+        auto Label = LabelRow.label_name();
+        std::string Space = " ";
+
+        Output << Start << Space << End << Space << Label + "\n";
+    }
+
+    Output << ".";
+
+    Output.close();
+
 }
 
 
@@ -489,6 +704,7 @@ on_edit_wave_label()
         LabelTreeView_->setEnabled( false );
 
         BeingEdited_ = true;
+        AddWaveLabel_Button_->setText( "Update" );
         CommitToDatabase_Button_->setEnabled( false );
         CancelEditLabel_Button_->setEnabled( true );
         RemoveLabelRow_Button_->setEnabled( false );
@@ -532,11 +748,13 @@ on_add_wave_label()
 
         LabelModel_->removeRows( EditedRow_, 1 );
         LabelModel_->insertRow( EditedRow_, Items );
+        AddWaveLabel_Button_->setText( "Add Label" );
         BeingEdited_ = false;
         CancelEditLabel_Button_->setEnabled( false );
         EditedRow_ = -1;
         SelectedRow_ = -1;
 
+        WaveFormView_->update_label_data( LabelData_ );
     }
     else
     {
@@ -549,7 +767,10 @@ on_add_wave_label()
         Items.append( new QStandardItem( QString( tr( "%1" ).arg( EndSample_ ) ) ) );
         Items.append( new QStandardItem( QString( LabelWave_LineEdit_->text() ) ) );
         LabelModel_->appendRow( Items );
+
+        WaveFormView_->update_label_data( LabelData_ );
     }
+
 
     LabelWave_LineEdit_->clear();
     LabelWave_LineEdit_->setEnabled( false );
@@ -587,6 +808,9 @@ on_remove_wave_label()
             LabelModel_->removeRows( SelectedRow_, 1 );
             CommitToDatabase_Button_->setEnabled( true );
         }
+
+        WaveFormView_->update_label_data( LabelData_ );
+
         RowSelected_ = false;
         SelectedRow_ = -1;
         RemoveLabelRow_Button_->setEnabled( false );
@@ -651,6 +875,8 @@ reset
     set_label_headers();
 
     LabelData_ = LabelEditor_->retrieve_wave_labels();
+
+    WaveFormView_->update_label_data( LabelData_ );
 
     if( LabelData_.size() > 0 )
     {
@@ -771,6 +997,10 @@ void explore_wave::
 on_start_right_arrow()
 {
     std::size_t NewSample = StartSample_ + ZoomIncrement_;
+    if( NewSample >= EndSample_ )
+    {
+        NewSample = EndSample_ - 1;
+    }
     auto TimeChanged = ( std::chrono::nanoseconds( NewSample * 1'000'000'000 / Data_->format().sample_rate() ) );
     WaveFormView_->set_selection_start( TimeChanged );
 }
@@ -780,6 +1010,10 @@ void explore_wave::
 on_end_left_arrow()
 {
     std::size_t NewSample = EndSample_ - ZoomIncrement_;
+    if( NewSample <= StartSample_ )
+    {
+        NewSample = StartSample_ + 1;
+    }
     auto TimeChanged = ( std::chrono::nanoseconds( NewSample * 1'000'000'000 / Data_->format().sample_rate() ) );
     WaveFormView_->set_selection_end( TimeChanged );
 }
@@ -826,6 +1060,7 @@ handler_selection_update
 
     SelectionStart_ = Start;
     SelectionEnd_ = End;
+
     StartSample_ = StartSample;
     EndSample_ = EndSample;
 
@@ -955,13 +1190,13 @@ handle_player_buffer
     if( Status == player_t::probe_status_t::buffer_ready )
     {
         /// TODO - display dB value? live spectrum?
-        for( unsigned s = 0; s < Buffer.samples_per_channel(); ++s )
-        {
-            for( unsigned c = 0; c < Buffer.format().channel_count(); ++c )
-            {
-//                 std::cout << Buffer.normalised_sample( s, c ) << std::endl;
-            }
-        }
+//        for( unsigned s = 0; s < Buffer.samples_per_channel(); ++s )
+//        {
+//            for( unsigned c = 0; c < Buffer.format().channel_count(); ++c )
+//            {
+//                std::cout << Buffer.normalised_sample( s, c ) << std::endl;
+//            }
+//        }
     }
 }
 

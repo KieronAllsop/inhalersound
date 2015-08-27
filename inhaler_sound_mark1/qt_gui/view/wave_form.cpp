@@ -20,6 +20,7 @@
 #include <iostream>
 #include <cmath>
 #include <vector>
+#include <chrono>
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
@@ -166,6 +167,7 @@ set_selection_start( nanoseconds_t Position )
     auto Width = PreviewChannelRect_[0].width();
     FineTuneStartFactor_ = static_cast<double>( Position.count() ) / Data_->duration().count();
     SelectionStart_ = FineTuneStartFactor_*Width + Left;
+
     if( SelectionStart_ > Width + Left )
     {
         SelectionStart_ = Left;
@@ -181,6 +183,7 @@ set_selection_end( nanoseconds_t Position )
     auto Width = PreviewChannelRect_[0].width();
     FineTuneEndFactor_ = static_cast<double>( Position.count() ) / Data_->duration().count();
     SelectionEnd_ = FineTuneEndFactor_*Width + Left;
+
     if( SelectionEnd_ > Width + Left )
     {
         SelectionEnd_ = Width + Left;
@@ -271,6 +274,8 @@ paintEvent( QPaintEvent* Event )
             double Position = XStart + Width * PlayPositionPercent_;
             Painter.drawLine( QLine( Position, ChannelRect.top(), Position, ChannelRect.bottom() ) );
         }
+
+        // Draw area selected by user
         if( SelectionStart_ > 0.0 || SelectionEnd_ > 0.0 )
         {
             Painter.setPen( QColor( 83, 140, 214, 127 ) );
@@ -283,7 +288,72 @@ paintEvent( QPaintEvent* Event )
                 Painter.drawLine( QLineF( SelectionEnd_, ChannelRect.top(), SelectionEnd_, ChannelRect.bottom() ) );
             }
         }
+
+        // Draw labelled areas
+        if( LabelData_.size() > 0 )
+        {
+
+            auto Font = Painter.font();
+            Font.setPointSize( Painter.font().pointSize() +2 );
+            Painter.setFont( Font );
+
+            QFontMetrics FontMetrics = Painter.fontMetrics();
+            auto LabelHeight = FontMetrics.height();
+
+            Painter.setPen( QColor( 255, 255, 205, 127 ) );
+            for( const auto& LabelRow: LabelData_ )
+            {
+                // Draw labelled regions
+                auto LabelStartSample = LabelRow.label_start();
+                auto LabelEndSample = LabelRow.label_end();
+
+                auto LabelStartTime = ( std::chrono::nanoseconds( LabelStartSample * 1'000'000'000 / Data_->format().sample_rate() ) );
+                auto LabelEndTime = ( std::chrono::nanoseconds( LabelEndSample * 1'000'000'000 / Data_->format().sample_rate() ) );
+
+                auto LabelStartPositionalFactor = static_cast<double>( LabelStartTime.count() ) / Data_->duration().count();
+                auto LabelEndPositionalFactor = static_cast<double>( LabelEndTime.count() ) / Data_->duration().count();
+
+                auto LabelStartSelection = LabelStartPositionalFactor*Width + XStart;
+                auto LabelEndSelection = LabelEndPositionalFactor*Width + XStart;
+
+
+                Painter.drawLine( QLineF( LabelStartSelection, ChannelRect.top(), LabelStartSelection, ChannelRect.bottom() ) );
+                auto Width = LabelEndSelection - LabelStartSelection;
+                auto SelectionRect = QRectF( LabelStartSelection, ChannelRect.top(), Width, ChannelRect.height() );
+
+                Painter.fillRect( SelectionRect, QColor( 255, 255, 205, 45 ) );
+                Painter.drawLine( QLineF( LabelEndSelection, ChannelRect.top(), LabelEndSelection, ChannelRect.bottom() ) );
+
+                // Add event name to labelled regions
+                auto LabelEvent = QString::fromStdString( LabelRow.label_name() );
+                auto LabelWidth = FontMetrics.width( LabelEvent );
+                auto LabelMidPoint = ( LabelEndSelection + LabelStartSelection )/2;
+                auto LabelStartPoint = LabelMidPoint - LabelWidth/2;
+                auto VerticalPosition = ChannelRect.top() - LabelHeight/2;
+                auto EventLabelPosition = QRectF( LabelStartPoint, VerticalPosition, LabelWidth, LabelHeight );
+
+                Painter.setPen( QColor( 255, 255, 205, 200 ) );
+                Painter.drawText( EventLabelPosition, Qt::AlignCenter, LabelEvent );
+            }
+        }
     }
+}
+
+
+void wave_form::
+update_label_data(const std::vector<vocabulary_t>& LabelData)
+{
+    LabelData_.clear();
+
+    for( const auto& LabelRow: LabelData)
+    {
+        LabelData_.push_back( LabelRow );
+    }
+
+    update();
+
+//    paint_static_preview( size().width(), size().height() );
+
 }
 
 
@@ -402,9 +472,6 @@ paint_static_preview( int Width, int Height )
         // Overlay X-Axis
         Painter.setPen( QColor( 255, 255, 255, 127 ) );
         Painter.drawLine( XAxisLine );
-
-        // Overlay Named Regions
-        /// TODO
     }
 }
 

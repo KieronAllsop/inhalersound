@@ -7,6 +7,7 @@
 
 // qt::audio Includes
 #include "qt/audio/raw_data.hpp"
+#include "qt/audio/vocabulary_kind.hpp"
 
 // Qt Includes
 #include <QWidget>
@@ -37,8 +38,10 @@ public:
     using data_t                = qt::audio::raw_data;
     using shared_data_t         = std::shared_ptr<data_t>;
     using nanoseconds_t         = std::chrono::nanoseconds;
+    using vocabulary_t          = qt::audio::labelled_vocabulary;
     using selection_handler_t   = std::function<void( const nanoseconds_t& Start, const nanoseconds_t& End,
                                                       const std::size_t& StartSample, const std::size_t& EndSample)>;
+
 
 public:
 
@@ -53,11 +56,9 @@ public:
 
     void                    set_selection_start         (   nanoseconds_t Position   );
 
-    void                    set_label_start             (   nanoseconds_t Position   );
-
     void                    set_selection_end           (   nanoseconds_t Position   );
 
-    void                    set_label_end               (   nanoseconds_t Position   );
+    void                    update_label_data           (   const std::vector<vocabulary_t>& LabelData   );
 
 protected:
 
@@ -119,6 +120,7 @@ private:
     shared_data_t                   Data_;
     std::vector<preview_sample_t>   Preview_;
     nanoseconds_t                   PlayPositionTime_;
+    std::vector<vocabulary_t>       LabelData_;
 
     double                          PlayPositionPercent_;
 

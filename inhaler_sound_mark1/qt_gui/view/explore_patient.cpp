@@ -345,16 +345,44 @@ on_wave_selection_changed
 void explore_patient::
 on_change_patient()
 {
-    QMessageBox Confirm;
-    Confirm.setText("Change Patient");
-    Confirm.setInformativeText( "Are you sure you want to change patient?" );
-    Confirm.setStandardButtons( QMessageBox::Ok | QMessageBox::Cancel );
-    Confirm.setDefaultButton( QMessageBox::Ok );
+    auto UnsavedChanges = ExploreWaveView_->unsaved_changes();
 
-    if( Confirm.exec() == QMessageBox::Ok )
+    if( UnsavedChanges )
     {
-        // Stop playing waves etc etc
-        CallOnComplete_();
+        QMessageBox Confirm;
+        Confirm.setText("Unsaved Changes!");
+        Confirm.setInformativeText( "Are you sure you want to discard changes?" );
+        Confirm.setStandardButtons( QMessageBox::Ok | QMessageBox::Cancel );
+        Confirm.setDefaultButton( QMessageBox::Cancel );
+
+        if( Confirm.exec() == QMessageBox::Ok )
+        {
+            QMessageBox Confirm;
+            Confirm.setText("Change Patient");
+            Confirm.setInformativeText( "Are you sure you want to change patient?" );
+            Confirm.setStandardButtons( QMessageBox::Ok | QMessageBox::Cancel );
+            Confirm.setDefaultButton( QMessageBox::Ok );
+
+            if( Confirm.exec() == QMessageBox::Ok )
+            {
+                // Stop playing waves etc etc
+                CallOnComplete_();
+            }
+        }
+    }
+    else
+    {
+        QMessageBox Confirm;
+        Confirm.setText("Change Patient");
+        Confirm.setInformativeText( "Are you sure you want to change patient?" );
+        Confirm.setStandardButtons( QMessageBox::Ok | QMessageBox::Cancel );
+        Confirm.setDefaultButton( QMessageBox::Ok );
+
+        if( Confirm.exec() == QMessageBox::Ok )
+        {
+            // Stop playing waves etc etc
+            CallOnComplete_();
+        }
     }
 }
 
@@ -385,38 +413,91 @@ enable_load_wave( const patient_wave_details_t& Wave )
 void explore_patient::
 on_open_wave()
 {
+    bool UnsavedChanges;
+
     if( Selected_Wave_ )
     {
-        QApplication::setOverrideCursor( Qt::WaitCursor );
 
-        // retrieve selected wav file
-        auto Data = DataRetriever_->retrieve_wave( *Selected_Wave_ );
-
-        // make temp file from retrieved data
-        QTemporaryFile AudioFile;
-        AudioFile.setAutoRemove( false );
-        if( AudioFile.open() )
+        if( WaveData_ )
         {
-            AudioFile.write( static_cast<const char*>( static_cast<const void*>( &Data[0] ) ), Data.size() );
+            UnsavedChanges = ExploreWaveView_->unsaved_changes();
         }
-        auto Path = AudioFile.fileName();
-        AudioFile.close();
 
-        // sets up a new decoder
-        Decoder_
-            = std::make_shared<decoder_t>
-                (   Path.toStdString(),
-                    [this]( decoder_t::status_t Status, const decoder_t::buffer_t& Buffer )
-                    {
-                        handle_audio_decode( Status, Buffer );
-                    }
-                );
+        if( UnsavedChanges && WaveData_ )
+        {
+            QMessageBox Confirm;
+            Confirm.setText("Unsaved Changes!");
+            Confirm.setInformativeText( "Are you sure you want to discard changes?" );
+            Confirm.setStandardButtons( QMessageBox::Ok | QMessageBox::Cancel );
+            Confirm.setDefaultButton( QMessageBox::Cancel );
 
-        // add raw data to WaveData
-        WaveData_ = std::make_shared<qt::audio::raw_data>( Decoder_->path(), true );
+            if( Confirm.exec() == QMessageBox::Ok )
+            {
+                QApplication::setOverrideCursor( Qt::WaitCursor );
 
-        // start decoder
-        Decoder_->start();
+                // retrieve selected wav file
+                auto Data = DataRetriever_->retrieve_wave( *Selected_Wave_ );
+
+                // make temp file from retrieved data
+                QTemporaryFile AudioFile;
+                AudioFile.setAutoRemove( false );
+                if( AudioFile.open() )
+                {
+                    AudioFile.write( static_cast<const char*>( static_cast<const void*>( &Data[0] ) ), Data.size() );
+                }
+                auto Path = AudioFile.fileName();
+                AudioFile.close();
+
+                // sets up a new decoder
+                Decoder_
+                    = std::make_shared<decoder_t>
+                        (   Path.toStdString(),
+                            [this]( decoder_t::status_t Status, const decoder_t::buffer_t& Buffer )
+                            {
+                                handle_audio_decode( Status, Buffer );
+                            }
+                        );
+
+                // add raw data to WaveData
+                WaveData_ = std::make_shared<qt::audio::raw_data>( Decoder_->path(), true );
+
+                // start decoder
+                Decoder_->start();
+            }
+        }
+        else
+        {
+            QApplication::setOverrideCursor( Qt::WaitCursor );
+
+            // retrieve selected wav file
+            auto Data = DataRetriever_->retrieve_wave( *Selected_Wave_ );
+
+            // make temp file from retrieved data
+            QTemporaryFile AudioFile;
+            AudioFile.setAutoRemove( false );
+            if( AudioFile.open() )
+            {
+                AudioFile.write( static_cast<const char*>( static_cast<const void*>( &Data[0] ) ), Data.size() );
+            }
+            auto Path = AudioFile.fileName();
+            AudioFile.close();
+
+            // sets up a new decoder
+            Decoder_
+                = std::make_shared<decoder_t>
+                    (   Path.toStdString(),
+                        [this]( decoder_t::status_t Status, const decoder_t::buffer_t& Buffer )
+                        {
+                            handle_audio_decode( Status, Buffer );
+                        }
+                    );
+
+            // add raw data to WaveData
+            WaveData_ = std::make_shared<qt::audio::raw_data>( Decoder_->path(), true );
+
+            // start decoder
+            Decoder_->start();
+        }
     }
 }
 

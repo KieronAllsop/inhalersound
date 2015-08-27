@@ -37,6 +37,7 @@ class QTreeView;
 class QStandardItemModel;
 class QModelIndex;
 class QSlider;
+//class QCheckBox;
 
 namespace qt_gui {
 namespace view {
@@ -79,6 +80,8 @@ public:
                                                             const shared_data_retriever_t& DataRetriever,
                                                             const shared_data_t& Data   );
 
+    bool                    unsaved_changes             ();
+
 private:
 
     void                    initialise_widgets          ();
@@ -90,6 +93,12 @@ private:
     void                    reset_interface             ();
 
     void                    set_label_headers           ();
+
+    void                    sort_label_vector           ();
+
+    bool                    check_for_label_overlap     ();
+
+    void                    generate_label_file         ();
 
 private:
 
@@ -122,7 +131,8 @@ private:
 
     void                    on_slider_changed           ();
 
-    std::string             to_string                   (   const std::size_t& Sample   );
+//    void                    on_checkbox_checked         ();
+
 
 private:
 
@@ -132,6 +142,8 @@ private:
 
     std::string             to_string                   (   const boost::posix_time::ptime& Timestamp   )
                                                         const;
+
+    std::string             to_string                   (   const std::size_t& Sample   );
 
     void                    set_play_position           (   const std::chrono::milliseconds& Position   );
 
@@ -214,11 +226,13 @@ private:
     QPushButton*                    Start_FineTune_Higher_;
     QPushButton*                    End_FineTune_Lower_;
     QPushButton*                    End_FineTune_Higher_;
+//    QCheckBox*                      GenerateLabelFileCheck_;
 
     bool                            SelectionMade_;
     bool                            RowSelected_;
     bool                            BeingEdited_;
     bool                            LabelFileChanged_;
+//    bool                            GenerateLabelFile_;
     int                             SelectedRow_;
     int                             EditedRow_;
     std::size_t                     ZoomIncrement_;
