@@ -157,7 +157,7 @@ paintEvent( QPaintEvent* Event )
 
         for( auto s = StartSample ; s<End; ++s, ++i )
         {
-            auto Sample = Data_->normalised_sample( s, c );
+            auto Sample = Data_->scaled_sample<float>( s, c );
             auto Xpoint = ChannelRect.left() + i * ChannelRect.width() / Points.size();
             auto Ypoint = ChannelRect.top() + ( 1.0 - Sample ) * ChannelRect.height() / 2;
             Points[i] = QPointF( Xpoint, Ypoint );

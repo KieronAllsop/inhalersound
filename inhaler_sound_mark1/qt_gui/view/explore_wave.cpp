@@ -22,7 +22,7 @@
 #include <QStringList>
 #include <QMessageBox>
 #include <QSlider>
-//#include <QCheckBox>
+#include <QCheckBox>
 
 // C++ Standard Library Includes
 #include <chrono>
@@ -94,13 +94,13 @@ explore_wave
 , Start_FineTune_Higher_            ( new QPushButton( this ) )
 , End_FineTune_Lower_               ( new QPushButton( this ) )
 , End_FineTune_Higher_              ( new QPushButton( this ) )
-//, GenerateLabelFileCheck_           ( new QCheckBox( this ) )
+, GenerateLabelFileCheck_           ( new QCheckBox( this ) )
 
 , SelectionMade_                    ( false )
 , RowSelected_                      ( false )
 , BeingEdited_                      ( false )
 , LabelFileChanged_                 ( false )
-//, GenerateLabelFile_                ( false )
+, GenerateLabelFile_                ( false )
 , SelectedRow_                      ( -1 )
 , EditedRow_                        ( -1 )
 , ZoomIncrement_                    ( 10 )
@@ -214,7 +214,7 @@ initialise_widgets()
     End_FineTune_Higher_->setEnabled( false );
     End_FineTune_Higher_->setAutoRepeat( true );
 
-//    GenerateLabelFileCheck_->setText( "Generate Label File" );
+    GenerateLabelFileCheck_->setText( "Generate Label File" );
 
     disable_playing();
 }
@@ -350,7 +350,7 @@ connect_event_handlers()
     connect( End_FineTune_Higher_, &QPushButton::pressed, [this](){ on_end_right_arrow(); } );
     connect( ZoomSample_Slider_, &QSlider::valueChanged, [this](){ on_slider_changed(); } );
     connect( CommitToDatabase_Button_, &QPushButton::released, [this](){ on_commit_changes(); } );
-//    connect( GenerateLabelFileCheck_, &QCheckBox::clicked, [this](){ on_checkbox_checked(); } );
+    connect( GenerateLabelFileCheck_, &QCheckBox::clicked, [this]( const int& State ){ on_checkbox_checked( State ); } );
 
     connect
         (   LabelTreeView_->selectionModel(),
@@ -370,10 +370,18 @@ reset_interface()
 }
 
 
-//void explore_wave::on_checkbox_checked()
-//{
-//    GenerateLabelFile_ = true;
-//}
+void explore_wave::
+on_checkbox_checked( const int& State )
+{
+    if( State )
+    {
+        GenerateLabelFile_ = true;
+    }
+    else
+    {
+        GenerateLabelFile_ = false;
+    }
+}
 
 
 void explore_wave::
@@ -508,17 +516,17 @@ on_commit_changes()
     {
         QMessageBox Confirm;
         Confirm.setText( "Commit Changes" );
-//        Confirm.setCheckBox( GenerateLabelFileCheck_ );
+        Confirm.setCheckBox( GenerateLabelFileCheck_ );
         Confirm.setInformativeText( "Are you sure you want to commit this label file to the database?" );
         Confirm.setStandardButtons( QMessageBox::Ok | QMessageBox::Cancel );
         Confirm.setDefaultButton( QMessageBox::Ok );
 
         if( Confirm.exec() == QMessageBox::Ok )
         {
-//            if( GenerateLabelFile_ )
-//            {
+            if( GenerateLabelFile_ )
+            {
                 generate_label_file();
-//            }
+            }
             LabelEditor_->delete_all_wave_labels();
             LabelEditor_->add_wave_labels( LabelData_ );
 
@@ -548,8 +556,8 @@ on_commit_changes()
         }
     }
 
-//    GenerateLabelFileCheck_->setChecked( false );
-//    GenerateLabelFile_ = false;
+    GenerateLabelFileCheck_->setChecked( false );
+    GenerateLabelFile_ = false;
     RemoveLabelRow_Button_->setEnabled( false );
     EditLabelRow_Button_->setEnabled( false );
     LabelTreeView_->setEnabled( true );
@@ -1189,12 +1197,12 @@ handle_player_buffer
 {
     if( Status == player_t::probe_status_t::buffer_ready )
     {
-        /// TODO - display dB value? live spectrum?
+//        /// TODO - display dB value? live spectrum?
 //        for( unsigned s = 0; s < Buffer.samples_per_channel(); ++s )
 //        {
 //            for( unsigned c = 0; c < Buffer.format().channel_count(); ++c )
 //            {
-//                std::cout << Buffer.normalised_sample( s, c ) << std::endl;
+//                std::cout << Buffer.scaled_sample<float>( s, c ) << std::endl;
 //            }
 //        }
     }

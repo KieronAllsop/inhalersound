@@ -141,7 +141,7 @@ create_preview_wave()
 
                 Accumulator[c] = accumulator_t();
             }
-            Accumulator[c]( Data_->normalised_sample( s, c ) );
+            Accumulator[c]( Data_->scaled_sample<float>( s, c ) );
         }
         if( w == 0 )
         {
@@ -351,9 +351,6 @@ update_label_data(const std::vector<vocabulary_t>& LabelData)
     }
 
     update();
-
-//    paint_static_preview( size().width(), size().height() );
-
 }
 
 

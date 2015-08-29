@@ -12,8 +12,7 @@
 #include <boost/exception/all.hpp>
 #include <boost/filesystem.hpp>
 
-// C++ Standard Library Includes
-#include <stdexcept>
+// Standard Library Includes
 #include <vector>
 #include <string>
 #include <cstring>
@@ -25,11 +24,6 @@
 namespace qt {
 namespace audio {
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
-
-namespace exception
-{
-     struct incorrect_format : virtual boost::exception, virtual std::exception {};
-}
 
 class raw_data
 {
@@ -48,7 +42,10 @@ public:
     raw_data
     (   const path_t& LinkedFile,
         bool RemoveOnDestruct   )
-    : LinkedFile_       ( LinkedFile )
+    : Size_( 0 )
+    , FrameSize_( 0 )
+    , FrameShift_( 0 )
+    , LinkedFile_       ( LinkedFile )
     , RemoveLinkedFile_ ( RemoveOnDestruct )
     {
     }
@@ -62,8 +59,11 @@ public:
         (   Format,
             static_cast<const void*>( &Data_[0] ),
             Data_.size()   )
-    , RemoveLinkedFile_
-        ( false )
+    , Size_
+        ( Data_.size() )
+    , FrameSize_( 0 )
+    , FrameShift_( 0 )
+    , RemoveLinkedFile_( false )
     {
     }
 
@@ -92,11 +92,25 @@ public:
             BOOST_THROW_EXCEPTION( exception::incorrect_format() );
         }
 
-        std::size_t Size = Data_.size();
-        Data_.resize( Data_.size() + Buffer.size() );
-        std::memcpy( static_cast<void*>( &Data_[Size] ), Buffer.data(), Buffer.size() );
+        // Ignore zero padding
+        Data_.resize( Size_ + Buffer.size() );
+        std::memcpy( static_cast<void*>( &Data_[Size_] ), Buffer.data(), Buffer.size() );
+        Size_ = Data_.size();
+        // Now add zero padding
+        auto ZeroPadSize = zero_padding_required( Size_ );
+        Data_.resize( Size_+ZeroPadSize, 0 );
 
         Buffer_ = buffer_t( Buffer.format(), static_cast<const void*>( &Data_[0] ), Data_.size() );
+    }
+
+    void zero_pad( std::size_t FrameSize, std::size_t FrameShift )
+    {
+        if( FrameSize != FrameSize_ && FrameShift != FrameShift_ )
+        {
+            auto ZeroPadSize = zero_padding_required( Size_ );
+            Data_.resize( Size_+ZeroPadSize, 0 );
+            Buffer_ = buffer_t( Buffer_.format(), static_cast<const void*>( &Data_[0] ), Data_.size() );
+        }
     }
 
     // Observers
@@ -126,31 +140,68 @@ public:
         return LinkedFile_;
     }
 
-    const void* data() const
+    const buffer_t& buffer() const
     {
-        return Buffer_.data();
+        return Buffer_;
     }
 
+    const void* data() const
+    {
+        return static_cast<const void*>( &Data_[0] );
+    }
+
+//    const void* data() const
+//    {
+//        return Buffer_.data();
+//    }
+
     std::size_t size() const
+    {
+        return Size_;
+    }
+
+    std::size_t zero_padded_size() const
     {
         return Buffer_.size();
     }
 
     template<class T>
-    const T& sample( std::size_t Index, std::size_t Channel ) const
+    T scaled_sample( std::size_t Index, std::size_t Channel ) const
     {
-        return Buffer_.sample<T>( Index, Channel );
+        return Buffer_.scaled_sample<T>( Index, Channel );
     }
 
-    double normalised_sample( std::size_t Index, std::size_t Channel ) const
+//    double normalised_sample( std::size_t Index, std::size_t Channel ) const
+//    {
+//        return Buffer_.normalised_sample( Index, Channel );
+//    }
+
+private:
+
+    std::size_t zero_padding_required( std::size_t DataSize )
     {
-        return Buffer_.normalised_sample( Index, Channel );
+        if( FrameSize_ )
+        {
+            auto RemainderFrames = ( DataSize - FrameSize_ ) % FrameShift_;
+            if( RemainderFrames < FrameShift_ )
+            {
+                return FrameShift_ - RemainderFrames;
+            }
+            else if( RemainderFrames > FrameShift_ )
+            {
+                return FrameShift_ - RemainderFrames;
+            }
+        }
+        return 0;
     }
 
 private:
 
     std::vector<char>           Data_;
     buffer_t                    Buffer_;
+    std::size_t                 Size_;
+    std::size_t                 FrameSize_;
+    std::size_t                 FrameShift_;
     path_t                      LinkedFile_;
     bool                        RemoveLinkedFile_;
 };

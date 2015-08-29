@@ -30,7 +30,12 @@ SOURCES +=  application/main.cpp \
             qt_gui/view/explore_wave.cpp \
             qt/audio/audio_buffer_test.cpp \
     qt_gui/view/wave_zoom.cpp \
-    qt_gui/view/label_file_edit.cpp
+    qt_gui/view/label_file_edit.cpp \
+    analysis/SpecAnalysis.cpp \
+    analysis/Spectra.cpp \
+    analysis/HTKData.cpp \
+    analysis/WAVData.cpp \
+    analysis/BufferedASignal.cpp
 
 HEADERS += \
             data_model/schema.hpp \
@@ -64,7 +69,16 @@ HEADERS += \
             qt/audio/probe_status.hpp \
     qt/audio/vocabulary_kind.hpp \
     qt_gui/view/wave_zoom.h \
-    inhaler/label_file_editor.hpp
+    inhaler/label_file_editor.hpp \
+    analysis/SpecAnalysis.h \
+    analysis/Spectra.h \
+    analysis/HTKData.h \
+    analysis/FeatureVectorLoader.h \
+    analysis/Semaphore.h \
+    analysis/SIG.h \
+    analysis/WAVData.h \
+    qt/audio/wav_data.hpp \
+    qt/audio/wav_header.hpp
 
 FORMS   +=
 

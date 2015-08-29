@@ -37,7 +37,7 @@ class QTreeView;
 class QStandardItemModel;
 class QModelIndex;
 class QSlider;
-//class QCheckBox;
+class QCheckBox;
 
 namespace qt_gui {
 namespace view {
@@ -131,7 +131,7 @@ private:
 
     void                    on_slider_changed           ();
 
-//    void                    on_checkbox_checked         ();
+    void                    on_checkbox_checked         (   const int& State   );
 
 
 private:
@@ -226,13 +226,13 @@ private:
     QPushButton*                    Start_FineTune_Higher_;
     QPushButton*                    End_FineTune_Lower_;
     QPushButton*                    End_FineTune_Higher_;
-//    QCheckBox*                      GenerateLabelFileCheck_;
+    QCheckBox*                      GenerateLabelFileCheck_;
 
     bool                            SelectionMade_;
     bool                            RowSelected_;
     bool                            BeingEdited_;
     bool                            LabelFileChanged_;
-//    bool                            GenerateLabelFile_;
+    bool                            GenerateLabelFile_;
     int                             SelectedRow_;
     int                             EditedRow_;
     std::size_t                     ZoomIncrement_;

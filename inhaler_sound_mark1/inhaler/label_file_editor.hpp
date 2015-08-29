@@ -95,7 +95,6 @@ public:
 
         for( const auto& LabelRowTuple: Query )
         {
-            auto Element        = std::get<0>(LabelRowTuple);
             auto StartSample    = std::get<1>(LabelRowTuple);
             auto EndSample      = std::get<2>(LabelRowTuple);
             auto Label          = std::get<3>(LabelRowTuple);

@@ -14,6 +14,7 @@
 #include <chrono>
 #include <type_traits>
 #include <limits>
+#include <iostream>
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
@@ -271,6 +272,7 @@ private:
     normalised_sample_func_t    NormalisedSample_;
     const void*                 Data_;                      // pointer to Data
     std::size_t                 Size_;                      // total size
+
 };
 
 

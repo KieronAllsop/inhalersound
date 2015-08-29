@@ -9,6 +9,13 @@
 #include "inhaler/server.hpp"
 #include "inhaler/wave_details.hpp"
 
+// Qt Audio Includes
+#include "qt/audio/raw_data.hpp"
+#include "qt/audio/wav_data.hpp"
+
+// Analysis Includes
+#include "analysis/SpecAnalysis.h"
+
 // Quince Includes
 #include <quince/quince.h>
 
@@ -70,6 +77,10 @@ public:
     using patient_t             = data_model::patient;
     using wave_files_t          = std::vector<wave_details_t>;
     using data_t                = std::vector<uint8_t>;
+//    using raw_data_t            = qt::audio::raw_data;
+    using wav_data_t            = qt::audio::wav_data;
+
+
 
 public:
 
@@ -142,7 +153,7 @@ public:
 
             Handler( WaveFile, Index, import_status::processing );
 
-            process_file( WaveFile, InhalerModel_ );
+            process_file( Data, WaveFile, InhalerModel_ );
 
             Handler( WaveFile, Index, import_status::finished );
 
@@ -179,9 +190,11 @@ private:
                     WaveFile.size() } );
     }
 
-    void process_file( const wave_details_t& WaveFile, const std::string& InhalerModel )
+    void process_file( data_t& Data, const wave_details_t& WaveFile, const std::string& InhalerModel )
     {
-        // TODO
+        qt::audio::wav_data WavData( std::move( *static_cast<std::vector<char>*>( static_cast<void*>(&Data) ) ) );
+//        WaveData_.zero_pad( 160, 80 );
+        SpecAnalysis_.Execute( WavData, "filename" );
     }
 
 private:
@@ -190,6 +203,8 @@ private:
     shared_schema_t         Schema_;
     std::string             InhalerModel_;
     wave_files_t            WaveFiles_;
+    wav_data_t              WaveData_;
+    TSpecAnalysis           SpecAnalysis_;
 };
 
 

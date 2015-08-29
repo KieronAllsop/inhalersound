@@ -5,10 +5,17 @@
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
-// C++ Standard Library Includes
+// Qt Includes
+#include <QAudioFormat>
+
+// Boost Includes
+#include <boost/exception/all.hpp>
+
+// Standard Library Includes
 #include <cstdint>
 #include <string>
 #include <ostream>
+#include <stdexcept>
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
@@ -16,6 +23,12 @@
 namespace qt {
 namespace audio {
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
+
+
+namespace exception
+{
+     struct incorrect_format : virtual boost::exception, virtual std::exception {};
+}
 
 
 enum class sample_type_t
@@ -164,6 +177,98 @@ public:
         return Codec_;
     }
 
+    static format format_from( const QAudioFormat& Format )
+    {
+        auto SampleType = sample_type_t::unknown;
+
+        switch( Format.sampleType() )
+        {
+            case QAudioFormat::SignedInt:
+            {
+                switch( Format.sampleSize() )
+                {
+                    case 16 : SampleType = sample_type_t::signed_int16; break;
+                    case 32 : SampleType = sample_type_t::signed_int32; break;
+                    default :
+                    {
+                        SampleType = sample_type_t::unknown;
+                    }
+                }
+                break;
+            }
+            case QAudioFormat::UnSignedInt:
+            {
+                if( Format.sampleSize() == 8 )
+                {
+                    SampleType = sample_type_t::unsigned_int8;
+                }
+                else
+                {
+                    SampleType = sample_type_t::unknown;
+                }
+                break;
+            }
+            case QAudioFormat::Float:
+            {
+                SampleType = sample_type_t::floating_point;
+                break;
+            }
+            default :
+            {
+                SampleType = sample_type_t::unknown;
+                break;
+            }
+        }
+
+        return
+            format
+                (   SampleType,
+                    Format.sampleRate(),
+                    Format.channelCount(),
+                    Format.codec().toStdString()   );
+    }
+
+    static QAudioFormat q_audio_format_from( const format& Format )
+    {
+        QAudioFormat AudioFormat;
+
+        AudioFormat.setByteOrder( QAudioFormat::LittleEndian );
+        AudioFormat.setSampleRate( Format.sample_rate() );
+        AudioFormat.setSampleSize( Format.sample_bit_size() );
+        AudioFormat.setChannelCount( Format.channel_count() );
+        AudioFormat.setCodec( Format.codec().c_str() );
+
+        switch( Format.sample_type() )
+        {
+            case sample_type_t::unknown :
+            {
+                AudioFormat.setSampleType( QAudioFormat::Unknown );
+                break;
+            }
+            case sample_type_t::unsigned_int8 :
+            {
+                AudioFormat.setSampleType( QAudioFormat::UnSignedInt );
+                break;
+            }
+            case sample_type_t::signed_int16 :
+            {
+                AudioFormat.setSampleType( QAudioFormat::SignedInt );
+                break;
+            }
+            case sample_type_t::signed_int32 :
+            {
+                AudioFormat.setSampleType( QAudioFormat::SignedInt );
+                break;
+            }
+            case sample_type_t::floating_point :
+            {
+                AudioFormat.setSampleType( QAudioFormat::Float );
+                break;
+            }
+        }
+        return AudioFormat;
+    }
+
 public:
 
     friend
@@ -184,7 +289,7 @@ public:
 
 private:
 
-    sample_type_t SampleType_;     // unsigned_int8, etc
+    sample_type_t SampleType_;
     std::size_t   SampleRate_;
     std::size_t   ChannelCount_;
     std::string   Codec_;
