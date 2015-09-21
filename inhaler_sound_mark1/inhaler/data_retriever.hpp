@@ -5,7 +5,7 @@
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
-// Inhaler Includes
+// inhaler Includes
 #include "inhaler/server.hpp"
 #include "inhaler/wave_details.hpp"
 #include "inhaler/wave_importer.hpp"
@@ -20,7 +20,7 @@
 #include <boost/optional.hpp>
 #include <boost/exception/all.hpp>
 
-// C++ Standard Library Includes
+// Standard Library Includes
 #include <vector>
 #include <string>
 #include <stdexcept>
@@ -34,6 +34,7 @@
 namespace inhaler {
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 
+
 namespace exception
 {
     // Patient will always have been retrieved before a wave file or other data is
@@ -42,10 +43,12 @@ namespace exception
     struct data_not_found : virtual boost::exception, virtual std::exception {};
 }
 
+
 enum class retrieval_status
 {
     retrieving
 };
+
 
 constexpr const char* c_str( retrieval_status& Status )
 {
@@ -56,6 +59,12 @@ constexpr const char* c_str( retrieval_status& Status )
     return nullptr;
 }
 
+
+//! \class  data_retriever.hpp
+//! \author Kieron Allsop
+//!
+//! \brief  To retrieve inhaler data and .mfc data from the database
+//!
 class data_retriever
 {
 public:
@@ -71,6 +80,7 @@ public:
     using patient_t                 = shared_schema_t::element_type::patient_t;
     using result_t                  = std::tuple<string_t, string_t, int, timestamp_t, timestamp_t>;
     using data_t                    = data_model::data_t;
+    using mfcdata_t                 = boost::optional<std::vector<uint8_t>>;
 
 public:
 
@@ -114,10 +124,12 @@ public:
         return Patient_;
     }
 
+
     const shared_schema_t& schema() const
     {
         return Schema_;
     }
+
 
     const patient_wave_files_t& wave_files() const
     {
@@ -161,6 +173,30 @@ public:
     }
 
 
+    /// For future use
+    mfcdata_t retrieve_mfcdata( const patient_wave_details_t& Selected )
+    {
+        const auto& PatientWaves = Schema_->patientwaves();
+        const quince::query< mfcdata_t >
+                Query
+                    = PatientWaves
+                        .where
+                            (       PatientWaves->patient_id         == Patient_.id
+                                &&  PatientWaves->inhaler_type       == Selected.inhaler_model()
+                                &&  PatientWaves->file_name          == Selected.name()
+                                &&  PatientWaves->creation_timestamp == Selected.modified_time()    )
+                        .select
+                            (   PatientWaves->mfcdata   );
+
+        auto Data = Query.begin();
+
+        if( Data != Query.end() )
+        {
+            return *Data;
+        }
+        return mfcdata_t();
+    }
+
 private:
 
     void get_new_wave_details( const boost::posix_time::ptime& From )
@@ -193,6 +229,7 @@ private:
     shared_schema_t             Schema_;
     patient_wave_files_t        WaveFiles_;
     boost::posix_time::ptime    LastImportTime_;
+
 };
 
 

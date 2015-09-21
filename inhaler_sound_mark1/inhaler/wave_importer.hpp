@@ -1,20 +1,21 @@
-// G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G
+﻿// G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G
 #ifndef INHALER_WAVE_IMPORTER_HPP_INCLUDED
 #define INHALER_WAVE_IMPORTER_HPP_INCLUDED
 // G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
-// Inhaler Includes
+// inhaler Includes
 #include "inhaler/server.hpp"
 #include "inhaler/wave_details.hpp"
 
-// Qt Audio Includes
+// qt::audio Includes
 #include "qt/audio/raw_data.hpp"
 #include "qt/audio/wav_data.hpp"
 
-// Analysis Includes
+// analysis Includes
 #include "analysis/SpecAnalysis.h"
+#include "analysis/speech_spectra_settings.hpp"
 
 // Quince Includes
 #include <quince/quince.h>
@@ -23,8 +24,12 @@
 #include <boost/filesystem.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/exception/all.hpp>
+#include <boost/optional.hpp>
 
-// C++ Standard Library Includes
+// Asio Includes
+#include <asio.hpp>
+
+// Standard Library Includes
 #include <vector>
 #include <string>
 #include <functional>
@@ -35,6 +40,7 @@
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 namespace inhaler {
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
+
 
 namespace exception
 {
@@ -64,6 +70,13 @@ constexpr const char* c_str( import_status& Status )
 }
 
 
+//! \class  wave_import.hpp
+//! \author Kieron Allsop
+//!
+//! \brief  To import the WAV files into the database. Also adds the .mfc data
+//!         to the database once generated. Has ability to output a .mfc file
+//!         to disk
+//!
 class wave_importer
 {
 public:
@@ -77,10 +90,9 @@ public:
     using patient_t             = data_model::patient;
     using wave_files_t          = std::vector<wave_details_t>;
     using data_t                = std::vector<uint8_t>;
-//    using raw_data_t            = qt::audio::raw_data;
     using wav_data_t            = qt::audio::wav_data;
-
-
+    using speech_spectra_t      = analysis::TSpecAnalysis;
+    using shared_settings_t     = std::shared_ptr<analysis::speech_spectra_settings>;
 
 public:
 
@@ -90,10 +102,12 @@ public:
     wave_importer( const wave_importer& other ) = delete;
     wave_importer& operator=( const wave_importer& other ) = delete;
 
+
     // Construct with a shared Schema
-    explicit wave_importer( const patient_t& Patient, const shared_schema_t& Schema )
+    explicit wave_importer( const patient_t& Patient, const shared_schema_t& Schema, const shared_settings_t& Settings )
     : Patient_( Patient )
     , Schema_( Schema )
+    , Settings_( Settings )
     {
     }
 
@@ -104,10 +118,12 @@ public:
         return InhalerModel_;
     }
 
+
     const wave_files_t& wave_files() const
     {
         return WaveFiles_;
     }
+
 
     const patient_t& patient() const
     {
@@ -122,11 +138,13 @@ public:
         WaveFiles_ = std::move( WaveFiles );
     }
 
+
     void set_inhaler_model
         (   const std::string& InhalerModel   )
     {
         InhalerModel_ = InhalerModel;
     }
+
 
     void import_wave_files( const import_handler_t& Handler )
     {
@@ -176,6 +194,7 @@ private:
         return std::move( Data );
     }
 
+
     void store_file( const wave_details_t& WaveFile, const timestamp_t& ImportTime, const data_t& Data )
     {
         Schema_->patientwaves()
@@ -187,14 +206,55 @@ private:
                     WaveFile.modified_time(),
                     ImportTime,
                     Data,
-                    WaveFile.size() } );
+                    WaveFile.size(),
+                    boost::optional<std::vector<uint8_t>>(),
+                    boost::optional<int>() } );
     }
+
 
     void process_file( data_t& Data, const wave_details_t& WaveFile, const std::string& InhalerModel )
     {
         qt::audio::wav_data WavData( std::move( *static_cast<std::vector<char>*>( static_cast<void*>(&Data) ) ) );
-//        WaveData_.zero_pad( 160, 80 );
-        SpecAnalysis_.Execute( WavData, "filename" );
+
+        if( Settings_->export_mfcdata_to_disk() )
+        {
+            boost::filesystem::path Path = WaveFile.path().filename().string();
+            Path = Path.replace_extension( Settings_->output_extension() );
+            std::ofstream Ostream( Path.c_str(), std::ios::binary );
+            SpecAnalysis_.Execute( WavData, Ostream, Settings_ );
+        }
+
+        // Generate MFC file and write to database
+        asio::streambuf StreamBuf;
+        std::ostream Ostream( &StreamBuf );
+        SpecAnalysis_.Execute( WavData, Ostream, Settings_ );
+        auto Buffers = StreamBuf.data();
+
+        boost::optional< std::vector<std::uint8_t> > MfcData
+                    = std::vector<std::uint8_t>( asio::buffers_begin(Buffers),
+                                                 asio::buffers_begin(Buffers) + StreamBuf.size() );
+
+        boost::optional< int > MfcDataSize = boost::optional< int >( StreamBuf.size() );
+
+        const auto& PatientWaves = Schema_->patientwaves();
+
+        Schema_->patientwaves()
+            .where
+                (       PatientWaves->patient_id         == Patient_.id
+                    &&  PatientWaves->inhaler_type       == InhalerModel
+                    &&  PatientWaves->file_name          == WaveFile.path().filename().string()
+                    &&  PatientWaves->creation_timestamp == WaveFile.modified_time()    )
+            .update
+                (   PatientWaves->mfcdata, MfcData   );
+
+        Schema_->patientwaves()
+            .where
+                (       PatientWaves->patient_id         == Patient_.id
+                    &&  PatientWaves->inhaler_type       == InhalerModel
+                    &&  PatientWaves->file_name          == WaveFile.path().filename().string()
+                    &&  PatientWaves->creation_timestamp == WaveFile.modified_time()    )
+            .update
+                (   PatientWaves->mfcdata_size, MfcDataSize   );
     }
 
 private:
@@ -204,14 +264,15 @@ private:
     std::string             InhalerModel_;
     wave_files_t            WaveFiles_;
     wav_data_t              WaveData_;
-    TSpecAnalysis           SpecAnalysis_;
+    speech_spectra_t        SpecAnalysis_;
+    shared_settings_t       Settings_;
+
 };
 
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 } // inhaler
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
-
 
 // G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G
 #endif // INHALER_WAVE_IMPORTER_HPP_INCLUDED

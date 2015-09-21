@@ -16,17 +16,24 @@
 // Quince Includes
 #include <quince/quince.h>
 
-// C++ Standard Library Includes
+// Standard Library Includes
 #include <tuple>
 #include <string>
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
-
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 namespace inhaler {
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 
+
+//! \class  label_file_editor.hpp
+//! \author Kieron Allsop
+//!
+//! \brief  To interface between the view with which the user interacts when
+//!         they want to label a WAV file and the database which store the
+//!         data
+//!
 class label_file_editor
 {
 public:
@@ -51,6 +58,7 @@ public:
     , CurrentWave_  ( CurrentWave )
     {
     }
+
 
     quince::serial get_wave_id()
     {
@@ -100,7 +108,7 @@ public:
             auto Label          = std::get<3>(LabelRowTuple);
 
             auto Item = qt::audio::labelled_vocabulary( Label, StartSample, EndSample );
-            LabelData_.push_back( Item );
+            LabelData_.emplace_back( Item );
         }
         return LabelData_;
     }
@@ -136,20 +144,19 @@ public:
             .remove();
     }
 
-
 private:
 
     shared_schema_t         Schema_;
     patient_t               Patient_;
     wave_labels_t           LabelData_;
     patient_wave_details_t  CurrentWave_;
+
 };
 
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 } // inhaler
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
-
 
 // G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G
 #endif // INHALER_LABEL_FILE_EDITOR_HPP_INCLUDED

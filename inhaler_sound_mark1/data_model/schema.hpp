@@ -14,7 +14,7 @@
 #include <boost/optional.hpp>
 #include <boost/filesystem.hpp>
 
-// C++ Standard Library Includes
+// Standard Library Includes
 #include <vector>
 #include <fstream>
 
@@ -24,79 +24,121 @@
 namespace data_model{
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 
-// We place our basic data model in here. In the first case the tables we
-// will use and then later the schema that defines the nature of the tables
-// and how they are related to each other, for example foreign key constraints
+
+//! \class  schema.hpp
+//! \author Kieron Allsop
+//!
+//! \brief  We place our basic data model in here. In the first case the tables
+//!         we will use and then later the schema that defines the nature of the
+//!         tables and how they are related to each other, for example foreign
+//!         key constraints
+//!
 
 
 using timestamp_t   = boost::posix_time::ptime;
 using data_t        = std::vector<uint8_t>;
 
+
 struct user
 {
-    quince::serial                  id;                     // primary key
-    std::string                     title;
-    std::string                     forename;
-    std::string                     surname;
-    std::string                     user_role;
-    boost::optional<std::string>    email_address;
+    quince::serial                          id;                     // primary key
+    std::string                             title;
+    std::string                             forename;
+    std::string                             surname;
+    std::string                             user_role;
+    boost::optional<std::string>            email_address;
 };
-QUINCE_MAP_CLASS(user, (id)(title)(forename)(surname)(user_role)(email_address))
+QUINCE_MAP_CLASS(   user,
+                    (id)
+                    (title)
+                    (forename)
+                    (surname)
+                    (user_role)
+                    (email_address)   )
 
 
 struct userlogin
 {
-    std::string                     username;               // primary key
-    quince::serial                  user_id;                // foreign key
-    std::string                     password;
+    std::string                             username;               // primary key
+    quince::serial                          user_id;                // foreign key
+    std::string                             password;
 };
-QUINCE_MAP_CLASS(userlogin, (username)(user_id)(password))
+QUINCE_MAP_CLASS(   userlogin,
+                    (username)
+                    (user_id)
+                    (password)   )
 
 
 struct patient
 {
-    quince::serial                  id;                     // primary key
-    std::string                     title;
-    std::string                     forename;
-    boost::optional<std::string>    middlename;
-    std::string                     surname;
-    boost::posix_time::ptime        date_of_birth;
-    std::string                     postcode;
+    quince::serial                          id;                     // primary key
+    std::string                             title;
+    std::string                             forename;
+    boost::optional<std::string>            middlename;
+    std::string                             surname;
+    boost::posix_time::ptime                date_of_birth;
+    std::string                             postcode;
 };
-QUINCE_MAP_CLASS(patient, (id)(title)(forename)(middlename)(surname)(date_of_birth)(postcode))
+QUINCE_MAP_CLASS(   patient,
+                    (id)
+                    (title)
+                    (forename)
+                    (middlename)
+                    (surname)
+                    (date_of_birth)
+                    (postcode)   )
 
 
 struct patientwave
 {
-    quince::serial                  id;                     // primary key
-    quince::serial                  patient_id;             // unique & foreign key
-    std::string                     inhaler_type;           // unique
-    std::string                     file_name;              // unique
-    boost::posix_time::ptime        creation_timestamp;     // unique
-    boost::posix_time::ptime        import_timestamp;
-    std::vector<uint8_t>            wave_file;
-    int                             file_size;
+    quince::serial                          id;                     // primary key
+    quince::serial                          patient_id;             // unique & foreign key
+    std::string                             inhaler_type;           // unique
+    std::string                             file_name;              // unique
+    boost::posix_time::ptime                creation_timestamp;     // unique
+    boost::posix_time::ptime                import_timestamp;
+    std::vector<uint8_t>                    wave_file;
+    int                                     file_size;
+    boost::optional<std::vector<uint8_t>>   mfcdata;
+    boost::optional<int>                    mfcdata_size;
 };
-QUINCE_MAP_CLASS(patientwave, (id)(patient_id)(inhaler_type)(file_name)(creation_timestamp)(import_timestamp)(wave_file)(file_size))
+QUINCE_MAP_CLASS(   patientwave,
+                    (id)
+                    (patient_id)
+                    (inhaler_type)
+                    (file_name)
+                    (creation_timestamp)
+                    (import_timestamp)
+                    (wave_file)
+                    (file_size)
+                    (mfcdata)
+                    (mfcdata_size)   )
 
 
 struct wavelabelfile
 {
-    quince::serial                  patientwave_id;         // primary key & foreign key
-    int                             label_number;           // primary key
-    std::int64_t                    start_sample;
-    std::int64_t                    end_sample;
-    std::string                     event;
+    quince::serial                          patientwave_id;         // primary key & foreign key
+    int                                     label_number;           // primary key
+    std::int64_t                            start_sample;
+    std::int64_t                            end_sample;
+    std::string                             event;
 };
-QUINCE_MAP_CLASS(wavelabelfile, (patientwave_id)(label_number)(start_sample)(end_sample)(event))
+QUINCE_MAP_CLASS(   wavelabelfile,
+                    (patientwave_id)
+                    (label_number)
+                    (start_sample)
+                    (end_sample)
+                    (event)   )
 
 
 struct inhalerdata
 {
-    std::string                     inhaler_type;           // primary key
-    std::string                     vocabulary;
+    std::string                             inhaler_type;           // primary key
+    std::string                             vocabulary;
 };
-QUINCE_MAP_CLASS(inhalerdata, (inhaler_type)(vocabulary))
+QUINCE_MAP_CLASS(   inhalerdata,
+                    (inhaler_type)
+                    (vocabulary)   )
 
 
 template<class DatabaseT>
@@ -124,13 +166,13 @@ public:
 
     // forward all the arguments from Schema to the Database
     template<class... ArgsT>
-    explicit schema( ArgsT&&... Args )                     // parameter pack
+    explicit schema( ArgsT&&... Args )                         // parameter pack
         : Database_         ( std::forward<ArgsT>(Args)... )   // takes type list and parameter pack
         , Initialised_      ( false )
         , Users_            ( Database_, "users",          &user::id  )
         , Userlogins_       ( Database_, "userlogins",     &userlogin::username )
         , Patients_         ( Database_, "patients",       &patient::id )
-        , Patientwaves_     ( Database_, "patientwaves",   &patientwave::id)
+        , Patientwaves_     ( Database_, "patientwaves",   &patientwave::id )
         , Wavelabelfiles_   ( Database_, "wavelabelfiles" )
         , Inhalersdata_     ( Database_, "inhalersdata",   &inhalerdata::inhaler_type )
     {
@@ -179,25 +221,28 @@ private:
     // initial population of user data
     void initial_population()
     {
-        if( Users_.empty() )       // only allows this to run on first install
+        if( Users_.empty() )
         {
-            const quince::serial
-                sys_admin_id
-                    = Users_.insert
-                    ( { quince::serial(),
-                        "The",
-                        "System",
-                        "Administrator",
-                        "SystemAdministrator",
-                        boost::optional<std::string>() } );
 
-            Userlogins_.insert(
-            {
-                "admin",
-                sys_admin_id,
-                "admin" } );
+            // Default Administrator user
+//            const quince::serial
+//                sys_admin_id
+//                    = Users_.insert
+//                    ( { quince::serial(),
+//                        "The",
+//                        "System",
+//                        "Administrator",
+//                        "SystemAdministrator",
+//                        boost::optional<std::string>() } );
 
-            // TODO: remove after testing - default DataTechnician
+//            Userlogins_.insert(
+//            {
+//                "admin",
+//                sys_admin_id,
+//                "admin" } );
+
+
+            // Default Data Technician user
             const quince::serial
                 data_tech_id
                     = Users_.insert
@@ -208,35 +253,36 @@ private:
                         "DataTechnician",
                         boost::optional<std::string>() } );
 
+
             Userlogins_.insert(
             {
                 "datatech",
                 data_tech_id,
                 "datatech" } );
 
-            // TODO: remove after testing - default DiagnosingDoctor
-            const quince::serial
-                diag_doc_id
-                    = Users_.insert
-                    ( { quince::serial(),
-                        "Dr",
-                        "Diagnosing",
-                        "Doctor",
-                        "DiagnosingDoctor",
-                        boost::optional<std::string>()
-                });
+            // Default Diagnosing Doctor user
+//            const quince::serial
+//                diag_doc_id
+//                    = Users_.insert
+//                    ( { quince::serial(),
+//                        "Dr",
+//                        "Diagnosing",
+//                        "Doctor",
+//                        "DiagnosingDoctor",
+//                        boost::optional<std::string>()
+//                });
 
-            Userlogins_.insert(
-            {
-                "diagdoc",
-                diag_doc_id,
-                "diagdoc" } );
+//            Userlogins_.insert(
+//            {
+//                "diagdoc",
+//                diag_doc_id,
+//                "diagdoc" } );
 
         }
 
         if( Patients_.empty() )
         {
-            // TODO: remove after testing - default patient
+            // default patients
             Patients_.insert(
             {
                 quince::serial(),
@@ -261,6 +307,18 @@ private:
                         boost::posix_time::time_duration( 0, 0, 0 )    ),
                 "BT191YX" } );
 
+            Patients_.insert(
+            {
+                quince::serial(),
+                "Mr",
+                "Rhys",
+                boost::optional<std::string>(),
+                "Allsop",
+                boost::posix_time::ptime
+                    (   boost::gregorian::from_string( "2006-Dec-18" ),
+                        boost::posix_time::time_duration( 0, 0, 0 )    ),
+                "BT191YX" } );
+
         }
 
         if( Inhalersdata_.empty() )
@@ -272,6 +330,7 @@ private:
         }
     }
 
+
     void clear_all_tables()
     {
         Users_.remove();
@@ -281,7 +340,6 @@ private:
         Wavelabelfiles_.remove();
         Inhalersdata_.remove();
     }
-
 
 public:
 
@@ -293,40 +351,48 @@ public:
         return Users_;
     }
 
+
     users_t& users()
     {
         return Users_;
     }
+
 
     const userlogins_t& userlogins() const
     {
         return Userlogins_;
     }
 
+
     userlogins_t& userlogins()
     {
         return Userlogins_;
     }
+
 
     const patients_t& patients() const
     {
         return Patients_;
     }
 
+
     patients_t& patients()
     {
         return Patients_;
     }
+
 
     const patientwaves_t& patientwaves() const
     {
         return Patientwaves_;
     }
 
+
     patientwaves_t& patientwaves()
     {
         return Patientwaves_;
     }
+
 
     const wavelabelfiles_t& wavelabelfiles() const
     {
@@ -338,10 +404,12 @@ public:
         return Wavelabelfiles_;
     }
 
+
     const inhalersdata_t& inhalersdata() const
     {
         return Inhalersdata_;
     }
+
 
     inhalersdata_t& inhalersdata()
     {
@@ -360,13 +428,13 @@ private:
     quince::serial_table<patientwave>   Patientwaves_;
     quince::table<wavelabelfile>        Wavelabelfiles_;
     quince::table<inhalerdata>          Inhalersdata_;
+
 };
 
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 } // data_model
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
-
 
 // G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G
 #endif // DATA_MODEL_SCHEMA_HPP_INCLUDED

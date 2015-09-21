@@ -5,7 +5,7 @@
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
-// Data Model Includes
+// data_model Includes
 #include "data_model/schema.hpp"
 
 // Quince Includes
@@ -16,7 +16,7 @@
 #include <boost/optional.hpp>
 #include <boost/exception/all.hpp>
 
-// C++ Standard Library Includes
+// Standard Library Includes
 #include <string>
 #include <stdexcept>
 
@@ -32,6 +32,11 @@ namespace exception
 }
 
 
+//! \class  server.hpp
+//! \author Kieron Allsop
+//!
+//! \brief  Database is defined here and before being passed to schema.hpp
+//!
 class server
 {
 public:
@@ -88,7 +93,7 @@ public:
         auto Login = LoginQuery.begin();
 
         if(     Login != LoginQuery.end()
-            &&  Password == Login->password )
+            &&  Password == Login->password   )
         {
             const auto& Users = Schema_->users();
 
@@ -109,13 +114,13 @@ public:
 private:
 
     shared_schema_t Schema_;
+
 };
 
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 } // inhaler
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
-
 
 // G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G
 #endif // INHALER_SERVER_HPP_INCLUDED

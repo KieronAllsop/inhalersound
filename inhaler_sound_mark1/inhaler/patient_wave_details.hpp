@@ -20,13 +20,18 @@ namespace inhaler {
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 
 
+//! \class  patient_wave_details.hpp
+//! \author Kieron Allsop
+//!
+//! \brief  To hold details of retrieved tuples from the database.
+//!
 class patient_wave_details
 {
 public:
 
     using string_t      = std::string;
     using timestamp_t   = boost::posix_time::ptime;
-    using size_t        = int; //std::streamsize;
+    using size_t        = int;
     using result_t      = std::tuple< string_t, timestamp_t, string_t, size_t, timestamp_t >;
 
 public:
@@ -49,28 +54,34 @@ public:
     {
     }
 
+
     patient_wave_details( const patient_wave_details& other ) = default;
     patient_wave_details& operator=( const patient_wave_details& other ) = default;
+
 
     const string_t& inhaler_model() const
     {
         return InhalerModel_;
     }
 
+
     const timestamp_t& import_time() const
     {
         return ImportTime_;
     }
+
 
     const string_t& name() const
     {
         return Name_;
     }
 
+
     const size_t& size() const
     {
         return Size_;
     }
+
 
     const timestamp_t& modified_time() const
     {
@@ -91,7 +102,6 @@ private:
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 } // inhaler
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
-
 
 // G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G
 #endif // INHALER_PATIENT_WAVE_DETAILS_HPP_INCLUDED

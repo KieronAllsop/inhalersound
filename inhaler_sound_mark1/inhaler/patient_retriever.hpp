@@ -5,7 +5,7 @@
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
-// Inhaler Includes
+// inhaler Includes
 #include "inhaler/server.hpp"
 
 // Boost Includes
@@ -13,11 +13,13 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/optional.hpp>
 
-// C++ Standard Library Includes
+// Standard Library Includes
 #include <vector>
 #include <string>
 #include <functional>
 #include <fstream>
+#include <algorithm>
+#include <string>
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
@@ -26,6 +28,11 @@ namespace inhaler {
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 
 
+//! \class  patient_retriever.hpp
+//! \author Kieron Allsop
+//!
+//! \brief  To enable the retrieval of patient information from the database.
+//!
 class patient_retriever
 {
 public:
@@ -58,7 +65,7 @@ public:
                         .where(     Patients->forename      == Forename
                                 &&  Patients->surname       == Surname
                                 &&  Patients->date_of_birth == DateOfBirth
-                                &&  Patients->postcode      == Postcode );
+                                &&  Patients->postcode      == Postcode   );
 
         auto Patient = Query.begin();
 
@@ -72,13 +79,13 @@ public:
 private:
 
     shared_schema_t         Schema_;
+
 };
 
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 } // inhaler
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
-
 
 // G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G
 #endif // INHALER_PATIENT_RETIEVER_HPP_INCLUDED
