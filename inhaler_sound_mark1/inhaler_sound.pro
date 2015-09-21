@@ -10,8 +10,8 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET   = inhalersound
 TEMPLATE = app
-INCLUDEPATH += $$PWD/.build/gcc49/dbg/working
-INCLUDEPATH += $$PWD/.build/gcc49/rel/working
+INCLUDEPATH += $$PWD/.build/gcc51/dbg/working
+INCLUDEPATH += $$PWD/.build/gcc51/rel/working
 
 SOURCES +=  application/main.cpp \
             qt_windows/play_wave.cpp \
@@ -29,13 +29,13 @@ SOURCES +=  application/main.cpp \
             qt_gui/view/wave_form.cpp \
             qt_gui/view/explore_wave.cpp \
             qt/audio/audio_buffer_test.cpp \
-    qt_gui/view/wave_zoom.cpp \
-    qt_gui/view/label_file_edit.cpp \
-    analysis/SpecAnalysis.cpp \
-    analysis/Spectra.cpp \
-    analysis/HTKData.cpp \
-    analysis/WAVData.cpp \
-    analysis/BufferedASignal.cpp
+            qt_gui/view/wave_zoom.cpp \
+            qt_gui/view/label_file_edit.cpp \
+            analysis/SpecAnalysis.cpp \
+            analysis/Spectra.cpp \
+            analysis/HTKData.cpp \
+            analysis/WAVData.cpp \
+            analysis/BufferedASignal.cpp
 
 HEADERS += \
             data_model/schema.hpp \
@@ -67,24 +67,23 @@ HEADERS += \
             qt/audio/audio_player.hpp \
             qt/audio/play_status.hpp \
             qt/audio/probe_status.hpp \
-    qt/audio/vocabulary_kind.hpp \
-    qt_gui/view/wave_zoom.h \
-    inhaler/label_file_editor.hpp \
-    analysis/SpecAnalysis.h \
-    analysis/Spectra.h \
-    analysis/HTKData.h \
-    analysis/FeatureVectorLoader.h \
-    analysis/Semaphore.h \
-    analysis/SIG.h \
-    analysis/WAVData.h \
-    qt/audio/wav_data.hpp \
-    qt/audio/wav_header.hpp
+            qt/audio/vocabulary_kind.hpp \
+            qt_gui/view/wave_zoom.h \
+            inhaler/label_file_editor.hpp \
+            analysis/SpecAnalysis.h \
+            analysis/Spectra.h \
+            analysis/HTKData.h \
+            analysis/FeatureVectorLoader.h \
+            analysis/Semaphore.h \
+            analysis/SIG.h \
+            analysis/WAVData.h \
+            qt/audio/wav_data.hpp \
+            qt/audio/wav_header.hpp \
+            analysis/speech_spectra_settings.hpp
 
 FORMS   +=
 
 OTHER_FILES += \
-            initial_data/accuhaler.voc \
             sconscript \
             sconstruct \
-            qt/audio/audio_buffer_test \
-    initial_data/inhaler.spe
+            qt/audio/audio_buffer_test
