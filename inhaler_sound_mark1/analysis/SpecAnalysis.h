@@ -5,20 +5,20 @@
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
-// Qt Audio Includes
+// analysis Includes
+#include "analysis/Spectra.h"
+#include "analysis/speech_spectra_settings.hpp"
+
+// qt::audio Includes
 #include "qt/audio/wav_data.hpp"
 
-// Analysis Includes
-#include "Spectra.h"
-
-// C++ Standard Library Includes
+// Standard Library Includes
 #include <vector>
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
-
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
-
+namespace analysis {
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 
 
@@ -28,13 +28,17 @@ typedef struct
 } AFrame;
 
 
+//! \headerfile SpecAnalysis.h
+//! \author     Adapted from code originally written by Prof Ji Ming and amended by
+//!             Fiachra Murray
+//!
 class TSpecAnalysis
 {
 
 public:
 
     using wav_data_t        = qt::audio::wav_data;
-
+    using shared_settings_t = std::shared_ptr<analysis::speech_spectra_settings>;
 
 public:
 
@@ -42,7 +46,9 @@ public:
 
                             ~TSpecAnalysis      ();
 
-    std::vector<AFrame>     Execute             (   wav_data_t& wav, const std::string& fileName = ""   );
+    std::vector<AFrame>     Execute             (   wav_data_t& wav,
+                                                    std::ostream& Ostream,
+                                                    const shared_settings_t& Settings  );
 
     TSpectra*               Fea;
     int                     nVectors;
@@ -136,16 +142,16 @@ private:
     // Estimate noise spectrum of size vSize using the first nFrms of vec
     void                    EstNoiseSpec        (   float* vec, int vSize, int nFrms   );
 
+    shared_settings_t       Settings_;
+
 };
 
 extern TSpecAnalysis* SpecAnalysis;
 
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
-
+} // analysis
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
-
-
 
 // G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G
 #endif // ANALYSIS_SPECANALYSIS_H_INCLUDED

@@ -1,20 +1,33 @@
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
 // Self Include
-#include "SpecAnalysis.h"
+#include "analysis/SpecAnalysis.h"
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
+// n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
+namespace analysis {
+// n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 
+
+//! \class  SpecAnalysis.cpp
+//! \author Adapted from code originally written by Prof Ji Ming and amended by
+//!         Fiachra Murray
+//!
+//! \brief  Class which performs feature extraction
+//!
 TSpecAnalysis::
 TSpecAnalysis()
 {
 
     const long double PI = (std::atan(1.0) * 4.0);
 
+    auto Settings = analysis::speech_spectra_settings::create_from_file();
+    Settings_ = Settings;
+
     // Analysis parameters
-    FrmLength = 160;                    //GlobalSettings.SpeechAnalysisParamaters.FrmLength = 160
-    FrmShift = 80;                      //GlobalSettings.SpeechAnalysisParamaters.Shift = 80
+    FrmLength = Settings_->frame_length();
+    FrmShift = Settings_->frame_shift();
     nFFT = 2;
 
     while( FrmLength > nFFT )
@@ -23,19 +36,19 @@ TSpecAnalysis()
     }
 
     nFFT2 = nFFT / 2;
-    nChn = 23;                          //GlobalSettings.SpeechAnalysisParamaters.nChn = 23
-    nBands = 1;                         //GlobalSettings.SpeechAnalysisParamaters.nBands = 1
+    nChn = Settings_->channels();
+    nBands = Settings_->bands();
     nChnBand = nChn / nBands;
-    nDCTBand = 12;                      //GlobalSettings.SpeechAnalysisParamaters.nDCTBand = 12
-    DCFilt = 0;                         //GlobalSettings.SpeechAnalysisParamaters.DCFilt = 0
+    nDCTBand = Settings_->dct();
+    DCFilt = Settings_->dc_filter();
 
     // Output sub - band spectral streams
     nStrms = 1;
-    if( 3 )                             //GlobalSettings.SpeechAnalysisParamaters.Delta = 3
+    if( Settings_->delta() )
     {
         nStrms = 2;
     }
-    if( 2 )                             //GlobalSettings.SpeechAnalysisParamaters.DeltaDelta = 2
+    if( Settings_->delta_delta() )
     {
         nStrms = 3;
     }
@@ -47,9 +60,7 @@ TSpecAnalysis()
     {
         HamWin[n] = 0.54 - 0.46 * cos( 2 * n * PI / ( FrmLength - 1 ) );
     }
-    EmpCoe = 0.95;
-    // EmpCoe = 0.97;
-    /// TODO Check this with Ji
+    EmpCoe = 0.97;
 
     // FFT constants
     Cos = std::vector<std::vector<float>>();
@@ -87,9 +98,9 @@ TSpecAnalysis()
             }
         }
 
-        if( 1 > 1 )                      //GlobalSettings.SpeechAnalysisParamaters.Lift = 1
+        if( Settings_->lifter() > 1 )
         {
-            int L = 1;                   //GlobalSettings.SpeechAnalysisParamaters.Lift = 1
+            int L = Settings_->lifter();
             CepWei = std::vector<float>();
             CepWei.resize( nDCTBand );
             for( int k = 0; k < nDCTBand; ++k )
@@ -109,34 +120,39 @@ TSpecAnalysis()
     InitFBDone = false;
 }
 
-
 TSpecAnalysis::
 ~TSpecAnalysis()
 {
 }
 
+
 // Execute
 std::vector <AFrame> TSpecAnalysis::
-Execute( wav_data_t& wav, const std::string& fileName )
+Execute( wav_data_t& wav, std::ostream& Ostream, const shared_settings_t& Settings )
 {
-    Rate = wav.samples_per_channel();
+    Settings_ = Settings;
+
+    Rate = wav.format().sample_rate();
 
     //  Output spectra
     Fea = 0;
     Cep = Dfb = Spe = 0;
     if( nDCTBand )
     {
-        Cep = new TSpectra;     //  Cep
+        // Cep
+        Cep = new TSpectra;
         Fea = Cep;
     }
     if( DCFilt )
     {
-        Dfb = new TSpectra;     //  Dfb
+        // Dfb
+        Dfb = new TSpectra;
         Fea = Dfb;
     }
     if( Cep == 0 && Dfb == 0 )
     {
-        Spe = new TSpectra;     //  Spe
+        // Spe
+        Spe = new TSpectra;
         Fea = Spe;
     }
 
@@ -171,7 +187,7 @@ Execute( wav_data_t& wav, const std::string& fileName )
             int v0 = ( t * Fea->nBands + b ) * Fea->bndSize;
 
             // Static spectra
-            if( 0 == 0 )                     //GlobalSettings.SpeechAnalysisParamaters.DelOnly = 0
+            if( Settings_->del_only() == 0 )
             {
                 index2 = 0;
                 for( int n = 0; n < Fea->bndSize; ++n )
@@ -200,10 +216,7 @@ Execute( wav_data_t& wav, const std::string& fileName )
         }
     }
 
-    if( fileName != "" )
-    {
-        Fea->Output( fileName );
-    }
+    Fea->Output( Ostream );
 
     if( Cep )
     {
@@ -221,71 +234,33 @@ Execute( wav_data_t& wav, const std::string& fileName )
     return frames;
 }
 
+
 // Overall control
 void TSpecAnalysis::
 SpecAnalysis( wav_data_t& wav )
 {
+    // Pad the last frame of the file if needed - otherwise the file is truncated
+    // and up to (frame_shift - 1) frames will not be processed.
+    if( Settings_->zero_pad_last_frame() )
+    {
+        wav.zero_pad( Settings_->frame_length(), Settings_->frame_shift() );
+    }
 
-std::cout << "=======  B E F O R E   P A D D I N G  =======" << std::endl;
-std::cout << "Format = " << wav.format() << std::endl;
-std::cout << "Samples Per Channel = " << wav.samples_per_channel() << std::endl;
-std::cout << "Size = " << wav.size() << std::endl;
-std::cout << "Header Size = " << wav.header_size() << std::endl;
-std::cout << "Buffer Size = " << wav.buffer().size() << std::endl;
-std::cout << "Duration Count = " << wav.duration().count() << std::endl;
-std::cout << "Header Data Size = " << wav.header().data_size() << std::endl;
-std::cout << std::endl;
-std::cout << "=======  P A D D I N G   T I M E  =======" << std::endl;
-
-    wav.zero_pad( 160, 80 );
-
-std::cout << std::endl;
-std::cout << "=======  A F T E R   P A D D I N G  =======" << std::endl;
-std::cout << "Format = " << wav.format() << std::endl;
-std::cout << "Samples Per Channel = " << wav.samples_per_channel() << std::endl;
-std::cout << "Size = " << wav.size() << std::endl;
-std::cout << "Header Size = " << wav.header_size() << std::endl;
-std::cout << "Buffer Size = " << wav.buffer().size() << std::endl;
-std::cout << "Duration Count = " << wav.duration().count() << std::endl;
-std::cout << "Header Data Size = " << wav.header().data_size() << std::endl;
-std::cout << std::endl;
-
-    int nFrames = wav.samples_per_channel() / (160 - 80);
-
-std::cout << "=======  C A L C   N F R A M E S  =======" << std::endl;
-std::cout << "nFrames = Samples Per Channel / (FrameSize-FrameShift)" << std::endl;
-std::cout << "Should there be a plus 1 here ?" << std::endl;
-std::cout << "nFrames = " << nFrames << std::endl;
-
-//    // Number of frames
-//    int nFrames = ( wav.nSamples >= FrmLength ) ? ( wav.nSamples - FrmLength ) / FrmShift + 1 : 1;
-
-//    // Pad with zeroes
-//    if( nFrames == 1 )
-//    {
-//        if( wav.nSamples < FrmLength )
-//        {
-//            wav.Sample.resize( FrmLength );
-//            for( int i = wav.nSamples; i < wav.Sample.size(); ++i )
-//            {
-//                wav.Sample[i] = 0;
-//            }
-//            wav.nSamples = wav.Sample.size();
-//        }
-//    }
+    // Number of Frames
+    int nFrames = ( wav.samples_per_channel() - Settings_->frame_length() ) / Settings_->frame_shift() + 1;
 
     // Create output multi - band spectra
     if( Cep )
     {
-        Cep->Create( nBands,nDCTBand,nFrames,nStrms,Rate );
+        Cep->Create( nBands, nDCTBand, nFrames, nStrms, Rate, Settings_->del_only(), Settings_->frame_shift() );
     }
     if( Dfb )
     {
-        Dfb->Create( nBands,nChnBand,nFrames,nStrms,Rate );
+        Dfb->Create( nBands, nChnBand, nFrames, nStrms, Rate, Settings_->del_only(), Settings_->frame_shift() );
     }
     if( Spe )
     {
-        Spe->Create( nBands,nChnBand,nFrames,nStrms,Rate );
+        Spe->Create( nBands, nChnBand, nFrames, nStrms, Rate, Settings_->del_only(), Settings_->frame_shift() );
     }
 
     // Temp spectra
@@ -302,11 +277,10 @@ std::cout << "nFrames = " << nFrames << std::endl;
     {
         // Get a frame
         auto w = i * FrmShift;
-//        short int * w = &wav.Sample[0] + i * FrmShift;
+
         for( int n = 0; n < FrmLength; ++n )
         {
             x[n] = wav.scaled_sample<short>( w, 0 );
-//            x[n] = w[n];
         }
         for( int n = FrmLength; n < nFFT; ++n )
         {
@@ -321,7 +295,6 @@ std::cout << "nFrames = " << nFrames << std::endl;
         a1 += nFFT2;
     }
 
-
     // Filter - bank analysis
     a1 = &s[0];
     float* a2 = &u[0];
@@ -333,7 +306,7 @@ std::cout << "nFrames = " << nFrames << std::endl;
     }
 
     // Log FB spectra
-    if( 1 )                                //GlobalSettings.SpeechAnalysisParamaters.LogAmp = 1
+    if( Settings_->log_amp() )
     {
         a1 = &u[0];
         for( int i = 0; i < nFrames; ++i )
@@ -352,7 +325,7 @@ std::cout << "nFrames = " << nFrames << std::endl;
         {
             for( int b = 0; b < nBands; ++b )
             {
-                DCT( a1, a2 );                  /* Corrected: 16 - 01 - 2002 */
+                DCT( a1, a2 );
                 a1 += nChnBand;
                 a2 += nDCTBand;
             }
@@ -375,7 +348,9 @@ std::cout << "nFrames = " << nFrames << std::endl;
                 DecorFB_2( a1, a2 );
             }
             a1 += nChn;
-            a2 += ( nChn - DCFilt );            /* Decorrelated FB nChn */
+
+            // Decorrelated FB nChn
+            a2 += ( nChn - DCFilt );
         }
     }
 
@@ -396,7 +371,7 @@ std::cout << "nFrames = " << nFrames << std::endl;
     }
 
     // Generate delta spectra
-    int DelWin = 3;                         //GlobalSettings.SpeechAnalysisParamaters.Delta = 3
+    int DelWin = Settings_->delta();
     if( DelWin )
     {
         if( Cep )
@@ -408,10 +383,11 @@ std::cout << "nFrames = " << nFrames << std::endl;
         }
         if( Dfb )
         {
+            // Decorrelated FB nChn
             DelSpectra( DelWin,
                         &Dfb->Vector[0],
                         &Dfb->DelVec[0],
-                        nChn - DCFilt, nFrames );           /* Decorrelated FB nChn */
+                        nChn - DCFilt, nFrames );
         }
         if( Spe )
         {
@@ -423,7 +399,7 @@ std::cout << "nFrames = " << nFrames << std::endl;
     }
 
     // Generate delta - delta spectra
-    DelWin = 2;                             //GlobalSettings.SpeechAnalysisParamaters.DeltaDelta = 2
+    DelWin = Settings_->delta_delta();
     if( DelWin )
     {
         if( Cep )
@@ -435,10 +411,11 @@ std::cout << "nFrames = " << nFrames << std::endl;
         }
         if( Dfb )
         {
+            // Decorrelated FB nChn
             DelSpectra( DelWin,
                         &Dfb->DelVec[0],
                         &Dfb->DelDelVec[0],
-                        nChn - DCFilt, nFrames );           /* Decorrelated FB nChn */
+                        nChn - DCFilt, nFrames );
         }
         if( Spe )
         {
@@ -450,7 +427,7 @@ std::cout << "nFrames = " << nFrames << std::endl;
     }
 
     // Remove cepstral mean
-    if( 1 )                                //GlobalSettings.SpeechAnalysisParamaters.RemoveCepstralMean = 1
+    if( Settings_->mean_rem() )
     {
         if( Cep )
         {
@@ -459,12 +436,13 @@ std::cout << "nFrames = " << nFrames << std::endl;
     }
 }
 
+
 // Preprocessing
 void TSpecAnalysis::
 PreProcess( float* x )
 {
     // pre - emphasize
-    if( 1 )                                //GlobalSettings.SpeechAnalysisParamaters.PreEmp = 1
+    if( Settings_->emphasize() )
     {
         for( int n = FrmLength - 1; n > 0; --n )
         {
@@ -474,7 +452,7 @@ PreProcess( float* x )
     }
 
     // Ham windowing
-    if( 1 )                                //GlobalSettings.SpeechAnalysisParamaters.Window = 1
+    if( Settings_->windowing() )
     {
         for( int n = 0; n < FrmLength; ++n )
         {
@@ -482,6 +460,7 @@ PreProcess( float* x )
         }
     }
 }
+
 
 // Log energy
 float TSpecAnalysis::
@@ -503,6 +482,7 @@ LogEnergy( float* x )
 
     return e;
 }
+
 
 //  FFT
 void TSpecAnalysis::
@@ -536,7 +516,7 @@ FFT( float* x, float* s )
     delete [] a;
 
     // FFT amplitude spectrum
-    if( 1 == 0 )                        //GlobalSettings.SpeechAnalysisParamaters.Power = 1
+    if( Settings_->power_spectrum() == 0 )
     {
         for( int k = 0; k < nFFT2; ++k )
         {
@@ -544,6 +524,7 @@ FFT( float* x, float* s )
         }
     }
 }
+
 
 // Filter bank filtering
 void TSpecAnalysis::
@@ -569,6 +550,7 @@ FBFilter( float* s, float* u )
     }
 }
 
+
 // Log FB spectra
 void TSpecAnalysis::
 LogFB( float* u )
@@ -584,6 +566,7 @@ LogFB( float* u )
     }
 }
 
+
 // DCT
 void TSpecAnalysis::
 DCT( float* u, float* c )
@@ -595,7 +578,6 @@ DCT( float* u, float* c )
         c0 += u[n];
     }
     c0 *= sqrt( 1.0 / ( float )nChnBand );
-    // c0 *= sqrt(2.0 / (float)nChnBand);		//  HTK
 
     // Ck
     for( int k = 0; k < nDCTBand; ++k )
@@ -608,13 +590,13 @@ DCT( float* u, float* c )
     }
 
     // Lifter
-    if( 1 > 1 )                                 //GlobalSettings.SpeechAnalysisParamaters.Lift = 1
+    if( Settings_->lifter() > 1 )
     {
-        CepLifter( c,nDCTBand );                /* Corrected: 16 - 01 - 2002 */
+        CepLifter( c,nDCTBand );
     }
 
     // Use C0
-    if( 1 )                                     //GlobalSettings.SpeechAnalysisParamaters.C0 = 1
+    if( Settings_->c0() )
     {
         for( int k = nDCTBand - 1; k > 0; --k )
         {
@@ -623,6 +605,7 @@ DCT( float* u, float* c )
         c[0] = c0;
     }
 }
+
 
 // Cepstrum lifter
 void TSpecAnalysis::
@@ -633,6 +616,7 @@ CepLifter( float* c, int cSize )
         c[k] *= CepWei[k];
     }
 }
+
 
 // Decorrelate FB spectra u, return in c, H(z) = 1  -  z^ - 1
 void TSpecAnalysis::
@@ -647,6 +631,7 @@ DecorFB_1( float* u, float* c )
     }
 }
 
+
 // Decorrelate FB spectra u, return in c, H(z) = z^ + 1  -  z^ - 1
 void TSpecAnalysis::
 DecorFB_2( float* u, float* c )
@@ -659,6 +644,7 @@ DecorFB_2( float* u, float* c )
     }
 }
 
+
 // Normalize log energy
 void TSpecAnalysis::
 NormLogEne( float* e, int nFrames )
@@ -670,7 +656,7 @@ NormLogEne( float* e, int nFrames )
             MaxE = e[i];
         }
 
-    float MinE = MaxE - ( 50.0 * log( 10.0 ) ) / 10.0;      //  50 = 10 * log10(MaxE / MinE)
+    float MinE = MaxE - ( 50.0 * log( 10.0 ) ) / 10.0;
 
     for( int i = 0; i < nFrames; ++i )
     {
@@ -681,6 +667,7 @@ NormLogEne( float* e, int nFrames )
         e[i] = 1.0 + ( e[i] - MaxE ) * 0.1;
     }
 }
+
 
 // Compute delta spectra for Vec of size VecSize, length nVecs, into Del
 void TSpecAnalysis::
@@ -723,6 +710,7 @@ DelSpectra( int DelWin, float* Vec, float* Del, int VecSize, int nVecs )
     }
 }
 
+
 // Remove spectral mean
 void TSpecAnalysis::
 MeanRemove( float* Vec, int VecSize, int nVecs )
@@ -750,21 +738,22 @@ MeanRemove( float* Vec, int VecSize, int nVecs )
     }
 }
 
+
 // Initialize filter bank
 void TSpecAnalysis::
 InitFB()
 {
     // Frequency scale
-    FScale = ( 1 )? ( double )Rate / ( nFFT * 700. ) : 0.; //GlobalSettings.SpeechAnalysisParamaters.Mel = 1
+    FScale = ( Settings_->mel() )? ( double )Rate / ( nFFT * 700. ) : 0.;
 
-    int LowCut = 100;                                  //GlobalSettings.SpeechAnalysisParamaters.LowCut = 100
+    int LowCut = Settings_->low_cut();
     // FBank cut - off frequencies (discrete linear and / or mel)
     LCut = 2;
     HCut = nFFT / 2;
     float MLCut = 0, MHCut = ( FScale > 0. )? L2M( nFFT / 2 + 1 ) : nFFT / 2 + 1;
     if( LowCut > 0 )
     {
-        LCut = ( ( double )LowCut / ( double )Rate ) * nFFT + 2.5;       /* Corrected: 16 - 01 - 2002 */
+        LCut = ( ( double )LowCut / ( double )Rate ) * nFFT + 2.5;
         MLCut = ( FScale > 0. )? 1127 * log(1 + ( double )LowCut / 700. ) : LCut;
         if( LCut < 2 )
         {
@@ -772,7 +761,7 @@ InitFB()
         }
     }
 
-    int HighCut = 3500;                               //GlobalSettings.SpeechAnalysisParamaters.HighCut = 3500
+    int HighCut = Settings_->high_cut();
     if( HighCut > 0 )
     {
         HCut = ( ( double )HighCut / ( double )Rate ) * nFFT + 0.5;
@@ -797,7 +786,7 @@ InitFB()
     for( int k = 1,n = 1; k <= nFFT / 2; ++k )
     {
         float k1 = L2M( k );
-        while( FCent[n] < k1 && n < nChn + 1 )          // was n <= ...
+        while( FCent[n] < k1 && n < nChn + 1 )
         {
             ++n;
         }
@@ -821,6 +810,7 @@ InitFB()
     }
 }
 
+
 // Liner to mel frequency conversion
 float TSpecAnalysis::
 L2M( int k )
@@ -835,6 +825,7 @@ L2M( int k )
     }
 }
 
+
 // Estimate noise spectrum of size vSize using the first nFrms of vec
 void TSpecAnalysis::
 EstNoiseSpec( float* vec, int vSize, int nFrms )
@@ -845,7 +836,7 @@ EstNoiseSpec( float* vec, int vSize, int nFrms )
     }
 
     // Estimate power spectrum
-    if( 1 )                                    //GlobalSettings.SpeechAnalysisParamaters.Power = 1
+    if( Settings_->power_spectrum() )
         for( int i = 0; i < nFrms; ++i )
         {
             float* v = vec + i * vSize;
@@ -869,3 +860,8 @@ EstNoiseSpec( float* vec, int vSize, int nFrms )
         NSpec[n] /= nFrms;
     }
 }
+
+
+// n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
+} // analysis
+// n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
