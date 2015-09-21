@@ -14,6 +14,12 @@ namespace qt {
 namespace audio {
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 
+
+//! \class  play_status.hpp
+//! \author Kieron Allsop
+//!
+//! \brief  enum class for play status
+//!
 enum class play_status_t
 {
     playing,
@@ -21,6 +27,7 @@ enum class play_status_t
     stopped,
     position_changed
 };
+
 
 inline
 constexpr const char* c_str( const play_status_t& Status )
@@ -35,11 +42,11 @@ constexpr const char* c_str( const play_status_t& Status )
     return nullptr;
 }
 
+
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 } // audio
 } // qt
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
-
 
 // G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G
 #endif // QT_AUDIO_PLAY_STATUS_HPP_INCLUDED

@@ -17,7 +17,7 @@
 // Boost Includes
 #include <boost/filesystem.hpp>
 
-// C++ Standard Library Includes
+// Standard Library Includes
 #include <functional>
 #include <string>
 #include <cstring>
@@ -33,6 +33,11 @@ namespace audio {
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 
 
+//! \class  wave_decoder.hpp
+//! \author Kieron Allsop
+//!
+//! \brief  To decode WAV files.
+//!
 class buffer_event : public QEvent
 {
 public:
@@ -58,10 +63,12 @@ public:
     {
     }
 
+
     status_t status() const
     {
         return Status_;
     }
+
 
     buffer_t buffer() const
     {
@@ -74,8 +81,6 @@ private:
     status_t            Status_;
     buffer_t            Buffer_;
 };
-
-
 
 class event_sink : public QObject
 {
@@ -93,6 +98,7 @@ public:
     {
     }
 
+
     bool event( QEvent* Event )
     {
         if( Event->type() == buffer_event::type() )
@@ -105,11 +111,11 @@ public:
         }
         return QObject::event( Event );
     }
+
 private:
 
     buffer_handler_t Handler_;
 };
-
 
 
 class wave_decoder
@@ -134,6 +140,7 @@ public:
     {
     }
 
+
     void start()
     {
         stop();
@@ -145,6 +152,7 @@ public:
             );
     }
 
+
     void stop()
     {
         Finished_ = true;
@@ -155,11 +163,10 @@ public:
         Finished_ = false;
     }
 
+
     ~wave_decoder()
     {
         stop();
-
-
     }
 
 private:
@@ -169,20 +176,24 @@ private:
         return "RIFF";
     }
 
+
     static constexpr const char* wave()
     {
         return "WAVE";
     }
+
 
     static constexpr const char* fmt()
     {
         return "fmt ";
     }
 
+
     static constexpr const char* data()
     {
         return "data";
     }
+
 
     struct riff_header
     {
@@ -190,16 +201,19 @@ private:
         int32_t     length;
     };
 
+
     struct wave_header
     {
         char        id[4];
     };
+
 
     struct chunk_header
     {
         char        id[4];
         uint32_t    length;
     };
+
 
     struct format_chunk
     {
@@ -210,6 +224,7 @@ private:
         int16_t bytes_per_sample;   // Bytes per sample
         int16_t bits_per_sample;    // Bits per sample
     };
+
 
     struct format_tag
     {
@@ -384,7 +399,6 @@ private:
 } // audio
 } // qt
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
-
 
 // G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G
 #endif // QT_AUDIO_WAVE_DECODER_HPP_INCLUDED

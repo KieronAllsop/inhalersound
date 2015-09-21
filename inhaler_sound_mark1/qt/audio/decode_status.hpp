@@ -14,6 +14,10 @@ namespace qt {
 namespace audio {
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 
+
+//! \enum   decode_status.hpp
+//! \author Kieron Allsop
+//!
 enum class decode_status_t
 {
     started,
@@ -50,6 +54,7 @@ constexpr bool is_error( const decode_status_t& Status )
     return true;
 }
 
+
 inline
 constexpr const char* c_str( const decode_status_t& Status )
 {
@@ -70,11 +75,11 @@ constexpr const char* c_str( const decode_status_t& Status )
     return nullptr;
 }
 
+
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 } // audio
 } // qt
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
-
 
 // G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G
 #endif // QT_AUDIO_DECODE_STATUS_HPP_INCLUDED

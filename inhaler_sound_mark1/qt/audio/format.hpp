@@ -6,7 +6,7 @@
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
 // Qt Includes
-#include <QAudioFormat>
+#include <QtMultimedia/QAudioFormat>
 
 // Boost Includes
 #include <boost/exception/all.hpp>
@@ -40,6 +40,7 @@ enum class sample_type_t
     floating_point
 };
 
+
 inline
 constexpr const char* c_str( const sample_type_t& Type )
 {
@@ -54,11 +55,13 @@ constexpr const char* c_str( const sample_type_t& Type )
     return nullptr;
 }
 
+
 template< sample_type_t SampleTypeT >
 struct sample_type
 {
     typedef void value_type;
 };
+
 
 template<>
 struct sample_type<sample_type_t::unsigned_int8>
@@ -66,11 +69,13 @@ struct sample_type<sample_type_t::unsigned_int8>
     typedef std::uint8_t value_type;
 };
 
+
 template<>
 struct sample_type<sample_type_t::signed_int16>
 {
     typedef std::int16_t value_type;
 };
+
 
 template<>
 struct sample_type<sample_type_t::signed_int32>
@@ -78,11 +83,13 @@ struct sample_type<sample_type_t::signed_int32>
     typedef std::int32_t value_type;
 };
 
+
 template<>
 struct sample_type<sample_type_t::floating_point>
 {
     typedef float value_type;
 };
+
 
 template<sample_type_t SampleTypeT>
 using sample_type_value_t = typename sample_type<SampleTypeT>::value_type;
@@ -118,6 +125,11 @@ constexpr std::size_t bytes_per_sample( sample_type_t Type )
 }
 
 
+//! \class  format.hpp
+//! \author Kieron Allsop
+//!
+//! \brief  Details of the various WAV file formats
+//!
 class format
 {
 public:
@@ -129,6 +141,7 @@ public:
     , Codec_( "" )
     {
     }
+
 
     explicit format
     (   sample_type_t SampleType,
@@ -142,40 +155,48 @@ public:
     {
     }
 
+
     explicit operator bool() const
     {
         return SampleType_ != sample_type_t::unknown;
     }
+
 
     std::size_t sample_bit_size() const
     {
         return bits_per_sample( SampleType_ );
     }
 
+
     std::size_t sample_byte_size() const
     {
         return bytes_per_sample( SampleType_ );
     }
+
 
     sample_type_t sample_type() const
     {
         return SampleType_;
     }
 
+
     std::size_t sample_rate() const
     {
         return SampleRate_;
     }
+
 
     std::size_t channel_count() const
     {
         return ChannelCount_;
     }
 
+
     const std::string& codec() const
     {
         return Codec_;
     }
+
 
     static format format_from( const QAudioFormat& Format )
     {
@@ -227,6 +248,7 @@ public:
                     Format.channelCount(),
                     Format.codec().toStdString()   );
     }
+
 
     static QAudioFormat q_audio_format_from( const format& Format )
     {
@@ -293,6 +315,7 @@ private:
     std::size_t   SampleRate_;
     std::size_t   ChannelCount_;
     std::string   Codec_;
+
 };
 
 
@@ -313,7 +336,6 @@ operator<<( std::basic_ostream<CharT,CharTraitsT>& Stream, const format& Format 
 } // audio
 } // qt
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
-
 
 // G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G
 #endif // QT_AUDIO_FORMAT_HPP_INCLUDED

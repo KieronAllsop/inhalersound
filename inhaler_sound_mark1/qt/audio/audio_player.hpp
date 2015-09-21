@@ -18,7 +18,7 @@
 // Boost Includes
 #include <boost/filesystem.hpp>
 
-// C++ Standard Library Includes
+// Standard Library Includes
 #include <functional>
 #include <memory>
 
@@ -29,6 +29,13 @@ namespace qt {
 namespace audio {
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 
+
+//! \class  audio_player.hpp
+//! \author Kieron Allsop
+//!
+//! \brief  To enable playing of a WAV file which has been imported into
+//!         the system.
+//!
 class audio_player
 {
 public:
@@ -51,6 +58,7 @@ public:
 
     explicit audio_player
         (   const path_t& Path,
+
             const nanoseconds_t& Duration,
             const play_handler_t& PlayHandler,
             const buffer_handler_t& ProbeHandler   )
@@ -85,6 +93,7 @@ public:
         }
     }
 
+
     virtual ~audio_player()
     {
         if( Player_.state() == QMediaPlayer::PlayingState )
@@ -94,8 +103,8 @@ public:
         stop();
     }
 
-    // Observers
 
+    // Observers -------------------------------------------------------------
     const path_t& path() const
     {
         return Path_;
@@ -106,8 +115,8 @@ public:
         return Duration_;
     }
 
-    // Modifiers
 
+    // Modifiers -------------------------------------------------------------
     void play_pause()
     {
         if( Player_.state() != QMediaPlayer::PlayingState )
@@ -120,6 +129,7 @@ public:
         }
     }
 
+
     void stop()
     {
         if( Player_.state() == QMediaPlayer::PlayingState )
@@ -129,15 +139,18 @@ public:
         Player_.stop();
     }
 
+
     void mute_on()
     {
         Player_.setMuted( true );
     }
 
+
     void mute_off()
     {
         Player_.setMuted( false );
     }
+
 
     void reset_player()
     {
@@ -146,6 +159,7 @@ public:
         stop();
         mute_off();
     }
+
 
     bool set_play_selection( const nanoseconds_t& Start, const nanoseconds_t& End )
     {
@@ -175,6 +189,7 @@ public:
         Player_.stop();
         return true;
     }
+
 
     void clear_play_selection()
     {
@@ -267,6 +282,7 @@ private:
         }
     }
 
+
     void handle_player_position_changed( qint64 Milliseconds )
     {
         if( Player_.state() != QMediaPlayer::StoppedState )
@@ -278,6 +294,7 @@ private:
             Player_.stop();
         }
     }
+
 
     void handle_player_state_changed( QMediaPlayer::State State )
     {
@@ -310,15 +327,14 @@ private:
     buffer_handler_t        ProbeHandler_;
     nanoseconds_t           Start_;
     nanoseconds_t           End_;
-};
 
+};
 
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 } // audio
 } // qt
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
-
 
 // G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G
 #endif // QT_AUDIO_AUDIO_PLAYER_HPP_INCLUDED

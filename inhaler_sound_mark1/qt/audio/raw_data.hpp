@@ -25,6 +25,12 @@ namespace qt {
 namespace audio {
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 
+
+//! \class  raw_data.hpp
+//! \author Kieron Allsop
+//!
+//! \brief  To store the WAV file data that has been chosen by the user to view.
+//!
 class raw_data
 {
 public:
@@ -50,6 +56,7 @@ public:
     {
     }
 
+
     raw_data
     (   const format& Format,
         std::vector<char>&& Data   )
@@ -67,10 +74,12 @@ public:
     {
     }
 
+
     raw_data()
     : RemoveLinkedFile_( false )
     {
     }
+
 
     ~raw_data()
     {
@@ -83,7 +92,9 @@ public:
         }
     }
 
+
     // Modifiers
+
     void add_buffer( const buffer_t& Buffer )
     {
         if(     Buffer_.format().sample_type() != sample_type_t::unknown
@@ -103,6 +114,7 @@ public:
         Buffer_ = buffer_t( Buffer.format(), static_cast<const void*>( &Data_[0] ), Data_.size() );
     }
 
+
     void zero_pad( std::size_t FrameSize, std::size_t FrameShift )
     {
         if( FrameSize != FrameSize_ && FrameShift != FrameShift_ )
@@ -113,6 +125,7 @@ public:
         }
     }
 
+
     // Observers
 
     const format_t& format() const
@@ -120,61 +133,60 @@ public:
         return Buffer_.format();
     }
 
+
     std::size_t samples_per_channel() const
     {
         return Buffer_.samples_per_channel();
     }
+
 
     duration_t duration() const
     {
         return Buffer_.duration();
     }
 
+
     duration_t duration_from( std::size_t Samples ) const
     {
         return Buffer_.duration_from( Samples );
     }
+
 
     const path_t& linked_file() const
     {
         return LinkedFile_;
     }
 
+
     const buffer_t& buffer() const
     {
         return Buffer_;
     }
+
 
     const void* data() const
     {
         return static_cast<const void*>( &Data_[0] );
     }
 
-//    const void* data() const
-//    {
-//        return Buffer_.data();
-//    }
 
     std::size_t size() const
     {
         return Size_;
     }
 
+
     std::size_t zero_padded_size() const
     {
         return Buffer_.size();
     }
+
 
     template<class T>
     T scaled_sample( std::size_t Index, std::size_t Channel ) const
     {
         return Buffer_.scaled_sample<T>( Index, Channel );
     }
-
-//    double normalised_sample( std::size_t Index, std::size_t Channel ) const
-//    {
-//        return Buffer_.normalised_sample( Index, Channel );
-//    }
 
 private:
 
@@ -204,13 +216,14 @@ private:
     std::size_t                 FrameShift_;
     path_t                      LinkedFile_;
     bool                        RemoveLinkedFile_;
+
 };
+
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 } // audio
 } // qt
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
-
 
 // G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G
 #endif // QT_AUDIO_RAW_DATA_HPP_INCLUDED

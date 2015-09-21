@@ -18,7 +18,7 @@
 // Boost Includes
 #include <boost/filesystem.hpp>
 
-// C++ Standard Library Includes
+// Standard Library Includes
 #include <functional>
 #include <memory>
 #include <fstream>
@@ -31,6 +31,13 @@ namespace qt {
 namespace audio {
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 
+
+//! \class  audio_decoder.hpp
+//! \author Kieron Allsop
+//!
+//! \brief  To decode WAV file data by reading the details contained in the
+//!         RIFF header fo the WAV file
+//!
 class audio_decoder
 {
 public:
@@ -71,26 +78,28 @@ public:
                 [this]( QAudioDecoder::Error Error ){ on_audio_decoder_error( Error ); }   );
     }
 
+
     virtual ~audio_decoder()
     {
         stop();
     }
 
-    // Observers
 
+    // Observers -------------------------------------------------------------
     const path_t& path() const
     {
         return Path_;
     }
 
-    // Modifiers
 
+    // Modifiers -------------------------------------------------------------
     void start()
     {
         stop();
         Decoder_.setSourceFilename( QString::fromUtf8( Path_.c_str() ) );
         Decoder_.start();
     }
+
 
     void stop()
     {
@@ -186,6 +195,7 @@ private:
         }
     }
 
+
     void on_audio_decoder_finished()
     {
         Handler_( status_t::finished, buffer_t() );
@@ -198,11 +208,8 @@ private:
         {
             Handler_( status_t::started, buffer_t() );
         }
-//         else
-//         {
-//             std::cout << "Decoding Stopped" << std::endl;
-//         }
     }
+
 
     void on_audio_decoder_format_changed( const QAudioFormat& Format )
     {
@@ -210,11 +217,11 @@ private:
         Handler_( status_t::status, buffer_t( DecodeFormat, nullptr, 0 ) );
     }
 
+
     void on_audio_decoder_error( QAudioDecoder::Error Error )
     {
         if( Error == QAudioDecoder::ResourceError )
         {
-            std::cout << "QAudioDecoder Resource Error = " << Error << ": " << Decoder_.errorString().toStdString() << std::endl;
             Decoder_.stop();
 
             WaveDecoder_
@@ -225,12 +232,10 @@ private:
                             wave_decoder_handler( Status, Buffer );
                         }
                     );
-
             WaveDecoder_->start();
         }
         else
         {
-            std::cout << "QAudioDecoder Other Error = " << Error << ": " << Decoder_.errorString().toStdString() << std::endl;
             Decoder_.stop();
             auto Status = status_t::operation_aborted;
             switch( Error )
@@ -244,6 +249,7 @@ private:
             Handler_( Status, buffer_t() );
         }
     }
+
 
     void wave_decoder_handler( status_t Status, const buffer_t& Buffer )
     {
@@ -265,15 +271,14 @@ private:
     bool                            Decoding_;
     path_t                          Path_;
     buffer_handler_t                Handler_;
-};
 
+};
 
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 } // audio
 } // qt
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
-
 
 // G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G
 #endif // QT_AUDIO_AUDIO_DECODER_HPP_INCLUDED

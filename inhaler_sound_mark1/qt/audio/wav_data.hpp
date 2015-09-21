@@ -26,6 +26,12 @@ namespace qt {
 namespace audio {
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 
+
+//! \class  wav_data.hpp
+//! \author Kieron Allsop
+//!
+//! \brief  To store WAV data as it is imported for use in feature extraction.
+//!
 class wav_data
 {
 public:
@@ -99,11 +105,9 @@ public:
         {
             FrameSize_ = FrameSize;
             FrameShift_ = FrameShift;
+
             auto ZeroPadSize = zero_padding_required( samples_per_channel( header().data_size(), Buffer_.format() ) );
-std::cout << "zero_pad - ZeroPadSize = " << ZeroPadSize << std::endl;
             Data_.resize( header().file_size() + ZeroPadSize, 0 );
-std::cout << "zero_pad - data size after resize = " << Data_.size() << std::endl;
-std::cout << "zero_pad - next line is Buffer_ = buffer_t( Buffer_.format(), static_cast<const void*>( &Data_[header_size()] ), Data_.size()-header_size() )" << std::endl;
             Buffer_ = buffer_t( Buffer_.format(), static_cast<const void*>( &Data_[header_size()] ), Data_.size()-header_size() );
         }
     }
@@ -133,11 +137,6 @@ std::cout << "zero_pad - next line is Buffer_ = buffer_t( Buffer_.format(), stat
     const buffer_t& buffer() const
     {
         return Buffer_;
-    }
-
-    std::size_t header_size() const
-    {
-        return HeaderSize_;
     }
 
     const wav_header& header() const
@@ -228,29 +227,25 @@ private:
         Header->update_size( DataSize, HeaderSize_ );
     }
 
+    std::size_t header_size() const
+    {
+        return HeaderSize_;
+    }
+
     static
     std::size_t samples_per_channel( std::size_t DataSize, const format_t& Format )
     {
-std::cout << "samples_per_channel - DataSize = " << DataSize << std::endl;
-std::cout << "samples_per_channel - Format.sample_byte_size = " << Format.sample_byte_size() << std::endl;
-std::cout << "samples_per_channel - Format.channel_count = " << Format.channel_count() << std::endl;
-std::cout << "Calculation is DataSize / Format.sample_byte_size() / Format.channel_count()" << std::endl;
         return DataSize / Format.sample_byte_size() / Format.channel_count();
     }
 
     static
     std::size_t bytes_from_samples( std::size_t Samples, const format_t& Format )
     {
-std::cout << "bytes_from_samples - Samples = " << Samples << std::endl;
-std::cout << "bytes_from_samples - Format.sample_byte_size = " << Format.sample_byte_size() << std::endl;
-std::cout << "bytes_from_samples - Format.channel_count = " << Format.channel_count() << std::endl;
-std::cout << "Calculation is Samples * Format.sample_byte_size() * Format.channel_count()" << std::endl;
         return Samples * Format.sample_byte_size() * Format.channel_count();
     }
 
     std::size_t zero_padding_required( std::size_t SampleSize )
     {
-std::cout << "zero_padding_required - SampleSize = " << SampleSize << std::endl;
         if( !FrameSize_ || FrameSize_ == SampleSize )
         {
             return 0;
@@ -260,9 +255,7 @@ std::cout << "zero_padding_required - SampleSize = " << SampleSize << std::endl;
         if( FrameSize_ < SampleSize )
         {
             auto Divisor = FrameShift_ ? FrameShift_ : FrameSize_;
-std::cout << "zero_padding_required - Divisor = " << Divisor << std::endl;
             auto Remainder = ( SampleSize - FrameSize_ ) % Divisor;
-std::cout << "zero_padding_required - Remainder = " << Remainder << std::endl;
             if( Remainder < FrameShift_ )
             {
                 PaddingSamples = FrameShift_ - Remainder;
@@ -276,10 +269,8 @@ std::cout << "zero_padding_required - Remainder = " << Remainder << std::endl;
         {
             PaddingSamples = FrameSize_ - SampleSize;
         }
-std::cout << "zero_padding_required - PaddingSamples = " << PaddingSamples << std::endl;
         return bytes_from_samples( PaddingSamples, Buffer_.format() );
     }
-
 
 private:
 
@@ -288,13 +279,14 @@ private:
     std::size_t                 FrameSize_;
     std::size_t                 FrameShift_;
     buffer_t                    Buffer_;
+
 };
+
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 } // audio
 } // qt
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
-
 
 // G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G
 #endif // QT_AUDIO_WAV_DATA_HPP_INCLUDED

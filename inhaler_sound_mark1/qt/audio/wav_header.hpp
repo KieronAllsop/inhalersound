@@ -20,6 +20,11 @@ namespace audio {
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 
 
+//! \class  wav_header.hpp
+//! \author Kieron Allsop
+//!
+//! \brief  RIFF header information
+//!
 class wav_header
 {
 public:
@@ -100,11 +105,16 @@ public:
 
     void update_size( std::size_t Size, std::size_t HeaderSize = 0 )
     {
-        Riff_.length = Size + ( HeaderSize ? HeaderSize : sizeof( wav_header ) );
+        Riff_.length = Size + ( HeaderSize ? HeaderSize : sizeof( wav_header ) ) - sizeof( riff_header );
         Data_.length = Size;
     }
 
     std::size_t file_size() const
+    {
+        return Riff_.length + sizeof( riff_header );
+    }
+
+    std::size_t riff_size() const
     {
         return Riff_.length;
     }
@@ -199,8 +209,6 @@ public:
 
         return format_t( SampleType, SampleRate, ChannelCount, "audio/pcm" );
     }
-
-
 };
 
 
@@ -208,7 +216,6 @@ public:
 } // audio
 } // qt
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
-
 
 // G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G
 #endif // QT_AUDIO_WAVE_HEADER_HPP_INCLUDED

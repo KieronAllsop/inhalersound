@@ -8,7 +8,7 @@
 // qt::audio Includes
 #include "qt/audio/format.hpp"
 
-// C++ Standard Library Includes
+// Standard Library Includes
 #include <string>
 #include <cassert>
 #include <chrono>
@@ -23,6 +23,14 @@ namespace qt {
 namespace audio {
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 
+
+//! \class  audio_buffer.hpp
+//! \author Kieron Allsop
+//!
+//! \brief  Buffer for WAV file data whilst it is being read into the system.
+//!         Also has the ability to both scale and normalise WAV data to allow
+//!         files of different types to displayed in a proportionate manner.
+//!
 class audio_buffer
 {
 public:
@@ -42,6 +50,7 @@ public:
     {
     }
 
+
     explicit audio_buffer
     (   const format& Format,
         const void* Data,
@@ -56,6 +65,7 @@ public:
         initialise_normalised_sample( Format_.sample_type() );
     }
 
+
     explicit audio_buffer
     (   const format& Format,
         std::size_t SamplesPerChannel   ) noexcept
@@ -68,6 +78,7 @@ public:
     {
     }
 
+
     audio_buffer( const audio_buffer& Other ) noexcept
     {
         Format_             = Other.Format_;
@@ -78,6 +89,7 @@ public:
         initialise_normalised_sample( Format_.sample_type() );
     }
 
+
     audio_buffer& operator=( const audio_buffer& Other ) noexcept
     {
         audio_buffer Temp( Other );
@@ -85,6 +97,7 @@ public:
         initialise_normalised_sample( Format_.sample_type() );
         return *this;
     }
+
 
     friend void swap( audio_buffer& Lhs, audio_buffer& Rhs ) noexcept
     {
@@ -98,38 +111,46 @@ public:
         Rhs.initialise_normalised_sample( Rhs.Format_.sample_type() );
     }
 
+    // Observers -------------------------------------------------------------
+
     const format_t& format() const
     {
         return Format_;
     }
+
 
     std::size_t samples_per_channel() const
     {
         return SamplesPerChannel_;
     }
 
+
     const duration_t& duration() const
     {
         return Duration_;
     }
+
 
     duration_t duration_from( std::size_t Samples ) const
     {
         return duration_t( Samples ) * 1'000'000'000 / Format_.sample_rate();
     }
 
+
     const void* data() const
     {
         return Data_;
     }
+
 
     std::size_t size() const
     {
         return Size_;
     }
 
+
     template<class T>
-    const T& sample_cast( std::size_t Index, std::size_t Channel ) const
+     const T& sample_cast( std::size_t Index, std::size_t Channel ) const
     {
         assert( sizeof(T) == Format_.sample_byte_size() );
         assert( Channel < Format_.channel_count() );
@@ -137,6 +158,7 @@ public:
 
         return *static_cast<const T*>( static_cast<const void*>( static_cast<const char*>( Data_ ) + offset( Index, Channel ) ) );
     }
+
 
     // Ensure that when dealing with wav files of different formats the values are scaled correctly
     template<class T>
@@ -176,6 +198,7 @@ public:
         return 0;
     }
 
+
     template<class T>
     typename std::enable_if_t< std::is_integral<T>{} && std::is_unsigned<T>{}, T >
     scaled_sample( std::size_t Index, std::size_t Channel ) const
@@ -183,12 +206,14 @@ public:
         return scaled_sample< std::make_signed_t<T> >( Index, Channel ) ^ ( 1 << ( sizeof(T) * 8 -1 ) );
     }
 
+
     template<class T>
     typename std::enable_if_t< std::is_floating_point<T>{}, T >
     scaled_sample( std::size_t Index, std::size_t Channel ) const
-    {
+     {
         return static_cast<T>( normalised_sample( Index, Channel ) );
     }
+
 
     double normalised_sample( std::size_t Index, std::size_t Channel ) const
     {
@@ -206,6 +231,7 @@ private:
         return Index * Format_.sample_byte_size() * Format_.channel_count() + Channel * Format_.sample_byte_size();
     }
 
+
     // The below functions normalise the wav data in order to return a double value between 1.0 and -1.0
     double normalised_unsigned_int8( std::size_t Index, std::size_t Channel ) const
     {
@@ -213,11 +239,13 @@ private:
         return Value / 0x7F'FF'FF'FF;
     }
 
+
     double normalised_signed_int16( std::size_t Index, std::size_t Channel ) const
     {
         double Value = (1 << 16) * static_cast<std::int32_t>( sample_cast<std::int16_t>( Index, Channel ) );
         return Value / 0x7F'FF'FF'FF;
     }
+
 
     double normalised_signed_int32( std::size_t Index, std::size_t Channel ) const
     {
@@ -225,10 +253,12 @@ private:
         return Value / 0x7F'FF'FF'FF;
     }
 
+
     double normalised_float( std::size_t Index, std::size_t Channel ) const
     {
         return sample_cast<float>( Index, Channel );
     }
+
 
     void initialise_normalised_sample( sample_type_t SampleType )
     {
@@ -280,7 +310,6 @@ private:
 } // audio
 } // qt
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
-
 
 // G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G
 #endif // QT_AUDIO_AUDIO_BUFFER_HPP_INCLUDED

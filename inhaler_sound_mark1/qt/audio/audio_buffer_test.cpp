@@ -17,6 +17,11 @@
 // T T T T T T T T T T T T T T T T T T T T T T T T T T T T T T T T T T T T T T
 
 
+//! \test   Test class to show that the sample scaling used in the audio_buffer
+//!         class works
+//! \author Kieron Allsop
+//!
+
 std::vector<std::uint8_t> Uint8TestData
     = { 255, 254, 129, 128, 127, 1, 0 };
 

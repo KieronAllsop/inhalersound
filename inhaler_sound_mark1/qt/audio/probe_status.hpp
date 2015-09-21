@@ -14,6 +14,12 @@ namespace qt {
 namespace audio {
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 
+
+//! \class  probe_status.hpp
+//! \author Kieron Allsop
+//!
+//! \brief  enum class for probe status
+//!
 enum class probe_status_t
 {
     buffer_ready,
@@ -36,6 +42,7 @@ constexpr bool is_error( const probe_status_t& Status )
     return true;
 }
 
+
 inline
 constexpr const char* c_str( const probe_status_t& Status )
 {
@@ -49,11 +56,11 @@ constexpr const char* c_str( const probe_status_t& Status )
     return nullptr;
 }
 
+
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 } // audio
 } // qt
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
-
 
 // G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G
 #endif // QT_AUDIO_PROBE_STATUS_HPP_INCLUDED
