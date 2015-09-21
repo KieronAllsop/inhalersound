@@ -5,14 +5,14 @@
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
-// Custom Includes
+// data_model Includes
 #include "data_model/schema.hpp"
 
 // Qt Includes
 #include <QWizardPage>
 #include <QStringList>
 
-// C++ Standard Library Includes
+// Standard Library Includes
 #include <memory>
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
@@ -34,6 +34,10 @@ namespace qt_gui {
 namespace import_wizard {
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 
+
+//! \headerfile select_files_page.h
+//! \author     Kieron Allsop
+//!
 class select_files_page : public QWizardPage
 {
     Q_OBJECT
@@ -46,13 +50,17 @@ public:
                     select_files_page           (   const shared_importer_t& Importer,
                                                     QWidget* Parent=0   );
 
-private slots:
+private:
 
     void            on_select_files_clicked     ();
 
     void            on_confirm_button_clicked   ();
 
-    void            on_inhaler_selected        	(   QString   );
+    void            on_inhaler_selected        	(   const QString& Inhaler   );
+
+//private slots:
+
+//    void            on_inhaler_selected        	(   QString   );
 
 private:
     // Data Variables
@@ -69,6 +77,7 @@ private:
     QTreeView*          AudioFiles_View_;
     QStandardItemModel* AudioFiles_;
     QComboBox*          SelectInhaler_;
+
 };
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
@@ -76,6 +85,6 @@ private:
 } // end qt_gui
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 
+
 // G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G
 #endif // QT_GUI_IMPORT_WIZARD_SELECT_FILES_PAGE_H_INCLUDED
-

@@ -5,14 +5,14 @@
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
-// Custom Includes
+// inhaler Includes
 #include "inhaler/server.hpp"
+
+// analysis Includes
+#include "analysis/speech_spectra_settings.hpp"
 
 // Qt Includes
 #include <QWizard>
-
-// C++ Standard Library Includes
-// none
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
@@ -21,6 +21,10 @@ namespace qt_gui {
 namespace import_wizard {
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 
+
+//! \headerfile wizard.h
+//! \author     Kieron Allsop
+//!
 class wizard : public QWizard
 {
     Q_OBJECT
@@ -29,17 +33,22 @@ public:
 
     using shared_schema_t    = inhaler::server::shared_schema_t;
     using patient_t          = shared_schema_t::element_type::patient_t;
+    using shared_settings_t  = std::shared_ptr<analysis::speech_spectra_settings>;
 
     explicit        wizard          (   const patient_t& Patient,
                                         const shared_schema_t& Schema,
+                                        const shared_settings_t& Settings,
                                         QWidget* parent = 0   );
 
     void            accept          () Q_DECL_OVERRIDE;
 
 private:
 
-    shared_schema_t Schema_;
+    shared_schema_t         Schema_;
+    shared_settings_t       Settings_;
+
 };
+
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 } // end import_wizard

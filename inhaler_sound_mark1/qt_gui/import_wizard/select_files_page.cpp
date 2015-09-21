@@ -3,7 +3,7 @@
 // Self Include
 #include "qt_gui/import_wizard/select_files_page.h"
 
-// Importer Includes
+// inhaler Includes
 #include "inhaler/wave_details.hpp"
 #include "inhaler/wave_importer.hpp"
 
@@ -26,7 +26,7 @@
 #include <boost/optional.hpp>
 #include <boost/optional/optional_io.hpp>
 
-// C++ Standard Library Includes
+// Standard Library Includes
 #include <vector>
 #include <fstream>
 
@@ -38,13 +38,18 @@ namespace import_wizard {
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 
 
+//! \class  select_files_page_cpp
+//! \author Kieron Allsop
+//!
+//! \brief  Second page of file import wizard. User selects files that are to
+//!         imported
+//!
 select_files_page::
 select_files_page
 (   const shared_importer_t& Importer,
     QWidget* Parent )
 
 : QWizardPage( Parent )
-
 , Importer_( Importer )
 , Confirmed_( false )
 
@@ -60,20 +65,19 @@ select_files_page
 {
     setTitle( "Select Inhaler sound files for Processing" );
 
-    // Set up event handling
-    connect( SelectFiles_Button_,   SIGNAL( released() ),           this, SLOT( on_select_files_clicked() ) );
-    connect( ConfirmFiles_Button_,  SIGNAL( clicked() ),            this, SLOT( on_confirm_button_clicked() ) );
-    connect( SelectInhaler_,        SIGNAL( highlighted(QString) ), this, SLOT( on_inhaler_selected(QString) ) );
-
     // Initialise Widgets
     AudioFiles_View_->setSizePolicy( QSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding ) );
     AudioFiles_View_->setModel( AudioFiles_ );
+    AudioFiles_View_->setUniformRowHeights( true );
+    AudioFiles_View_->setSelectionMode( QTreeView::NoSelection );
+    AudioFiles_View_->setEditTriggers( QTreeView::NoEditTriggers );
+    AudioFiles_View_->setAlternatingRowColors( true );
 
-    SelectInhaler_->setEnabled(false);
-    SelectInhaler_->addItem("Accuhaler");
-    SelectInhaler_->setEditable(false);
+    SelectInhaler_->setEnabled( false );
+    SelectInhaler_->addItem( "Accuhaler" );
+    SelectInhaler_->setEditable( false );
 
-    ConfirmFiles_Button_->setEnabled(false);
+    ConfirmFiles_Button_->setEnabled( false );
 
     AudioFiles_->setColumnCount(3);
     QStringList Headers;
@@ -82,6 +86,8 @@ select_files_page
         << "Size"
         << "Date";
     AudioFiles_->setHorizontalHeaderLabels( Headers );
+
+    AudioFiles_View_->setColumnWidth( 0, 200 );
 
     // Initialise Layout
 
@@ -115,7 +121,14 @@ select_files_page
 
     setLayout( MasterLayout );
 
+    // Set up event handling
+    connect( SelectFiles_Button_, &QPushButton::released, [this](){ on_select_files_clicked(); } );
+    connect( ConfirmFiles_Button_, &QPushButton::released, [this](){ on_confirm_button_clicked(); } );
+    connect( SelectInhaler_, static_cast<void (QComboBox::*)(const QString& )>(&QComboBox::highlighted), [this]( const QString& Inhaler ){ on_inhaler_selected( Inhaler ); } );
+//    connect( SelectInhaler_, &QComboBox::highlighted, [this]( const QString& Inhaler ){ on_inhaler_selected( Inhaler ); } );
+//    connect( SelectInhaler_,        SIGNAL( highlighted( QString ) ), this, SLOT( on_inhaler_selected( QString ) ) );
 }
+
 
 bool select_files_page::
 isComplete() const
@@ -125,11 +138,13 @@ isComplete() const
 
 
 void select_files_page::
-on_inhaler_selected(QString Inhaler)
+on_inhaler_selected( const QString& Inhaler )
+//on_inhaler_selected( QString Inhaler )
 {
-    Importer_->set_inhaler_model(Inhaler.toStdString());
-    ConfirmFiles_Button_->setEnabled(true);
+    Importer_->set_inhaler_model( Inhaler.toStdString() );
+    ConfirmFiles_Button_->setEnabled( true );
 }
+
 
 void select_files_page::
 on_confirm_button_clicked()
@@ -141,6 +156,7 @@ on_confirm_button_clicked()
     completeChanged();
 }
 
+
 void select_files_page::
 on_select_files_clicked()
 {
@@ -149,7 +165,7 @@ on_select_files_clicked()
              (   this,
                  "Select one or more wave files to open",
                  QDir::homePath(),
-                 "Wave Files (*.wav);; All files (*.*)"   );     // TODO: remove all files after testing
+                 "Wave Files (*.wav)"   );
 
     if( FileNames.size() )
     {
@@ -171,8 +187,6 @@ on_select_files_clicked()
 
             Waves.emplace_back( Path, DateTime, Size );
 
-            // TODO: Format Size as a B, KiB, MiB or GiB string first
-
             std::stringstream Date;
             Date.imbue( TimeLocale );
             Date << DateTime;
@@ -188,6 +202,7 @@ on_select_files_clicked()
     }
     SelectInhaler_->setEnabled(true);
 }
+
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 } // end import_wizard

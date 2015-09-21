@@ -5,14 +5,11 @@
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
-// Inhaler Includes
+// inhaler Includes
 #include "inhaler/label_file_editor.hpp"
 
 // Qt Includes
 #include <QWizardPage>
-
-// C++ Standard Library Includes
-// non
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
@@ -24,6 +21,10 @@ namespace qt_gui {
 namespace import_wizard {
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 
+
+//! \headerfile intro_page.h
+//! \author     Kieron Allsop
+//!
 class intro_page : public QWizardPage
 {
     Q_OBJECT
@@ -35,7 +36,9 @@ private:
 
     // Owned Widgets
     QLabel* Introduction_Label_;
+
 };
+
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 } // end import_wizard
@@ -44,4 +47,3 @@ private:
 
 // G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G
 #endif // QT_GUI_IMPORT_WIZARD_INTRO_PAGE_H_INCLUDED
-

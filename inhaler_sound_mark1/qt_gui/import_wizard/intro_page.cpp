@@ -1,17 +1,11 @@
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
-// Header Include
+// Self Include
 #include "qt_gui/import_wizard/intro_page.h"
 
 // Qt Includes
 #include <QVBoxLayout>
 #include <QLabel>
-
-// Boost Library Includes
-// None
-
-// C++ Standard Includes
-// None
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
@@ -20,6 +14,12 @@ namespace qt_gui {
 namespace import_wizard {
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 
+
+//! \class  intro_page.cpp
+//! \author Kieron Allsop
+//!
+//! \brief  First page of file importation wizard; an introduction.
+//!
 intro_page::
 intro_page( QWidget* Parent )
 : QWizardPage( Parent )
@@ -31,14 +31,14 @@ intro_page( QWidget* Parent )
 {
     setTitle( "Import and Process Inhaler Sounds" );
 
-//    setPixmap( QWizard::WatermarkPixmap, QPixmap( "watermark.png" ) );
-
     Introduction_Label_->setWordWrap(true);
 
     QVBoxLayout* Layout = new QVBoxLayout;
     Layout->addWidget( Introduction_Label_ );
     setLayout( Layout );
+
 }
+
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 } // end import_wizard

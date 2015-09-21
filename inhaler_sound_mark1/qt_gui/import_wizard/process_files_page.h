@@ -5,7 +5,7 @@
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
-// Inhaler Includes
+// inhaler Includes
 #include "inhaler/wave_details.hpp"
 #include "inhaler/wave_importer.hpp"
 
@@ -13,7 +13,7 @@
 #include <QWizardPage>
 #include <QEvent>
 
-// C++ Standard Library Includes
+// Standard Library Includes
 #include <atomic>
 #include <thread>
 
@@ -24,15 +24,15 @@ class QLabel;
 class QPushButton;
 class QProgressBar;
 
-
-
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 namespace qt_gui {
 namespace import_wizard {
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 
 
-
+//! \headerfile process_files_page.h
+//! \author     Kieron Allsop
+//!
 class import_status_event : public QEvent
 {
 public:
@@ -61,15 +61,18 @@ public:
     {
     }
 
+
     const wave_details_t& wave_file () const
     {
         return WaveFile_;
     }
 
+
     int number() const
     {
         return Number_;
     }
+
 
     const import_status_t&  import_status() const
     {
@@ -117,8 +120,8 @@ private:
                                                             int Number,
                                                             import_status_t Status   );
 
-
 private:
+
     // Data Variables
     shared_importer_t   Importer_;
     std::atomic<bool>   Cancelled_;
@@ -137,7 +140,6 @@ private:
 } // end import_wizard
 } // end qt_gui
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
-
 
 // G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G
 #endif // QT_GUI_IMPORT_WIZARD_PROCESS_FILES_PAGE_H_INCLUDED

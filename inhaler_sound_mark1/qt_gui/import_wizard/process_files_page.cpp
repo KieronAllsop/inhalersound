@@ -12,9 +12,6 @@
 #include <QVBoxLayout>
 #include <QCoreApplication>
 
-// C++ Standard Library Includes
-// None
-
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
@@ -23,10 +20,16 @@ namespace import_wizard {
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 
 
+//! \class  process_files_page.cpp
+//! \author Kieron Allsop
+//!
+//! \brief  Final page of the import files wizard. Files are imported and
+//!         undergo feature extraction.
+//!
 process_files_page::
 process_files_page
 (   const shared_importer_t& Importer,
-    QWidget* Parent )
+    QWidget* Parent   )
 
 : QWizardPage       ( Parent )
 
@@ -35,20 +38,19 @@ process_files_page
 , Complete_         ( true )
 , DuplicateFile_    ( false )
 
-// Create Widgets
-, ProcessingFiles_Label_        ( new QLabel        ( "Selected wave files will be added to the Database and then are undergo the initial stage of processing"))
+, ProcessingFiles_Label_
+    ( new QLabel
+        ( "Selected wave files will be added to the Database and then are undergo the initial stage of processing" ) )
+
 , ProgressLabel_				( new QLabel		( this ) )
 , ProgressBar_  				( new QProgressBar	( this ) )
 {
-    setTitle( "Import and Process sound files");
+    setTitle( "Import and Process sound files" );
 
-//    setPixmap( QWizard::WatermarkPixmap, QPixmap( "watermark.png" ) );
-
-    ProcessingFiles_Label_->setWordWrap(true);
+    ProcessingFiles_Label_->setWordWrap( true );
 
     // Master Layout is a Vertical Box Layout
     QVBoxLayout* MasterLayout = new QVBoxLayout();
-
 
     // Initialise Widgets
     MasterLayout->addWidget( ProcessingFiles_Label_ );
@@ -166,14 +168,8 @@ process_files()
     completeChanged();
 }
 
+
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 } // end import_wizard
 } // end qt_gui
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
-
-
-
-
-
-
-
