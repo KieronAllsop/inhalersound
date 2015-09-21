@@ -6,14 +6,11 @@
 // Qt Includes
 #include <QPainter>
 
-// Boost Includes
-
-// C++ Standard Library Includes
+// Standard Library Includes
 #include <iostream>
 #include <cmath>
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
-
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 namespace qt_gui {
@@ -21,6 +18,12 @@ namespace view {
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 
 
+//! \class  wave_zoom.cpp
+//! \author Kieron Allsop
+//!
+//! \brief  To show a zoom view of waveform. Can be advanced left or right and
+//!         the level of zoom can be changed.
+//!
 wave_zoom::
 wave_zoom
 (   QWidget* Parent   )

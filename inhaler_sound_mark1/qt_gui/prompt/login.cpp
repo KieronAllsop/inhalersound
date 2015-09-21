@@ -20,8 +20,10 @@
 // Boost Library Includes
 #include <boost/format.hpp>
 
-// C++ Standard Library Includes
+// Standard Library Includes
 #include <chrono>
+#include <algorithm>
+#include <string>
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
@@ -30,6 +32,14 @@ namespace qt_gui {
 namespace prompt {
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 
+
+//! \class  login.cpp
+//! \author Kieron Allsop
+//!
+//! \brief  To enable the user to login to the system. Ensures the system
+//!         is connected to the database. Handles re-tries to connect to the
+//!         the database.
+//!
 login::
 login
 (   const shared_server_t& Server,
@@ -54,7 +64,6 @@ login
     connect( Username_Edit_, &QLineEdit::textChanged, [this]( const QString& Text ){ on_credentials_changed( Text ); } );
     connect( Password_Edit_, &QLineEdit::textChanged, [this]( const QString& Text ){ on_credentials_changed( Text ); } );
 
-
     // Initialise State
     Login_Button_->setDefault( true );   // Handle keyboard Enter
     Login_Button_->setEnabled( false );  // Disabled by default
@@ -62,6 +71,9 @@ login
     Status_Label_->setFrameStyle( QFrame::StyledPanel | QFrame::Sunken );
     Status_Label_->setAlignment( Qt::AlignCenter );
 
+    Username_Edit_->setClearButtonEnabled( true );
+
+    Password_Edit_->setClearButtonEnabled( true );
     Password_Edit_->setEchoMode( QLineEdit::Password );
 
     // Initialise Layout
@@ -73,11 +85,10 @@ login
 
     QFormLayout* CredentialsForm = new QFormLayout();
 
-    CredentialsForm->addRow( tr("&Username:"), Username_Edit_ );
-    CredentialsForm->addRow( tr("&Password:"), Password_Edit_ );
+    CredentialsForm->addRow( tr("Username:"), Username_Edit_ );
+    CredentialsForm->addRow( tr("Password:"), Password_Edit_ );
 
     MasterLayout->addLayout( CredentialsForm );
-
     MasterLayout->addWidget( Status_Label_, 0 );
     MasterLayout->addWidget( Login_Button_, 0, Qt::AlignCenter );
 
@@ -87,6 +98,7 @@ login
     // and the widgets it contains
     adjustSize();
 }
+
 
 login::
 ~login()
@@ -235,6 +247,13 @@ void login::
 on_login_clicked()
 {
     auto Username = Username_Edit_->text().toStdString();
+
+    // Usernames would usually not be case sensitive
+    std::transform( Username.begin(),
+                        Username.end(),
+                        Username.begin(),
+                        tolower);
+
     auto Password = Password_Edit_->text().toStdString();
 
     auto User = Server_->authenticate( Username, Password );
@@ -249,6 +268,7 @@ on_login_clicked()
         Username_Edit_->setFocus();
     }
 }
+
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 } // end prompt

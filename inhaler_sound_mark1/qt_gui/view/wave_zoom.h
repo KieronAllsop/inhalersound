@@ -11,7 +11,7 @@
 // Qt Includes
 #include <QWidget>
 
-// C++ Standard Library Includes
+// Standard Library Includes
 #include <vector>
 #include <memory>
 #include <cstdint>
@@ -24,6 +24,10 @@ namespace qt_gui {
 namespace view {
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 
+
+//! \headerfile wave_zoom.h
+//! \author     Kieron Allsop
+//!
 class wave_zoom : public QWidget
 {
     Q_OBJECT
@@ -51,6 +55,7 @@ private:
     std::chrono::nanoseconds        PlayPosition_;
 
 };
+
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 } // end view

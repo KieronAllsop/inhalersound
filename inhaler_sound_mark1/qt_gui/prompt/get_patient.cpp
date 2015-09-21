@@ -3,7 +3,7 @@
 // Self Include
 #include "qt_gui/prompt/get_patient.h"
 
-// Importer Includes
+// inhaler Includes
 #include "inhaler/patient_retriever.hpp"
 
 // Qt Includes
@@ -21,8 +21,9 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/date_time/gregorian/gregorian.hpp>
 
-// C++ Standard Includes
-// None
+// Standard Library Includes
+#include <string>
+#include <algorithm>
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
@@ -31,6 +32,12 @@ namespace qt_gui {
 namespace prompt {
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 
+
+//! \class  get_patient.cpp
+//! \brief  To show a prompt to the user who will enter user credentials. If
+//!         details match a patient held in the database, that patient is
+//!         retrieved
+//!
 get_patient::
 get_patient
 (   const call_on_complete_t& CallOnComplete,
@@ -82,6 +89,10 @@ void get_patient::connect_event_handlers()
 
 void get_patient::initialise_widgets()
 {
+    FirstName_Edit_->setClearButtonEnabled( true );
+    LastName_Edit_->setClearButtonEnabled( true );
+    PostCode_Edit_->setClearButtonEnabled( true );
+
     Calendar_Widget_->setVisible( false );
     DOB_DateEdit_->setCalendarPopup( Calendar_Widget_ );
     DOB_DateEdit_->setMinimumDate( QDate::currentDate().addYears(-120) );
@@ -170,7 +181,20 @@ void get_patient::on_retrieve_clicked()
 {
     auto FirstName = FirstName_Edit_->text().toStdString();
     auto LastName =  LastName_Edit_ ->text().toStdString();
+
     auto Postcode =  PostCode_Edit_ ->text().toStdString();
+
+    Postcode.erase( remove_if(
+                        Postcode.begin(),
+                        Postcode.end(),
+                        isspace),
+                        Postcode.end() );
+
+    std::transform( Postcode.begin(),
+                        Postcode.end(),
+                        Postcode.begin(),
+                        toupper);
+
     const auto& EnteredDate = DOB_DateEdit_->date();
 
     auto DateOfBirth
@@ -185,9 +209,9 @@ void get_patient::on_retrieve_clicked()
     {
         Status_Label_->setText( tr("Patient successfully retrieved") );
 
-        Finish_Button_->setEnabled( true );     // Disabled by default
+        Finish_Button_->setEnabled( true );
         Finish_Button_->setFocus();
-        Finish_Button_->setDefault( true );     // Handle keyboard enter
+        Finish_Button_->setDefault( true );
     }
     else
     {
@@ -206,4 +230,3 @@ void get_patient::on_finished_clicked()
 } // end prompt
 } // end qt_gui
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
-

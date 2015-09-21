@@ -13,7 +13,7 @@
 #include <QWidget>
 #include <QPixmap>
 
-// C++ Standard Library Includes
+// Standard Library Includes
 #include <vector>
 #include <memory>
 #include <cstdint>
@@ -29,6 +29,9 @@ namespace view {
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 
 
+//! \headerfile wave_form.h
+//! \author     Kieron Allsop
+//!
 class wave_form : public QWidget
 {
     Q_OBJECT
@@ -81,6 +84,7 @@ private:
         double Mean;
         double StdDev;
     };
+
 
     enum class selection_mode
     {
@@ -137,13 +141,14 @@ private:
 
     double                          FineTuneStartFactor_;
     double                          FineTuneEndFactor_;
+
 };
+
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 } // end view
 } // end qt_gui
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
-
 
 // G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G
 #endif // QT_GUI_VIEW_WAVE_FORM_H_INCLUDED

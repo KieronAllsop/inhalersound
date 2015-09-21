@@ -5,14 +5,14 @@
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
-// Inhaler Includes
+// inhaler Includes
 #include "inhaler/server.hpp"
+
+// analysis Includes
+#include "analysis/speech_spectra_settings.hpp"
 
 // Qt Includes
 #include <QMainWindow>
-
-// C++ Standard Library Includes
-// None
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
@@ -22,7 +22,6 @@ class QPushButton;
 class QStackedLayout;
 class QWidget;
 class QFrame;
-
 
 namespace qt_gui
 {
@@ -42,10 +41,14 @@ namespace inhaler {
     class server;
 }
 
+namespace analysis {
+    class speech_spectra_settings;
+}
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 namespace qt_gui {
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
+
 
 struct display_view
 {
@@ -58,6 +61,9 @@ struct display_view
 };
 
 
+//! \headerfile mainwindow.h
+//! \author     Kieron Allsop
+//!
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -65,6 +71,7 @@ class MainWindow : public QMainWindow
 public:
 
     using shared_server_t   = std::shared_ptr<inhaler::server>;
+    using shared_settings_t = std::shared_ptr<analysis::speech_spectra_settings>;
     using shared_schema_t   = inhaler::server::shared_schema_t;
     using user_t            = shared_schema_t::element_type::user_t;
     using patient_t         = shared_schema_t::element_type::patient_t;
@@ -72,6 +79,7 @@ public:
 public:
 
     explicit            MainWindow                  (   const shared_server_t& Server,
+                                                        const shared_settings_t& Settings,
                                                         QWidget *parent = 0   );
 
     void                resize_window               (   const double& Fraction );
@@ -95,6 +103,7 @@ private:
 private:
 
     shared_server_t                 Server_;
+    shared_settings_t               Settings_;
     shared_schema_t                 Schema_;
 
     // widgets
@@ -104,6 +113,7 @@ private:
     qt_gui::view::explore_patient*  ExplorePatientView_;
 
 };
+
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 } // end qt_gui

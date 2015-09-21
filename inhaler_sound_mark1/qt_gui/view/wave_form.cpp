@@ -16,7 +16,7 @@
 #include <boost/accumulators/statistics/mean.hpp>
 #include <boost/accumulators/statistics/variance.hpp>
 
-// C++ Standard Library Includes
+// Standard Library Includes
 #include <iostream>
 #include <cmath>
 #include <vector>
@@ -24,12 +24,18 @@
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
-
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 namespace qt_gui {
 namespace view {
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 
+
+//! \class  wave_form.cpp
+//! \author Kieron Allsop
+//!
+//! \brief  Widget to show a graphical representation of the wave form. User can
+//!         play, pause, stop, and make selections on the recording.
+//!
 wave_form::
 wave_form
 (   const selection_handler_t& SelectionHandler,
@@ -727,7 +733,6 @@ mouseMoveEvent( QMouseEvent* Event )
         }
     }
 }
-
 
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n

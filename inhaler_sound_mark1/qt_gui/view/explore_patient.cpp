@@ -3,8 +3,10 @@
 // Self Include
 #include "qt_gui/view/explore_patient.h"
 
-// Inhaler Includes
+// inhaler Includes
 #include "inhaler/wave_importer.hpp"
+
+// qt::audio Includes
 #include "qt/audio/format.hpp"
 
 // qt_gui Includes
@@ -27,9 +29,6 @@
 #include <QUrl>
 #include <QApplication>
 
-// C++ Standard Library Includes
-// None
-
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
 
@@ -42,12 +41,20 @@ namespace qt_gui {
 namespace view {
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 
+
+//! \class  explore_patient.cpp
+//! \author Kieron Allsop
+//!
+//! \brief  To show a retrieved patient and their data from which a user
+//!         can select a recording to interact with
+//!
 explore_patient::
 explore_patient
 (   const call_on_complete_t& CallOnComplete,
     QWidget* Parent )
 : QFrame( Parent )
-, CallOnComplete_( CallOnComplete )
+
+, CallOnComplete_       ( CallOnComplete )
 
 , TimestampFacet_       ( new boost::posix_time::time_facet() )
 , TimestampLocale_      ( std::locale(), TimestampFacet_ )
@@ -189,7 +196,7 @@ initialise_layout()
 void explore_patient::
 reset_interface()
 {
-    // TODO
+    /// TODO
 }
 
 
@@ -206,10 +213,12 @@ to_string( const boost::posix_time::ptime& Timestamp ) const
 void explore_patient::
 reset
 (   const shared_data_retriever_t& DataRetriever,
-    const shared_schema_t& Schema   )
+    const shared_schema_t& Schema,
+    const shared_settings_t& Settings   )
 {
     DataRetriever_ = DataRetriever;
     Schema_ = Schema;
+    Settings_ = Settings;
 
     const auto& Patient = DataRetriever_->patient();
 
@@ -246,6 +255,7 @@ reset
     WaveFiles_->removeRows( 0, WaveFiles_->rowCount() );
 
     WaveFiles_Root_ = WaveFiles_->invisibleRootItem();
+    WaveFiles_ImportParents_.clear();
 
     // retrieve all data from database
     const auto& Waves = DataRetriever_->wave_files();
@@ -265,7 +275,7 @@ void explore_patient::
 on_import_waves()
 {
     // run import files wizard
-    qt_gui::import_wizard::wizard Wizard( DataRetriever_->patient(), Schema_ );
+    qt_gui::import_wizard::wizard Wizard( DataRetriever_->patient(), Schema_, Settings_ );
     if( Wizard.exec() )
     {
         for( auto Wave = DataRetriever_->updated_wave_data();
@@ -314,7 +324,6 @@ add_wave_to_waves_view
     }
 
     Parent->appendRow( Items );
-
 }
 
 
@@ -390,24 +399,17 @@ on_change_patient()
 void explore_patient::
 enable_load_wave( const patient_wave_details_t& Wave )
 {
-    std::cout
-        << "Selected wave is [" << Wave.name()
-        << "], inhaler [" << Wave.inhaler_model()
-        << "], size [" << Wave.size()
-        << "], modified_time [" << Wave.modified_time()
-        << "], import_time [" << Wave.import_time()
-        << "]" << std::endl;
+////Useful for debugging
+//    std::cout
+//        << "Selected wave is [" << Wave.name()
+//        << "], inhaler [" << Wave.inhaler_model()
+//        << "], size [" << Wave.size()
+//        << "], modified_time [" << Wave.modified_time()
+//        << "], import_time [" << Wave.import_time()
+//        << "]" << std::endl;
 
     OpenWave_Button_->setEnabled( true );
 }
-
-
-// TODO: amend above function to this when cout no longer needed for debugging
-//void explore_patient::
-//enable_load_wave()
-//{
-//    OpenWave_Button_->setEnabled( true );
-//}
 
 
 void explore_patient::
@@ -520,7 +522,7 @@ handle_audio_decode( decoder_t::status_t Status, const decoder_t::buffer_t& Buff
         else if( Status == decoder_t::status_t::finished )
         {
 
-            // Print out whole WAV file for debugging
+            /// Print out whole WAV file for debugging
 //            auto Sample = static_cast<const u_int8_t*>(WaveData_->data());
 //            for( int i=1; i<WaveData_->samples_per_channel() ; ++Sample, ++i )
 //            {
@@ -553,7 +555,6 @@ handle_audio_decode( decoder_t::status_t Status, const decoder_t::buffer_t& Buff
         }
         QApplication::restoreOverrideCursor();
     }
-
 }
 
 

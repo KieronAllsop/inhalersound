@@ -14,7 +14,7 @@
 // Boost Library Includes
 #include <boost/optional.hpp>
 
-// C++ Standard Library Includes
+// Standard Library Includes
 #include <memory>
 #include <functional>
 
@@ -27,12 +27,15 @@ class QDateEdit;
 class QPushButton;
 class QCalendarWidget;
 
-
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 namespace qt_gui {
 namespace prompt {
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 
+
+//! \headerfile get_patient.h
+//! \author     Kieron Allsop
+//!
 class get_patient : public QFrame
 {
     Q_OBJECT
@@ -46,31 +49,35 @@ public:
 
 public:
 
-                get_patient                 (   const call_on_complete_t& CallOnComplete,
-                                                QWidget* Parent=0   );
+                    get_patient                 (   const call_on_complete_t& CallOnComplete,
+                                                    QWidget* Parent=0   );
 
-    void        reset                       (   const patient_retriever_t& Retriever   );
-
-private:
-
-    void        on_retrieve_clicked         ();
-    void        on_text_credentials_changed (   const QString& Text   );
-    void        on_date_credentials_changed (   const QDate& Date   );
-    void        on_finished_clicked         ();
+    void            reset                       (   const patient_retriever_t& Retriever   );
 
 private:
 
-    void        initialise_widgets          ();
+    void            on_retrieve_clicked         ();
 
-    void        initialise_layout           ();
+    void            on_text_credentials_changed (   const QString& Text   );
 
-    void        connect_event_handlers      ();
+    void            on_date_credentials_changed (   const QDate& Date   );
 
-    void        reset_interface             ();
-
-    void        update_retrieval_state      ();
+    void            on_finished_clicked         ();
 
 private:
+
+    void            initialise_widgets          ();
+
+    void            initialise_layout           ();
+
+    void            connect_event_handlers      ();
+
+    void            reset_interface             ();
+
+    void            update_retrieval_state      ();
+
+private:
+
     // Data Variables
     patient_retriever_t     Retriever_;
     optional_patient_t      Patient_;
@@ -93,6 +100,7 @@ private:
     QPushButton*        Finish_Button_;
 
 };
+
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 } // end prompt

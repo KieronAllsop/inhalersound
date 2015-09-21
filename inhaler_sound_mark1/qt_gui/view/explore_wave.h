@@ -5,7 +5,7 @@
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
-// Inhaler Includes
+// inhaler Includes
 #include "inhaler/data_retriever.hpp"
 #include "inhaler/label_file_editor.hpp"
 
@@ -21,7 +21,7 @@
 // Boost Library Includes
 #include <boost/date_time/posix_time/posix_time.hpp>
 
-// C++ Standard Library Includes
+// Standard Library Includes
 #include <memory>
 #include <locale>
 #include <vector>
@@ -37,7 +37,6 @@ class QTreeView;
 class QStandardItemModel;
 class QModelIndex;
 class QSlider;
-class QCheckBox;
 
 namespace qt_gui {
 namespace view {
@@ -48,6 +47,10 @@ namespace view {
 }
 }
 
+
+//! \headerfile explore_wave.h
+//! \author     Kieron Allsop
+//!
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 namespace qt_gui {
 namespace view {
@@ -119,6 +122,8 @@ private:
 
     void                    on_commit_changes           ();
 
+    void                    on_export_labelfile         ();
+
     void                    on_revert_changes           ();
 
     void                    on_start_left_arrow         ();
@@ -130,9 +135,6 @@ private:
     void                    on_end_right_arrow          ();
 
     void                    on_slider_changed           ();
-
-    void                    on_checkbox_checked         (   const int& State   );
-
 
 private:
 
@@ -212,6 +214,7 @@ private:
     QPushButton*                    EditLabelRow_Button_;
     QPushButton*                    CancelEditLabel_Button_;
     QPushButton*                    CommitToDatabase_Button_;
+    QPushButton*                    ExportLabelFile_Button_;
     QPushButton*                    Revert_Button_;
 
     QTreeView*                      LabelTreeView_;
@@ -226,24 +229,22 @@ private:
     QPushButton*                    Start_FineTune_Higher_;
     QPushButton*                    End_FineTune_Lower_;
     QPushButton*                    End_FineTune_Higher_;
-    QCheckBox*                      GenerateLabelFileCheck_;
 
     bool                            SelectionMade_;
     bool                            RowSelected_;
     bool                            BeingEdited_;
     bool                            LabelFileChanged_;
-    bool                            GenerateLabelFile_;
     int                             SelectedRow_;
     int                             EditedRow_;
     std::size_t                     ZoomIncrement_;
 
 };
 
+
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 } // end view
 } // end qt_gui
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
-
 
 // G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G G
 #endif // QT_GUI_VIEW_EXPLORE_WAVE_H_INCLUDED

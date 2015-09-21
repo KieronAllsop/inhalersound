@@ -3,7 +3,7 @@
 // Self Include
 #include "qt_gui/mainwindow.h"
 
-// Inhaler Includes
+// inhaler Includes
 #include "inhaler/server.hpp"
 #include "inhaler/data_retriever.hpp"
 
@@ -18,15 +18,11 @@
 #include <QLabel>
 #include <QWidget>
 #include <QStackedLayout>
-#include <QGroupBox>
 #include <QHBoxLayout>
 #include <QDesktopWidget>
 #include <QApplication>
 #include <QStyle>
 #include <QPalette>
-
-// C++ Standard Library Includes
-// none
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
@@ -35,13 +31,23 @@ namespace qt_gui {
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 
 
+//! \class  mainwindow.cpp
+//! \author Kieron Allsop
+//!
+//! \brief  Main window of the system. Contains StackedWidgets to show the different
+//!         views required in the system.
+//!
 MainWindow::MainWindow
 (   const shared_server_t& Server,
+    const shared_settings_t& Settings,
     QWidget* parent  )
 : QMainWindow(parent)
 
 , Server_
     ( Server )
+
+, Settings_
+    ( Settings )
 
 , StackedLayout_
     ( new QStackedLayout() )
@@ -73,7 +79,6 @@ MainWindow::MainWindow
 {
     // Initialise main_window
 
-//    setWindowFlags( Qt::FramelessWindowHint );
     setAttribute( Qt::WA_NoSystemBackground, true );
     setAttribute( Qt::WA_TranslucentBackground, true );
     setContentsMargins( 0, 0, 0, 0 );
@@ -111,12 +116,12 @@ get_prompt_for( QFrame* Prompt )
     Frame->setLayout( Box );
 
     auto Palette = palette();
-    Palette.setBrush( QPalette::Window, QColor(0, 0, 0, 208) );
+    Palette.setBrush( QPalette::Window, QColor( 0, 0, 0, 208 ) );
     Frame->setPalette( Palette );
     Frame->setAutoFillBackground( true );
 
-    Prompt->setPalette( palette().color(QPalette::Background) );
-    Prompt->setAutoFillBackground(true);
+    Prompt->setPalette( palette().color( QPalette::Background ) );
+    Prompt->setAutoFillBackground( true );
 
     return Frame;
 }
@@ -126,7 +131,7 @@ QWidget* MainWindow::
 get_view_for( QFrame* View )
 {
     View->setPalette( palette().color( QPalette::Background ) );
-    View->setAutoFillBackground(true);
+    View->setAutoFillBackground( true );
 
     return View;
 }
@@ -146,7 +151,7 @@ void MainWindow::
 on_get_patient( const data_model::patient& Patient )
 {
     auto DataRetriever = std::make_shared<inhaler::data_retriever>( Patient, Schema_ );
-    ExplorePatientView_->reset( DataRetriever, Schema_ );
+    ExplorePatientView_->reset( DataRetriever, Schema_, Settings_ );
     resize_window( 0.9 );
     StackedLayout_->setCurrentIndex( display_view::explore_patient );
 }
@@ -161,7 +166,7 @@ on_leave_patient()
 }
 
 
-// TODO: facilitate logout
+/// TODO: facilitate logout
 void MainWindow::
 on_logout()
 {
@@ -171,10 +176,11 @@ on_logout()
 //    StackedLayout_->setCurrentIndex( display_view::login );
 }
 
+
 void MainWindow::
 resize_window( const double& Fraction )
 {
-    resize(QDesktopWidget().availableGeometry(this).size() * Fraction );
+    resize( QDesktopWidget().availableGeometry( this ).size() * Fraction );
 
     setGeometry
     (   QStyle::alignedRect
@@ -183,6 +189,7 @@ resize_window( const double& Fraction )
             size(),
             QApplication::desktop()->availableGeometry()  )  );
 }
+
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 } // end qt_gui

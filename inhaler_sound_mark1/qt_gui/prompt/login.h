@@ -16,7 +16,7 @@
 #include <asio.hpp>
 #include <asio/high_resolution_timer.hpp>
 
-// C++ Standard Library Includes
+// Standard Library Includes
 #include <memory>
 #include <chrono>
 #include <thread>
@@ -24,12 +24,10 @@
 
 // I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I
 
-
 // Forward Declarations
 class QLabel;
 class QLineEdit;
 class QPushButton;
-
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 namespace qt_gui {
@@ -94,6 +92,9 @@ private:
 };
 
 
+//! \headerfile login.h
+//! \author     Kieron Allsop
+//!
 class login : public QFrame
 {
     Q_OBJECT
@@ -164,6 +165,7 @@ private:
     QPushButton*        Login_Button_;
 
 };
+
 
 // n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n n
 } // end prompt
